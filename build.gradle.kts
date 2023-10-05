@@ -23,10 +23,10 @@ dependencies {
     implementation(kotlin("stdlib"))
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
 
-    compileOnly("io.lettuce:lettuce-core:6.2.6.RELEASE")
+    compileOnly("io.papermc.paper:paper-api:1.20.1-R0.1-SNAPSHOT")
+    kapt("io.papermc.paper:paper-api:1.20.1-R0.1-SNAPSHOT")
 
-    compileOnly("com.velocitypowered:velocity-api:3.2.0-SNAPSHOT")
-    kapt("com.velocitypowered:velocity-api:3.2.0-SNAPSHOT")
+    compileOnly("io.lettuce:lettuce-core:6.2.6.RELEASE")
 }
 
 tasks.test {
@@ -41,7 +41,7 @@ tasks.withType<Jar> {
         attributes["Main-Class"] = "site.ftka.proxycore.MClass"
     }
 
-    destinationDirectory = layout.buildDirectory.dir("C:/Users/srleg/Desktop/testing/proxy/plugins")
+    destinationDirectory = layout.buildDirectory.dir("C:/Users/srleg/Desktop/testing/survival/plugins")
 
     from(sourceSets.main.get().output)
     dependsOn(configurations.runtimeClasspath)

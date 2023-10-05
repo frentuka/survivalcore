@@ -1,9 +1,8 @@
 package site.ftka.proxycore.services.playerdata.listeners
 
-import com.velocitypowered.api.event.PostOrder
-import com.velocitypowered.api.event.Subscribe
-import com.velocitypowered.api.event.connection.DisconnectEvent
-import com.velocitypowered.api.event.player.PlayerChooseInitialServerEvent
+import org.bukkit.event.EventHandler
+import org.bukkit.event.player.PlayerLoginEvent
+import org.bukkit.event.player.PlayerQuitEvent
 import site.ftka.proxycore.MClass
 import site.ftka.proxycore.services.playerdata.events.PlayerDataJoinEvent
 import java.util.UUID
@@ -18,15 +17,16 @@ class PlayerDataListener(val plugin: MClass) {
     private val timeout: Long = 1800*1000 // will unregister player after 1/2 hour
     private val disconnectionsLimit = 25
 
-    @Subscribe(order = PostOrder.EARLY)
-    fun onPlayerJoin(event: PlayerChooseInitialServerEvent) {
+    @EventHandler
+    fun onPlayerJoin(event: PlayerLoginEvent) {
         val player_uuid = event.player.uniqueId
-        services.playerDataService.onlinePlayers[player_uuid] = event.player.username
+        services.playerDataService.onlinePlayers[player_uuid] = event.player.name
 
         // Is the player cached?
         disconnections.remove(player_uuid)
         if (services.playerDataService.isCached(player_uuid)) {
-            plugin.server.eventManager.fire(PlayerDataJoinEvent(event.player.uniqueId, services.playerDataService.getCachedPlayer(event.player.uniqueId)))
+            val playerdataJoinEvent = PlayerDataJoinEvent(event.player.uniqueId, services.playerDataService.getCachedPlayer(event.player.uniqueId))
+            plugin.server.pluginManager.callEvent(playerdataJoinEvent)
             return
         }
 
@@ -35,8 +35,8 @@ class PlayerDataListener(val plugin: MClass) {
     }
 
     // cache's TTL
-    @Subscribe(order = PostOrder.EARLY)
-    fun onPlayerQuit(event: DisconnectEvent) {
+    @EventHandler
+    fun onPlayerQuit(event: PlayerQuitEvent) {
         val player_uuid = event.player.uniqueId
         val currentTime: Long = System.currentTimeMillis()
 
@@ -66,5 +66,4 @@ class PlayerDataListener(val plugin: MClass) {
             }
         }
     }
-
 }

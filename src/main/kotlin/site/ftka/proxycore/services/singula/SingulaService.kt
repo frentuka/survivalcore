@@ -12,6 +12,11 @@ class SingulaService(val plugin: MClass) {
 
     private val singulaMap = mutableMapOf<UUID, Singula>()
 
+    fun get(uuid: UUID): CompletableFuture<Singula?> {
+        if (services.playerDataService.isCached(uuid)) return CompletableFuture<Singula?>().completeAsync{ create(services.playerDataService.getCachedPlayer(uuid)!! ) }
+        else return getOffline(uuid)
+    }
+
     fun getOnline(uuid: UUID): Singula? {
         if (services.playerDataService.isCached(uuid)) return create(services.playerDataService.getCachedPlayer(uuid) ?: return null)
         return null
@@ -43,5 +48,5 @@ class SingulaService(val plugin: MClass) {
 
     fun isOnline(uuid: UUID): Boolean = services.playerDataService.onlinePlayers.containsKey(uuid)
 
-    fun getProxyPlayer(uuid: UUID) = plugin.server.getPlayer(uuid).getOrNull()
+    fun getProxyPlayer(uuid: UUID) = plugin.server.getPlayer(uuid)
 }

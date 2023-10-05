@@ -1,19 +1,9 @@
 package site.ftka.proxycore
 
-import com.google.inject.Inject
-import com.velocitypowered.api.event.Subscribe
-import com.velocitypowered.api.event.proxy.ProxyInitializeEvent
-import com.velocitypowered.api.event.proxy.ProxyShutdownEvent
-import com.velocitypowered.api.plugin.Plugin
-import com.velocitypowered.api.plugin.annotation.DataDirectory
-import com.velocitypowered.api.proxy.ProxyServer
+import org.bukkit.plugin.java.JavaPlugin
 import site.ftka.proxycore.services.ServicesCore
-import java.nio.file.Path
-import java.util.logging.Logger
 
-@Plugin(id = "proxycore", name = "Proxy Core", authors = ["srleg"])
-class MClass @Inject
-constructor(val server: ProxyServer, val logger: Logger, @DataDirectory val dataDirectory: Path) {
+class MClass: JavaPlugin() {
 
     // Initialization (safe to initialize listeners)
     val onProxyInitRunnables: MutableList<Runnable> = mutableListOf()
@@ -27,14 +17,14 @@ constructor(val server: ProxyServer, val logger: Logger, @DataDirectory val data
         return services
     }
 
-    @Subscribe
-    fun onProxyInitialization(e: ProxyInitializeEvent?) {
-        services = ServicesCore(this)
+    override fun onEnable() {
         onProxyInitRunnables.forEach(Runnable::run)
     }
 
-    @Subscribe
-    fun onProxyTermination(e: ProxyShutdownEvent) {
+    override fun onDisable() {
         onProxyTermRunnables.forEach(Runnable::run)
     }
+
+
+
 }

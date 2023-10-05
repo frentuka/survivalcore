@@ -1,7 +1,6 @@
 package site.ftka.proxycore.services.language.listeners
 
-import com.velocitypowered.api.event.PostOrder
-import com.velocitypowered.api.event.Subscribe
+import org.bukkit.event.EventHandler
 import site.ftka.proxycore.MClass
 import site.ftka.proxycore.services.playerdata.events.PlayerDataRegisterEvent
 import site.ftka.proxycore.services.playerdata.events.PlayerDataUnregisterEvent
@@ -17,13 +16,13 @@ class LanguageServiceListener(plugin: MClass) {
         }
     }
 
-    @Subscribe(order = PostOrder.LATE)
+    @EventHandler
     fun playerRegisterEvent(e: PlayerDataRegisterEvent) {
         if (e.playerdata == null) return
         userLangMap[e.uuid] = e.playerdata.lang
     }
 
-    @Subscribe(order = PostOrder.LATE)
+    @EventHandler
     fun playerUnregisterEvent(e: PlayerDataUnregisterEvent) {
         userLangMap.remove(e.uuid)
     }
