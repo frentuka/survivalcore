@@ -10,14 +10,17 @@ class PermissionsService(val plugin: MClass) {
     private val class_log_prefix = "&7[&6Perms&7]"
 
     private val groupsFolderLocation: String = "${plugin.dataFolder.absolutePath}\\groups"
-    private val fjp: ForkJoinPool = ForkJoinPool.commonPool()
 
     // Almacenamiento
     val groups_cache = mutableMapOf<Int, PermissionGroup>()
     val groups_names = mutableMapOf<String, Int>()
 
-    init {
-        reloadGroups()
+    fun init() {
+        loadGroups()
+    }
+
+    fun restart() {
+        loadGroups()
     }
 
     // getters
@@ -41,14 +44,12 @@ class PermissionsService(val plugin: MClass) {
         storage
      */
 
-    fun reloadGroups() {
-        fjp.submit {
-            groups_cache.clear()
-            groups_names.clear()
-            readGroupsFromStorage().forEach{
-                groups_cache[it.id] = it
-                groups_names[it.name] = it.id
-            }
+    private fun loadGroups() {
+        groups_cache.clear()
+        groups_names.clear()
+        readGroupsFromStorage().forEach{
+            groups_cache[it.id] = it
+            groups_names[it.name] = it.id
         }
     }
 
@@ -58,8 +59,8 @@ class PermissionsService(val plugin: MClass) {
         return groups
     }
 
-    fun saveGroupToStorage(group: PermissionGroup) {
-        fjp.submit { jsonFileUtils.saveJson(groupsFolderLocation, "${group.name}.json", group.toJson()) }
+    private fun saveGroupToStorage(group: PermissionGroup) {
+        jsonFileUtils.saveJson(groupsFolderLocation, "${group.name}.json", group.toJson())
     }
 
     private fun fromJson(json: String): PermissionGroup {
