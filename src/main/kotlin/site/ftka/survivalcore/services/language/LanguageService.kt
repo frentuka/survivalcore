@@ -20,33 +20,20 @@ class LanguageService(private val plugin: MClass) {
 
     private val langMap = mutableMapOf<String, LanguagePack>()
 
-    init {
-        reloadLang()
+    fun init() {
+        initLangMap()
 
         // initialize listeners
-        plugin.onProxyInitRunnables.add{
-            plugin.server.pluginManager.registerEvents(langListener, plugin)
-        }
+        plugin.server.pluginManager.registerEvents(langListener, plugin)
     }
 
-    /*
-        getters
-     */
-
-
-
-
-    /*
-        setters
-     */
-
-
-
-    private fun reloadLang() {
+    fun restart() {
         langMap.clear()
-        readGroupsFromStorage().forEach{
-            langMap[it.name] = it
-        }
+        initLangMap()
+    }
+
+    private fun initLangMap() {
+        readGroupsFromStorage().forEach{ langMap[it.name] = it }
     }
 
     private fun readGroupsFromStorage(): List<LanguagePack> {

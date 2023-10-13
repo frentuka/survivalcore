@@ -1,30 +1,30 @@
 package site.ftka.survivalcore.services
 
 import site.ftka.survivalcore.MClass
-import site.ftka.survivalcore.services.chat.ChatService
 import site.ftka.survivalcore.services.database.dbService
-import site.ftka.survivalcore.services.logging.LoggingService
+import site.ftka.survivalcore.services.language.LanguageService
 import site.ftka.survivalcore.services.permissions.PermissionsService
 import site.ftka.survivalcore.services.playerdata.PlayerDataService
 
 class ServicesCore(private val plugin: MClass) {
 
-    var loggingService: LoggingService
-    var dbService: dbService
-    var playerDataService: PlayerDataService
-    var permissionsService: PermissionsService
-    var chatService: ChatService
+    var dbService: dbService = dbService(plugin)
+    var playerDataService = PlayerDataService(plugin)
+    var languageService: LanguageService = LanguageService(plugin)
+    var permissionsService: PermissionsService = PermissionsService(plugin)
 
-    init {
-        loggingService = LoggingService(plugin)
-        dbService = dbService(plugin)
-        playerDataService = PlayerDataService(plugin)
-        permissionsService = PermissionsService(plugin)
-        chatService = ChatService(plugin)
+    fun initAll() {
+        dbService.init()
+        playerDataService.init()
+        languageService.init()
+        permissionsService.init()
     }
 
-    fun restart() {
-
+    fun restartAll() {
+        dbService.restart()
+        playerDataService.restart()
+        languageService.restart()
+        permissionsService.restart()
     }
 
 }

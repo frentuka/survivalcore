@@ -1,6 +1,5 @@
 plugins {
     kotlin("jvm") version "1.9.0"
-    kotlin("kapt") version "1.9.0"
     id("com.gradle.plugin-publish") version "0.17.0"
     application
 }
@@ -23,10 +22,10 @@ dependencies {
     implementation(kotlin("stdlib"))
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
 
-    compileOnly("io.papermc.paper:paper-api:1.20.1-R0.1-SNAPSHOT")
-    kapt("io.papermc.paper:paper-api:1.20.1-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:1.20.1-R0.1-SNAPSHOT") // paper
 
-    compileOnly("io.lettuce:lettuce-core:6.2.6.RELEASE")
+    compileOnly("io.lettuce:lettuce-core:6.2.6.RELEASE") // redis
+    implementation("org.apache.commons:commons-pool2:2.4.3") // connection pooling
 }
 
 tasks.test {
