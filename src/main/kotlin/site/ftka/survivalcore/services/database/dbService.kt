@@ -1,96 +1,94 @@
 package site.ftka.survivalcore.services.database
 
 import io.lettuce.core.RedisClient
+import io.lettuce.core.RedisURI
 import io.lettuce.core.api.StatefulRedisConnection
 import site.ftka.survivalcore.MClass
 import java.util.concurrent.CompletableFuture
 
+
 class dbService(private val plugin: MClass) {
 
-    // Host a conectarse
-    val redis_conn_host = "redis://13548@192.168.1.199:6379/0"
+    private val redis_conn_host = "redis://13548@192.168.1.199:6379/0"
+    private var redisClient = RedisClient.create(RedisURI.create(redis_conn_host))
+    private var redisConnection: StatefulRedisConnection<String, String>? = null
 
-    private var redisConnectionVar: StatefulRedisConnection<String, String>
-
-    init {
+    fun init() {
         println("Attempting redis connection. Local host ip is ${java.net.InetAddress.getLocalHost().hostAddress}")
-        redisConnectionVar = getRedisConnection()
+        connect()
+    }
+
+    fun restart() {
+        disconnect()
+        init()
+    }
+
+    fun connect(): Boolean {
+        if (redisConnection == null || !redisConnection!!.isOpen) {
+            redisConnection = redisClient.connect()
+        }
+
+        return redisConnection!!.isOpen
+    }
+
+    fun disconnect() {
+        redisConnection?.close()
+    }
+
+    fun isConnected(): Boolean {
+        return redisConnection?.isOpen ?: false
     }
 
     /*
-        Control
-        La conexión de Redis debería ser siempre síncrona, ya que...
+            SYNC
      */
-    fun getRedisConnection(): StatefulRedisConnection<String, String>  {
-        val startTime = System.nanoTime()
 
-        if (redisConnectionVar == null || redisConnectionVar.isOpen) {
-            val elapsed = System.nanoTime() - startTime
-            println("Redis Connection (cached): Time spent was $elapsed ns (${elapsed/1000000} ms)")
-            return redisConnectionVar
-        }
-        val redisClient = RedisClient.create(redis_conn_host)
-        redisConnectionVar = redisClient.connect()
-
-        val elapsed = System.nanoTime() - startTime
-        println("Redis Connection: Time spent was $elapsed ns (${elapsed/1000000} ms)")
-        return redisConnectionVar
+    fun syncPing(): Boolean {
+        val syncCommands = redisConnection?.sync()
+        return syncCommands?.ping() == "PONG"
     }
 
-    fun terminate() {
-        redisConnectionVar.close()
+    fun syncExists(key: String): Boolean {
+        val syncCommands = redisConnection?.sync()
+        return syncCommands?.let{ it.exists(key) > 0 } ?: false
     }
 
+    fun syncGet(key: String): String? {
+        val syncCommands = redisConnection?.sync()
+        return syncCommands?.get(key)
+    }
+
+    fun syncSet(key: String, value: String): Boolean {
+        val syncCommands = redisConnection?.sync()
+        return syncCommands?.set(key, value) == "OK"
+    }
 
     /*
-        Atajos
-        Funciones cuya utilidad es ahorrar código repetitivo sobre las conexiones.
+            ASYNC
      */
 
-    fun exists(key: String): CompletableFuture<Boolean> {
-        val future = CompletableFuture<Boolean>()
-
-        future.completeAsync {
-            val conn = getRedisConnection()
-            val client = conn.async()
-
-            client.exists(key).get() == 1L
-        }
-        return future
+    fun asyncPing(): CompletableFuture<Boolean> {
+        val asyncCommands = redisConnection?.async()
+        return asyncCommands?.ping()?.thenApply { it == "PONG" }?.toCompletableFuture()
+            ?: CompletableFuture.completedFuture(false)
     }
 
-    fun get(key: String): CompletableFuture<String?> {
-        val future = CompletableFuture<String?>()
-
-        exists(key).whenCompleteAsync{ result, _ ->
-            if (!result) future.complete(null)
-            return@whenCompleteAsync
-        }
-
-        val conn = getRedisConnection()
-        val client = conn.async()
-
-        client.get(key).whenCompleteAsync{result, thr ->
-            future.complete(result)
-            thr.printStackTrace()
-        }
-
-        return future
+    fun asyncExists(key: String): CompletableFuture<Boolean> {
+        val asyncCommands = redisConnection?.async()
+        return asyncCommands?.exists(key)?.thenApply { it > 0 }?.toCompletableFuture()
+            ?: CompletableFuture.completedFuture(false)
     }
 
-    fun set(key: String, value: String): CompletableFuture<Boolean> {
-        val conn = getRedisConnection()
-        val client = conn.async()
+    fun asyncGet(key: String): CompletableFuture<String?> {
+        val asyncCommands = redisConnection?.async()
+        return asyncCommands?.get(key)?.toCompletableFuture()
+            ?: CompletableFuture.completedFuture(null)
+    }
 
-        val setOperation = client.set(key, value)
-
-        // return boolean to specify operation result
-        val future = CompletableFuture<Boolean>()
-        future.completeAsync{
-            setOperation.get() == "OK" // Returns true if the set operation returns OK.
-        }
-
-        return future
+    fun asyncSet(key: String, value: String): CompletableFuture<Boolean> {
+        val asyncCommands = redisConnection?.async()
+        return asyncCommands?.set(key, value)?.thenApply { it == "OK" }?.toCompletableFuture()
+            ?: CompletableFuture.completedFuture(false)
     }
 
 }
