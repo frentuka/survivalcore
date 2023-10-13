@@ -1,11 +1,11 @@
-package site.ftka.survivalcore.services.logging
+package site.ftka.survivalcore.essentials.logging
 
 import site.ftka.survivalcore.MClass
-import site.ftka.survivalcore.services.logging.objects.Log
-import site.ftka.survivalcore.services.logging.objects.ServiceLogger
+import site.ftka.survivalcore.essentials.logging.objects.Log
+import site.ftka.survivalcore.essentials.logging.objects.ServiceLogger
 import site.ftka.survivalcore.utils.textUtils.col
 
-class LoggingService(private val plugin: MClass) {
+class LoggingEssential(private val plugin: MClass) {
 
     val logsFolderPath = plugin.dataFolder.absolutePath + "\\logs"
 

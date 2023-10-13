@@ -1,11 +1,11 @@
-package site.ftka.survivalcore.services.logging.objects
+package site.ftka.survivalcore.essentials.logging.objects
 
 import com.google.gson.GsonBuilder
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import site.ftka.survivalcore.services.logging.LoggingService
-import site.ftka.survivalcore.services.logging.LoggingService.LogLevel
+import site.ftka.survivalcore.essentials.logging.LoggingEssential
+import site.ftka.survivalcore.essentials.logging.LoggingEssential.LogLevel
 import site.ftka.survivalcore.utils.dateUtils
 import site.ftka.survivalcore.utils.objectsSizeUtils
 import java.io.BufferedWriter
@@ -13,7 +13,7 @@ import java.io.File
 import java.io.FileWriter
 import java.io.IOException
 
-class ServiceLogger(private val service: LoggingService, val serviceName: String, val serviceTag: String) {
+class ServiceLogger(private val service: LoggingEssential, val serviceName: String, val serviceTag: String) {
 
     /*
         ServiceLogger will manage and allow services to create logs
@@ -63,7 +63,7 @@ class ServiceLogger(private val service: LoggingService, val serviceName: String
     @OptIn(DelicateCoroutinesApi::class)
     private fun dumpToStorage() {
         // Filename example: 2023-09-22_23:51:33_PlayerData_log.json
-        val fileName = dateUtils.format_forFiles(dumpTimestamp) + "_${serviceName}_log.json"
+        val fileName = dateUtils.timeFormat(dumpTimestamp, "yyyy-MM-dd_HH:mm:ss") + "_${serviceName}_log.json"
 
         // Dump log
         log("New log dump: $fileName", LogLevel.DEBUG)
