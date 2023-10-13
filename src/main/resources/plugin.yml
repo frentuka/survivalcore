@@ -1,6 +1,6 @@
 name: SurvivalCore
 version: 1.0
-main: site.ftka.proxycore.MClass
+main: site.ftka.survivalcore.MClass
 description: Survival Core
 author: srleg
 api-version: '1.20'
