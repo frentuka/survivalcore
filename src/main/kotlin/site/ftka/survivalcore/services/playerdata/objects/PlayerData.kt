@@ -1,9 +1,10 @@
 package site.ftka.survivalcore.services.playerdata.objects
 
 import com.google.gson.GsonBuilder
+import site.ftka.survivalcore.services.playerdata.PlayerDataService
 import java.util.UUID
 
-class PlayerData(val uuid: UUID, var username: String) {
+open class PlayerData(val uuid: UUID, var username: String) {
 
     // language
     var lang: String = "en"
@@ -12,7 +13,12 @@ class PlayerData(val uuid: UUID, var username: String) {
     var staffGroup: Int? = null
     var specialGroup: Int? = null
     var normalGroup: Int = 0
-    var permissions: MutableList<String> = mutableListOf()
+    var permissions: List<String> = listOf()
+
+
+    // misc
+    var updateTimestamp: Long = System.currentTimeMillis()
+
 
     fun toJson(): String {
         val gsonPretty = GsonBuilder().setPrettyPrinting().create()
