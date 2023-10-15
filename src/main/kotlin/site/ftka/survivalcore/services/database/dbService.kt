@@ -4,6 +4,7 @@ import io.lettuce.core.RedisClient
 import io.lettuce.core.RedisURI
 import io.lettuce.core.api.StatefulRedisConnection
 import site.ftka.survivalcore.MClass
+import site.ftka.survivalcore.services.database.subservices.DatabaseHealthCheckSubservice
 import java.util.concurrent.CompletableFuture
 
 
@@ -13,9 +14,13 @@ class dbService(private val plugin: MClass) {
     private var redisClient = RedisClient.create(RedisURI.create(redis_conn_host))
     private var redisConnection: StatefulRedisConnection<String, String>? = null
 
+    private var healthCheck_SS = DatabaseHealthCheckSubservice(this, plugin, 2000)
+    var health = false
+
     fun init() {
         println("Attempting redis connection. Local host ip is ${java.net.InetAddress.getLocalHost().hostAddress}")
         connect()
+
     }
 
     fun restart() {
