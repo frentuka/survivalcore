@@ -7,4 +7,5 @@ class DatabaseHealthCheckFailedEvent(): Event(true) {
 
     private val handlerList = HandlerList()
     override fun getHandlers(): HandlerList = handlerList
+    fun getHandlerList() = handlerList
 }
