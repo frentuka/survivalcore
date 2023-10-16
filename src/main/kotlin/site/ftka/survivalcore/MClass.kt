@@ -1,5 +1,6 @@
 package site.ftka.survivalcore
 
+import org.bukkit.event.Listener
 import org.bukkit.plugin.java.JavaPlugin
 import site.ftka.survivalcore.essentials.logging.LoggingEssential
 import site.ftka.survivalcore.services.ServicesCore
@@ -9,23 +10,31 @@ class MClass: JavaPlugin() {
     // Initialize essentials
     val loggingEssential = LoggingEssential(this)
 
-    // Initialization (safe to initialize listeners)
-    val onProxyInitRunnables: MutableList<Runnable> = mutableListOf()
-    // Termination (save all pending changes in database AND write backup in storage)
-    val onProxyTermRunnables: MutableList<Runnable> = mutableListOf()
-
     // Initialize services
-    lateinit var services: ServicesCore
+    val services: ServicesCore = ServicesCore(this)
 
     override fun onEnable() {
-        services = ServicesCore(this)
-        onProxyInitRunnables.forEach(Runnable::run)
+        services.initAll()
+        initListeners()
     }
 
     override fun onDisable() {
-        onProxyTermRunnables.forEach(Runnable::run)
     }
 
+    private val listenerList = mutableListOf<Listener>()
+    fun initListener(listener: Listener) {
+        if (listenersAlreadyInitialized) server.pluginManager.registerEvents(listener, this)
+        else listenerList.add(listener)
+    }
 
+    private var listenersAlreadyInitialized = false
+    private fun initListeners() {
+        listenersAlreadyInitialized = true
+
+        for (listener in listenerList) {
+            server.pluginManager.registerEvents(listener, this)
+            listenerList.remove(listener)
+        }
+    }
 
 }

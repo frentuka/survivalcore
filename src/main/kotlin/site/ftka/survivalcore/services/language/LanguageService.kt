@@ -5,8 +5,10 @@ import site.ftka.survivalcore.MClass
 import site.ftka.survivalcore.services.language.listeners.LanguageServiceListener
 import site.ftka.survivalcore.services.language.objects.LanguagePack
 import site.ftka.survivalcore.utils.jsonFileUtils
+import java.util.*
 
 class LanguageService(private val plugin: MClass) {
+    private val services = plugin.services
 
     /*
         LanguageService
@@ -14,9 +16,11 @@ class LanguageService(private val plugin: MClass) {
         to allow customizable messages to user's choice.
      */
 
+    val userLangMap = mutableMapOf<UUID, String>()
+
     private val langFolderLocation = "${plugin.dataFolder.absolutePath}\\language"
 
-    private var langListener = LanguageServiceListener(plugin)
+    private var langListener = LanguageServiceListener(this, plugin)
 
     private val langMap = mutableMapOf<String, LanguagePack>()
 
@@ -24,7 +28,10 @@ class LanguageService(private val plugin: MClass) {
         initLangMap()
 
         // initialize listeners
-        plugin.server.pluginManager.registerEvents(langListener, plugin)
+        plugin.initListener(langListener)
+
+        for (playerdata in plugin.services.playerDataService.playerDataMap.values)
+            userLangMap[playerdata.uuid] = playerdata.lang
     }
 
     fun restart() {
@@ -33,10 +40,10 @@ class LanguageService(private val plugin: MClass) {
     }
 
     private fun initLangMap() {
-        readGroupsFromStorage().forEach{ langMap[it.name] = it }
+        readLangPacks().forEach{ langMap[it.name] = it }
     }
 
-    private fun readGroupsFromStorage(): List<LanguagePack> {
+    private fun readLangPacks(): List<LanguagePack> {
         val langpacks = mutableListOf<LanguagePack>()
         jsonFileUtils.readAllJson(langFolderLocation).forEach{
             langpacks.add(fromJson(it))

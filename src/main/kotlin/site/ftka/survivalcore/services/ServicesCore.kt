@@ -1,5 +1,6 @@
 package site.ftka.survivalcore.services
 
+import kotlinx.coroutines.delay
 import site.ftka.survivalcore.MClass
 import site.ftka.survivalcore.services.database.dbService
 import site.ftka.survivalcore.services.language.LanguageService
@@ -10,8 +11,8 @@ class ServicesCore(private val plugin: MClass) {
 
     var dbService: dbService = dbService(plugin)
     var playerDataService = PlayerDataService(plugin)
-    var languageService: LanguageService = LanguageService(plugin)
-    var permissionsService: PermissionsService = PermissionsService(plugin)
+    var languageService = LanguageService(plugin)
+    var permissionsService = PermissionsService(plugin)
 
     fun initAll() {
         dbService.init()

@@ -6,8 +6,8 @@ class ChatService(var plugin: MClass) {
     /*
         ChatService
 
-    This service is meant to fully control
-    every player's chat.
+        This service is meant to fully control
+        every player's chat.
      */
 
 }
