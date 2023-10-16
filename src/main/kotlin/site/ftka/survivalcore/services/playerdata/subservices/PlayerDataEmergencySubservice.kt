@@ -30,7 +30,7 @@ class PlayerDataEmergencySubservice(private val service: PlayerDataService, priv
         return service.fromJson(fileText)
     }
 
-    fun checkAvailableDumps(): List<PlayerData> {
+    fun getAvailableDumps(): List<PlayerData> {
         val availableDumps = mutableListOf<PlayerData>()
 
         val emergencyDumpFolderFile = File(emergencyDumpFolderPath)
@@ -67,5 +67,12 @@ class PlayerDataEmergencySubservice(private val service: PlayerDataService, priv
     fun flushEmergencyDumps() {
         val emergencyDumpFolderFile = File(emergencyDumpFolderPath)
         if (emergencyDumpFolderFile.exists()) emergencyDumpFolderFile.deleteRecursively()
+    }
+
+    fun deleteEmergencyDump(uuid: UUID) {
+        val emergencyDumpFolderFile = File(emergencyDumpFolderPath)
+
+        for (file in emergencyDumpFolderFile.listFiles { file -> file.extension == "json" })
+            if (file.name.contains(uuid.toString())) file.delete()
     }
 }

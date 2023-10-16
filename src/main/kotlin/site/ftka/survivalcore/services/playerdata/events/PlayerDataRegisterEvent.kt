@@ -13,4 +13,5 @@ class PlayerDataRegisterEvent(val uuid: UUID, val playerdata: PlayerData?): Even
 
     private val handlerList = HandlerList()
     override fun getHandlers(): HandlerList = handlerList
+    fun getHandlerList() = handlerList
 }

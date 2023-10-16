@@ -63,18 +63,15 @@ class PlayerDataRegistrationSubservice(private val service: PlayerDataService, p
     fun unregister(uuid: UUID) {
         val playerdata = service.playerDataMap[uuid] ?: return
 
-        services.dbService.asyncPing().whenComplete { result, _ ->
-            // 1.
-            if (result) service.output_ss.asyncSet(uuid, playerdata)
-            else service.emergency_ss.emergencyDump(playerdata)
+        // 1.
+        service.output_ss.asyncSet(uuid, playerdata) // IF SET FAILS, EMERGENCY DUMP IS DONE IN OUTPUT SUBSERVICE
 
-            // 2.
-            service.playerDataMap.remove(uuid)
+        // 2.
+        service.playerDataMap.remove(uuid)
 
-            logger.log("Unregistered playerdata: ($uuid)", LoggingEssential.LogLevel.DEBUG)
+        logger.log("Unregistered playerdata: ($uuid)", LoggingEssential.LogLevel.DEBUG)
 
-            // 3.
-            plugin.server.pluginManager.callEvent(PlayerDataUnregisterEvent(uuid, playerdata))
-        }
+        // 3.
+        plugin.server.pluginManager.callEvent(PlayerDataUnregisterEvent(uuid, playerdata))
     }
 }

@@ -13,4 +13,5 @@ class PlayerDataJoinEvent(val uuid: UUID, val playerdata: PlayerData?): Event(tr
 
     private val handlerList = HandlerList()
     override fun getHandlers(): HandlerList = handlerList
+    fun getHandlerList() = handlerList
 }

@@ -29,7 +29,7 @@ class PlayerDataService(private val plugin: MClass) {
         logger.log("&eInitializing PlayerData service.", LogLevel.LOW)
 
         // initialize listeners
-        plugin.server.pluginManager.registerEvents(PlayerDataListener(this, plugin), plugin)
+        plugin.initListener(PlayerDataListener(this, plugin))
     }
 
     // Save and re-gather every connected player's information
@@ -46,13 +46,14 @@ class PlayerDataService(private val plugin: MClass) {
         playerDataMap.clear()
         onlinePlayers.clear()
 
-        if (!services.dbService.syncPing()) { // ABORT EVERYTHING!!!!!
+        if (!services.dbService.health) { // ABORT EVERYTHING!!!!!
             logger.log("CRITICAL ERROR. DATABASE PING FAILED. ABORTING.", LogLevel.LOW)
+            plugin.server.shutdown()
             return
         }
 
         // 2. (missing security stuff to prevent overwriting wrong data, will add later.)
-        for (emergencyDump in emergency_ss.checkAvailableDumps()) {
+        for (emergencyDump in emergency_ss.getAvailableDumps()) {
             output_ss.asyncSet(emergencyDump.uuid, emergencyDump)
         }
         emergency_ss.flushEmergencyDumps()

@@ -35,7 +35,13 @@ class PlayerDataOutputSubservice(private val service: PlayerDataService, private
         val future = services.dbService.asyncSet(uuid.toString(), playerdata.toJson())
 
         // Remove from queuedPlayerData when done
-        future.whenComplete { result, _ -> queuedPlayerData.remove(uuid) }
+        // If database set failed, emergency dump playerdata
+        future.whenComplete { result, _ ->
+            queuedPlayerData.remove(uuid)
+
+            // Emergency dump
+            if (!result) service.emergency_ss.emergencyDump(playerdata)
+        }
 
         return future
     }

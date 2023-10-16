@@ -13,4 +13,5 @@ class PlayerDataUnregisterEvent(val uuid: UUID, val playerdata: PlayerData?): Ev
 
     private val handlerList = HandlerList()
     override fun getHandlers(): HandlerList = handlerList
+    fun getHandlerList() = handlerList
 }
