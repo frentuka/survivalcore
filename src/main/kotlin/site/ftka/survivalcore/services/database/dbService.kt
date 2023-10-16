@@ -4,11 +4,16 @@ import io.lettuce.core.RedisClient
 import io.lettuce.core.RedisURI
 import io.lettuce.core.api.StatefulRedisConnection
 import site.ftka.survivalcore.MClass
+import site.ftka.survivalcore.essentials.logging.objects.ServiceLogger
 import site.ftka.survivalcore.services.database.subservices.DatabaseHealthCheckSubservice
+import site.ftka.survivalcore.utils.textUtils
+import java.lang.Exception
 import java.util.concurrent.CompletableFuture
 
 
 class dbService(private val plugin: MClass) {
+
+    val logger = plugin.loggingEssential.getLog("DatabaseService", "DB")
 
     private val redis_conn_host = "redis://13548@192.168.1.199:6379/0"
     private var redisClient = RedisClient.create(RedisURI.create(redis_conn_host))
@@ -18,8 +23,13 @@ class dbService(private val plugin: MClass) {
     var health = false
 
     fun init() {
-        println("Attempting redis connection. Local host ip is ${java.net.InetAddress.getLocalHost().hostAddress}")
-        connect()
+        logger.log("Attempting first redis connection. Local host ip is ${java.net.InetAddress.getLocalHost().hostAddress}")
+
+
+        if (!connect()) {
+            logger.log("FIRST CONNECTION ATTEMPT FAILED. SHUTTING DOWN.")
+            plugin.server.shutdown()
+        }
 
     }
 
@@ -29,11 +39,12 @@ class dbService(private val plugin: MClass) {
     }
 
     fun connect(): Boolean {
-        if (redisConnection == null || !redisConnection!!.isOpen) {
-            redisConnection = redisClient.connect()
-        }
-
-        return redisConnection!!.isOpen
+        try {
+            if (redisConnection == null || !redisConnection!!.isOpen) {
+                redisConnection = redisClient.connect()
+            }
+        } catch (e: Exception) { return false }
+        return true
     }
 
     fun disconnect() {
@@ -49,8 +60,12 @@ class dbService(private val plugin: MClass) {
      */
 
     fun syncPing(): Boolean {
-        val syncCommands = redisConnection?.sync()
-        return syncCommands?.ping() == "PONG"
+        try {
+            val syncCommands = redisConnection?.sync()
+            return syncCommands?.ping() == "PONG"
+        }
+        catch (e: Exception) { return false }
+
     }
 
     fun syncExists(key: String): Boolean {
