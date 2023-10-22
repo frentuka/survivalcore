@@ -20,6 +20,7 @@ repositories {
 dependencies {
     testImplementation(kotlin("test"))
     implementation(kotlin("stdlib"))
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.5.21")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
 
     compileOnly("io.papermc.paper:paper-api:1.20.1-R0.1-SNAPSHOT") // paper
@@ -52,10 +53,6 @@ tasks.withType<Jar> {
     }) {
         exclude("META-INF/*.RSA\", \"META-INF/*.SF\", \"META-INF/*.DSA")
     }
-}
-
-kotlin {
-    jvmToolchain(17)
 }
 
 application {

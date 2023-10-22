@@ -1,15 +1,9 @@
-package site.ftka.survivalcore.services.playerdata.events
+package site.ftka.survivalcore.essentials.database.events
 
 import org.bukkit.event.Event
 import org.bukkit.event.HandlerList
-import site.ftka.survivalcore.services.playerdata.objects.PlayerData
-import java.util.*
 
-class PlayerDataJoinEvent(val uuid: UUID, val playerdata: PlayerData?): Event(true) {
-
-    /*
-        JoinEvent but managed after PlayerData is ready
-     */
+class DatabaseReconnectEvent(): Event(true) {
 
     companion object {
         private val handlers = HandlerList()
@@ -23,5 +17,4 @@ class PlayerDataJoinEvent(val uuid: UUID, val playerdata: PlayerData?): Event(tr
     override fun getHandlers(): HandlerList {
         return handlers
     }
-
 }
