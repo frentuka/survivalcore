@@ -8,7 +8,6 @@ import site.ftka.survivalcore.services.playerdata.events.PlayerDataRegisterEvent
 import site.ftka.survivalcore.services.playerdata.events.PlayerDataUnregisterEvent
 
 class LanguageServiceListener(private val service: LanguageService, private val plugin: MClass): Listener {
-    private val services = plugin.services
 
     @EventHandler
     fun playerRegisterEvent(e: PlayerDataRegisterEvent) {

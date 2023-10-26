@@ -5,7 +5,6 @@ import site.ftka.survivalcore.services.playerdata.PlayerDataService
 import site.ftka.survivalcore.services.playerdata.objects.PlayerData
 
 class PlayerDataUpdateSubservice(private val service: PlayerDataService, private val plugin: MClass) {
-
     /*
         Receive ModifiablePlayerData and update
         into PlayerDataService's local cache
@@ -20,7 +19,7 @@ class PlayerDataUpdateSubservice(private val service: PlayerDataService, private
             service.playerDataMap[playerdata.uuid] = playerdata
 
         // 2.
-        else service.output_ss.asyncSet(playerdata.uuid, playerdata)
+        else service.output_ss.asyncSet(playerdata)
     }
 
 }

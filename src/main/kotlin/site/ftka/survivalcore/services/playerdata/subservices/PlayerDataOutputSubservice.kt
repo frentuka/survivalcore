@@ -3,12 +3,10 @@ package site.ftka.survivalcore.services.playerdata.subservices
 import site.ftka.survivalcore.MClass
 import site.ftka.survivalcore.services.playerdata.PlayerDataService
 import site.ftka.survivalcore.services.playerdata.objects.PlayerData
-import site.ftka.survivalcore.services.playerdata.thowables.PlayerDataUUIDMismatchException
 import java.util.*
 import java.util.concurrent.CompletableFuture
 
 class PlayerDataOutputSubservice(private val service: PlayerDataService, private val plugin: MClass) {
-    val services = plugin.services
     // PlayerData setter
     // Escribir informacion directamente a la base de datos.
 
@@ -25,19 +23,16 @@ class PlayerDataOutputSubservice(private val service: PlayerDataService, private
     val queuedPlayerData = mutableMapOf<UUID, PlayerData>()
 
     // Sólo guarda/reescribe la información de la base de datos.
-    fun asyncSet(uuid: UUID, playerdata: PlayerData): CompletableFuture<Boolean> {
-        queuedPlayerData[uuid] = playerdata
-
-        // Are UUIDs congruent?
-        if (playerdata.uuid != uuid) throw PlayerDataUUIDMismatchException(uuid, playerdata)
+    fun asyncSet(playerdata: PlayerData): CompletableFuture<Boolean> {
+        queuedPlayerData[playerdata.uuid] = playerdata
 
         // Set
-        val future = services.dbService.asyncSet(uuid.toString(), playerdata.toJson())
+        val future = plugin.dbEssential.asyncSet(playerdata.uuid.toString(), playerdata.toJson())
 
         // Remove from queuedPlayerData when done
         // If database set failed, emergency dump playerdata
         future.whenComplete { result, _ ->
-            queuedPlayerData.remove(uuid)
+            queuedPlayerData.remove(playerdata.uuid)
 
             // Emergency dump
             if (!result) service.emergency_ss.emergencyDump(playerdata)
@@ -47,12 +42,9 @@ class PlayerDataOutputSubservice(private val service: PlayerDataService, private
     }
 
     // No need to implement queuedPlayerData here as this will stop the whole program until set is done.
-    fun syncSet(uuid: UUID, playerdata: PlayerData): Boolean {
-        // Las UUID son congruentes?
-        if (playerdata.uuid != uuid) throw PlayerDataUUIDMismatchException(uuid, playerdata)
-
+    fun syncSet(playerdata: PlayerData): Boolean {
         // Realizar cambios
-        return services.dbService.syncSet(uuid.toString(), playerdata.toJson())
+        return plugin.dbEssential.syncSet(playerdata.uuid.toString(), playerdata.toJson())
     }
 
     // Crear playerdata, luego guardar
@@ -61,7 +53,7 @@ class PlayerDataOutputSubservice(private val service: PlayerDataService, private
         plugin.server.getPlayer(uuid)?.let {
             if (!it.isOnline) return null
             playerdata = PlayerData(uuid, it.name)
-            asyncSet(uuid, PlayerData(uuid, it.name))
+            asyncSet(PlayerData(uuid, it.name))
         }
 
         return playerdata
