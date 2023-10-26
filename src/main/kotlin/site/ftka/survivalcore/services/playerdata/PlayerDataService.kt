@@ -4,13 +4,13 @@ import com.google.gson.Gson
 import site.ftka.survivalcore.MClass
 import site.ftka.survivalcore.essentials.logging.LoggingEssential.LogLevel
 import site.ftka.survivalcore.essentials.logging.objects.ServiceLogger
+import site.ftka.survivalcore.services.ServicesCore
 import site.ftka.survivalcore.services.playerdata.listeners.PlayerDataListener
 import site.ftka.survivalcore.services.playerdata.objects.PlayerData
 import site.ftka.survivalcore.services.playerdata.subservices.*
 import java.util.UUID
 
-class PlayerDataService(private val plugin: MClass) {
-    private val services = plugin.services
+class PlayerDataService(private val plugin: MClass, private val services: ServicesCore) {
     val logger: ServiceLogger = plugin.loggingEssential.getLog("PlayerData", "&3[PDATA]")
 
     // subservices
@@ -39,6 +39,13 @@ class PlayerDataService(private val plugin: MClass) {
     fun restart() {
         logger.log("Restarting PlayerData service.", LogLevel.LOW)
 
+        // if database is not available
+        if (!plugin.dbEssential.health) { // ABORT EVERYTHING!!!!!
+            logger.log("CRITICAL ERROR. DATABASE PING FAILED. ABORTING.", LogLevel.LOW)
+            plugin.server.shutdown()
+            return
+        }
+
         // unregister everyone
         for (playerdata in playerDataMap.values)
             registration_ss.unregister(playerdata.uuid)
@@ -46,17 +53,11 @@ class PlayerDataService(private val plugin: MClass) {
         playerDataMap.clear()
         onlinePlayers.clear()
 
-        if (!services.dbService.health) { // ABORT EVERYTHING!!!!!
-            logger.log("CRITICAL ERROR. DATABASE PING FAILED. ABORTING.", LogLevel.LOW)
-            plugin.server.shutdown()
-            return
-        }
-
-        // 2. (missing security stuff to prevent overwriting wrong data, will add later.)
+        // upload everyone
         for (emergencyDump in emergency_ss.getAvailableDumps()) {
-            output_ss.asyncSet(emergencyDump.uuid, emergencyDump)
+            output_ss.asyncSet(emergencyDump)
         }
-        emergency_ss.flushEmergencyDumps()
+        emergency_ss.deleteAllEmergencyDumps()
 
         // 3.
         for (player in plugin.server.onlinePlayers) {
