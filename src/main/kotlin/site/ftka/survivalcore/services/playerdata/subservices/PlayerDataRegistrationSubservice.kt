@@ -6,11 +6,11 @@ import site.ftka.survivalcore.services.playerdata.PlayerDataService
 import site.ftka.survivalcore.services.playerdata.events.PlayerDataRegisterEvent
 import site.ftka.survivalcore.services.playerdata.events.PlayerDataUnregisterEvent
 import site.ftka.survivalcore.services.playerdata.objects.PlayerData
+import site.ftka.survivalcore.utils.textUtils
 import java.util.*
 
 class PlayerDataRegistrationSubservice(private val service: PlayerDataService, private val plugin: MClass) {
     val logger = service.logger
-    val services = plugin.services
 
     // Register functions
     // 1. Obtain or create player's information
@@ -20,19 +20,9 @@ class PlayerDataRegistrationSubservice(private val service: PlayerDataService, p
         var playerdata: PlayerData? = null
         logger.log("Starting registration for uuid ($uuid)", LoggingEssential.LogLevel.DEBUG)
 
-        // Check if dump exists.
-        val dumpData = service.emergency_ss.checkDumpExists(uuid, true)
-
-        if (dumpData != null) {
-            logger.log("Detected emergency dump for uuid $uuid")
-
-            playerdata = dumpData
-            // Overwrite in database
-            service.output_ss.asyncSet(uuid, playerdata)
-        }
         // 1.
-        else {
-            services.dbService.asyncExists(uuid.toString()).whenCompleteAsync { existsResult, _ ->
+        (plugin.dbEssential.asyncExists(uuid.toString()) ?: return).also {
+            it.whenCompleteAsync { existsResult, _ ->
                 // If existsResult, then get
                 // If not, then create
                 if (!existsResult) {
@@ -49,7 +39,7 @@ class PlayerDataRegistrationSubservice(private val service: PlayerDataService, p
         logger.log("Caching playerdata for uuid ($uuid)", LoggingEssential.LogLevel.DEBUG)
 
         // 2.
-        service.playerDataMap[uuid] = playerdata ?: return
+        (playerdata ?: return).also { service.playerDataMap[it.uuid] = it }
 
         logger.log("Successfully cached playerdata for ${playerdata!!.username} ($uuid)", LoggingEssential.LogLevel.DEBUG)
 
@@ -64,7 +54,7 @@ class PlayerDataRegistrationSubservice(private val service: PlayerDataService, p
         val playerdata = service.playerDataMap[uuid] ?: return
 
         // 1.
-        service.output_ss.asyncSet(uuid, playerdata) // IF SET FAILS, EMERGENCY DUMP IS DONE IN OUTPUT SUBSERVICE
+        service.output_ss.asyncSet(playerdata) // IF SET FAILS, EMERGENCY DUMP IS DONE IN OUTPUT SUBSERVICE
 
         // 2.
         service.playerDataMap.remove(uuid)
