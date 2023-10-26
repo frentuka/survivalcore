@@ -2,12 +2,12 @@ package site.ftka.survivalcore.services.permissions
 
 import com.google.gson.Gson
 import site.ftka.survivalcore.MClass
+import site.ftka.survivalcore.services.ServicesCore
 import site.ftka.survivalcore.services.permissions.objects.PermissionGroup
 import site.ftka.survivalcore.utils.jsonFileUtils
-import java.util.concurrent.ForkJoinPool
 
-class PermissionsService(val plugin: MClass) {
-    private val class_log_prefix = "&7[&6Perms&7]"
+class PermissionsService(val plugin: MClass, private val services: ServicesCore) {
+    val logger = plugin.loggingEssential.getLog("PermissionsService", "Perms")
 
     private val groupsFolderLocation: String = "${plugin.dataFolder.absolutePath}\\groups"
 
