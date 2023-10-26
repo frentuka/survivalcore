@@ -17,13 +17,22 @@ class PlayerDataEmergencySubservice(private val service: PlayerDataService, priv
     private val baseFolderPath = "${plugin.dataFolder.absolutePath}\\PlayerData"
     private val emergencyDumpFolderPath = "${baseFolderPath}\\EmergencyDump"
 
+    fun uploadAllDumpsToDatabase() {
+        val dumps = getAvailableDumps()
+
+        for (dump in dumps)
+            service.output_ss.asyncSet(dump).whenCompleteAsync{ result, _ ->
+                if (result) deleteEmergencyDump(dump.uuid)
+            }
+    }
+
     fun checkDumpExists(uuid: UUID, deleteIt: Boolean): PlayerData? {
         val emergencyDumpFolderFile = File(emergencyDumpFolderPath)
         if (!emergencyDumpFolderFile.exists() || !emergencyDumpFolderFile.isDirectory) return null
 
         var dumpFile: File? = null
-        for (file in emergencyDumpFolderFile.listFiles { file -> file.extension == "json" })
-            if (file.name.contains(uuid.toString())) dumpFile = file
+        for (file in emergencyDumpFolderFile.listFiles { file -> file.extension == "json" && file.name.contains(uuid.toString()) }!!)
+            dumpFile = file
 
         var fileText = dumpFile?.readText()
         if (deleteIt) dumpFile?.delete()
@@ -64,7 +73,7 @@ class PlayerDataEmergencySubservice(private val service: PlayerDataService, priv
         } catch (_: IOException) { }
     }
 
-    fun flushEmergencyDumps() {
+    fun deleteAllEmergencyDumps() {
         val emergencyDumpFolderFile = File(emergencyDumpFolderPath)
         if (emergencyDumpFolderFile.exists()) emergencyDumpFolderFile.deleteRecursively()
     }
