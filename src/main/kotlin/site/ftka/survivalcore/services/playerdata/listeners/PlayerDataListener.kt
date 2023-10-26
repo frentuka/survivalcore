@@ -6,21 +6,20 @@ import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerLoginEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import site.ftka.survivalcore.MClass
-import site.ftka.survivalcore.services.database.events.DatabaseHealthCheckFailedEvent
-import site.ftka.survivalcore.services.database.events.DatabaseReconnectEvent
+import site.ftka.survivalcore.essentials.database.events.DatabaseHealthCheckFailedEvent
+import site.ftka.survivalcore.essentials.database.events.DatabaseReconnectEvent
 import site.ftka.survivalcore.services.playerdata.PlayerDataService
 import site.ftka.survivalcore.services.playerdata.events.PlayerDataJoinEvent
 import site.ftka.survivalcore.utils.textUtils
 
 class PlayerDataListener(private val service: PlayerDataService, private val plugin: MClass): Listener {
-    private val services = plugin.services
 
     @EventHandler
     fun onPlayerJoin(event: PlayerLoginEvent) {
         val player_uuid = event.player.uniqueId
 
         // If database health is false, prevent player from joining
-        if (!services.dbService.health) {
+        if (!plugin.dbEssential.health) {
             event.disallow(PlayerLoginEvent.Result.KICK_OTHER,
                 textUtils.col("PlayerData was unable to communicate with database"))
             return
@@ -60,11 +59,6 @@ class PlayerDataListener(private val service: PlayerDataService, private val plu
     @EventHandler(priority = EventPriority.HIGHEST)
     fun onDatabaseReconnect(event: DatabaseReconnectEvent) {
         service.logger.log("Database reconnected. Saving all emergency dumps if available.")
-
-        for (playerdatadump in service.emergency_ss.getAvailableDumps()) {
-            service.output_ss.asyncSet(playerdatadump.uuid, playerdatadump).whenComplete{result, _ ->
-                if (result) service.emergency_ss.deleteEmergencyDump(playerdatadump.uuid)
-            }
-        }
+        service.emergency_ss.uploadAllDumpsToDatabase()
     }
 }
