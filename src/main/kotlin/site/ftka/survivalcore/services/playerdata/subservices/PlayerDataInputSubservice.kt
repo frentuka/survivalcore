@@ -1,13 +1,13 @@
 package site.ftka.survivalcore.services.playerdata.subservices
 
 import site.ftka.survivalcore.MClass
+import site.ftka.survivalcore.services.ServicesCore
 import site.ftka.survivalcore.services.playerdata.PlayerDataService
 import site.ftka.survivalcore.services.playerdata.objects.PlayerData
 import java.util.UUID
 import java.util.concurrent.CompletableFuture
 
 class PlayerDataInputSubservice(private val service: PlayerDataService, private val plugin: MClass) {
-    val services = plugin.services
     // PlayerData getter
     // Recibir informacion directamente de la base de datos.
 
@@ -17,8 +17,9 @@ class PlayerDataInputSubservice(private val service: PlayerDataService, private 
         if (service.output_ss.queuedPlayerData.containsKey(uuid))
             return CompletableFuture.completedFuture(service.output_ss.queuedPlayerData[uuid])
 
-        val futureString = services.dbService.asyncGet(uuid.toString())
-        return futureString.thenApply{ services.playerDataService.fromJson(it) }
+        val futureString = plugin.dbEssential.asyncGet(uuid.toString())
+        return futureString?.thenApply{ service.fromJson(it) }
+            ?: CompletableFuture.completedFuture(null)
     }
 
     fun syncGet(uuid: UUID): PlayerData? {
@@ -27,6 +28,6 @@ class PlayerDataInputSubservice(private val service: PlayerDataService, private 
         if (service.output_ss.queuedPlayerData.containsKey(uuid))
             return service.output_ss.queuedPlayerData[uuid]
 
-        return service.fromJson(services.dbService.syncGet(uuid.toString()))
+        return service.fromJson(plugin.dbEssential.syncGet(uuid.toString()))
     }
 }
