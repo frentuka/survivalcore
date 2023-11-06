@@ -6,7 +6,7 @@ import site.ftka.survivalcore.services.playerdata.objects.PlayerData
 import java.util.*
 import java.util.concurrent.CompletableFuture
 
-class PlayerDataOutputSubservice(private val service: PlayerDataService, private val plugin: MClass) {
+class PlayerData_OutputSubservice(private val service: PlayerDataService, private val plugin: MClass) {
     // PlayerData setter
     // Escribir informacion directamente a la base de datos.
 
@@ -22,12 +22,14 @@ class PlayerDataOutputSubservice(private val service: PlayerDataService, private
     */
     val queuedPlayerData = mutableMapOf<UUID, PlayerData>()
 
+    val uuid_playerdata_sufix = "_data"
+
     // Sólo guarda/reescribe la información de la base de datos.
     fun asyncSet(playerdata: PlayerData): CompletableFuture<Boolean> {
         queuedPlayerData[playerdata.uuid] = playerdata
 
         // Set
-        val future = plugin.dbEssential.asyncSet(playerdata.uuid.toString(), playerdata.toJson())
+        val future = plugin.dbEssential.asyncSet(playerdata.uuid.toString() + uuid_playerdata_sufix, playerdata.toJson())
 
         // Remove from queuedPlayerData when done
         // If database set failed, emergency dump playerdata
@@ -44,19 +46,7 @@ class PlayerDataOutputSubservice(private val service: PlayerDataService, private
     // No need to implement queuedPlayerData here as this will stop the whole program until set is done.
     fun syncSet(playerdata: PlayerData): Boolean {
         // Realizar cambios
-        return plugin.dbEssential.syncSet(playerdata.uuid.toString(), playerdata.toJson())
-    }
-
-    // Crear playerdata, luego guardar
-    fun create(uuid: UUID): PlayerData? {
-        var playerdata: PlayerData? = null
-        plugin.server.getPlayer(uuid)?.let {
-            if (!it.isOnline) return null
-            playerdata = PlayerData(uuid, it.name)
-            asyncSet(PlayerData(uuid, it.name))
-        }
-
-        return playerdata
+        return plugin.dbEssential.syncSet(playerdata.uuid.toString() + uuid_playerdata_sufix, playerdata.toJson())
     }
 
 }
