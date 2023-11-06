@@ -1,16 +1,22 @@
 package site.ftka.survivalcore.services.playerdata.listeners
 
+import com.destroystokyo.paper.event.player.PlayerJumpEvent
+import com.google.gson.Gson
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerLoginEvent
 import org.bukkit.event.player.PlayerQuitEvent
+import org.bukkit.inventory.ItemStack
 import site.ftka.survivalcore.MClass
 import site.ftka.survivalcore.essentials.database.events.DatabaseHealthCheckFailedEvent
 import site.ftka.survivalcore.essentials.database.events.DatabaseReconnectEvent
+import site.ftka.survivalcore.essentials.logging.LoggingEssential
 import site.ftka.survivalcore.services.playerdata.PlayerDataService
 import site.ftka.survivalcore.services.playerdata.events.PlayerDataJoinEvent
 import site.ftka.survivalcore.utils.textUtils
+import java.util.Base64
 
 class PlayerDataListener(private val service: PlayerDataService, private val plugin: MClass): Listener {
 
@@ -29,7 +35,7 @@ class PlayerDataListener(private val service: PlayerDataService, private val plu
         service.onlinePlayers[player_uuid] = event.player.name
 
         // Register
-        service.registration_ss.register(event.player.uniqueId)
+        service.registration_ss.register(event.player.uniqueId, event.player.name)
 
         // Call event
         val playerdataJoinEvent = PlayerDataJoinEvent(event.player.uniqueId, service.playerDataMap[event.player.uniqueId])
@@ -40,8 +46,12 @@ class PlayerDataListener(private val service: PlayerDataService, private val plu
     fun onPlayerQuit(event: PlayerQuitEvent) {
         val player_uuid = event.player.uniqueId
 
+        service.logger.log("Player quit event", LoggingEssential.LogLevel.DEBUG)
+
         // Remove from online players
         service.onlinePlayers.remove(player_uuid)
+
+        service.logger.log("Removed ${event.player.name} from online players", LoggingEssential.LogLevel.DEBUG)
 
         // Unregister
         service.registration_ss.unregister(player_uuid)
