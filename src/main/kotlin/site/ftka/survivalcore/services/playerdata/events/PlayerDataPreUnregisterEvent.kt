@@ -1,14 +1,17 @@
 package site.ftka.survivalcore.services.playerdata.events
 
+import org.bukkit.entity.Player
 import org.bukkit.event.Event
 import org.bukkit.event.HandlerList
 import site.ftka.survivalcore.services.playerdata.objects.PlayerData
 import java.util.*
 
-class PlayerDataUnregisterEvent(val uuid: UUID, val playerdata: PlayerData?): Event(false) {
+class PlayerDataPreUnregisterEvent(val uuid: UUID, val playerdata: PlayerData, val player: Player): Event(false) {
 
     /*
-        Register event of player's data
+        Executed before unregistering PlayerData
+        so that modules can refresh their information
+        before saving into database.
      */
 
     companion object {

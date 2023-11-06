@@ -5,7 +5,7 @@ import org.bukkit.event.HandlerList
 import site.ftka.survivalcore.services.playerdata.objects.PlayerData
 import java.util.*
 
-class PlayerDataJoinEvent(val uuid: UUID, val playerdata: PlayerData?): Event(true) {
+class PlayerDataJoinEvent(val uuid: UUID, val playerdata: PlayerData?): Event(false) {
 
     /*
         JoinEvent but managed after PlayerData is ready
@@ -19,6 +19,8 @@ class PlayerDataJoinEvent(val uuid: UUID, val playerdata: PlayerData?): Event(tr
             return handlers
         }
     }
+
+    private val handlers = HandlerList()
 
     override fun getHandlers(): HandlerList {
         return handlers

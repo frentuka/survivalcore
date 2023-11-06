@@ -5,7 +5,7 @@ import org.bukkit.event.HandlerList
 import site.ftka.survivalcore.services.playerdata.objects.PlayerData
 import java.util.*
 
-class PlayerDataRegisterEvent(val uuid: UUID, val playerdata: PlayerData?): Event(true) {
+class PlayerDataRegisterEvent(val uuid: UUID, val playerdata: PlayerData?): Event(false) {
 
     /*
         Register event of player's data
@@ -19,6 +19,8 @@ class PlayerDataRegisterEvent(val uuid: UUID, val playerdata: PlayerData?): Even
             return handlers
         }
     }
+
+    private val handlers = HandlerList()
 
     override fun getHandlers(): HandlerList {
         return handlers
