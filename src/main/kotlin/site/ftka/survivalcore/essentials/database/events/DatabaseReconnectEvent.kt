@@ -14,6 +14,8 @@ class DatabaseReconnectEvent(): Event(true) {
         }
     }
 
+    private val handlers = HandlerList()
+
     override fun getHandlers(): HandlerList {
         return handlers
     }
