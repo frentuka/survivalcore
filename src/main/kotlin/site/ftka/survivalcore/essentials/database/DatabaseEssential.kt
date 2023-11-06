@@ -3,6 +3,8 @@ package site.ftka.survivalcore.essentials.database
 import io.lettuce.core.RedisClient
 import io.lettuce.core.RedisURI
 import io.lettuce.core.api.StatefulRedisConnection
+import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.format.NamedTextColor
 import site.ftka.survivalcore.MClass
 import site.ftka.survivalcore.essentials.database.subservices.DatabaseHealthCheckSubservice
 import java.util.concurrent.CompletableFuture
@@ -11,7 +13,8 @@ import kotlin.Exception
 
 class DatabaseEssential(private val plugin: MClass) {
 
-    val logger = plugin.loggingEssential.getLog("DatabaseService", "Database")
+    val logger = plugin.loggingEssential.getLog("DatabaseService", Component.text("Database").color(NamedTextColor.LIGHT_PURPLE))
+    private var printStackTraces = true
 
     private val redis_conn_host = "redis://13548@127.0.0.1:6379/0"
 
@@ -44,12 +47,11 @@ class DatabaseEssential(private val plugin: MClass) {
 
             healthCheck_SS.start()
             true
-        } catch (e: Exception) { false }
-        return true
+        } catch (e: Exception) { if (printStackTraces) e.printStackTrace(); false }
     }
 
     fun disconnect() {
-        redisConnection?.close()
+        redisConnection?.closeAsync()
         healthCheck_SS.stop()
     }
 
@@ -61,28 +63,28 @@ class DatabaseEssential(private val plugin: MClass) {
         return try {
             val syncCommands = redisConnection?.sync()
             syncCommands?.ping() == "PONG"
-        } catch (e: Exception) { false }
+        } catch (e: Exception) { if (printStackTraces) e.printStackTrace(); false }
     }
 
     fun syncExists(key: String): Boolean? {
         return try {
             val syncCommands = redisConnection?.sync()
             syncCommands?.let{ it.exists(key) > 0 } ?: false
-        } catch (e: Exception) { null }
+        } catch (e: Exception) { if (printStackTraces) e.printStackTrace(); null }
     }
 
     fun syncGet(key: String): String? {
         return try {
             val syncCommands = redisConnection?.sync()
             return syncCommands?.get(key) ?: ""
-        } catch (e: Exception) { null }
+        } catch (e: Exception) { if (printStackTraces) e.printStackTrace(); null }
     }
 
     fun syncSet(key: String, value: String): Boolean {
         return try {
             val syncCommands = redisConnection?.sync()
             syncCommands?.set(key, value) == "OK"
-        } catch (e: Exception) { false }
+        } catch (e: Exception) { if (printStackTraces) e.printStackTrace(); false }
     }
 
     /*
@@ -94,7 +96,7 @@ class DatabaseEssential(private val plugin: MClass) {
             val asyncCommands = redisConnection?.async()
             asyncCommands?.ping()?.thenApply { it == "PONG" }?.toCompletableFuture()
                 ?: CompletableFuture.completedFuture(false)
-        } catch (e: Exception) { CompletableFuture.completedFuture(false) }
+        } catch (e: Exception) { if (printStackTraces) e.printStackTrace(); CompletableFuture.completedFuture(false) }
     }
 
     fun asyncExists(key: String): CompletableFuture<Boolean>? {
@@ -102,15 +104,14 @@ class DatabaseEssential(private val plugin: MClass) {
             val asyncCommands = redisConnection?.async()
             asyncCommands?.exists(key)?.thenApply { it > 0 }?.toCompletableFuture()
                 ?: CompletableFuture.completedFuture(false)
-        } catch (e: Exception) { null }
+        } catch (e: Exception) { if (printStackTraces) e.printStackTrace(); null }
     }
 
     fun asyncGet(key: String): CompletableFuture<String>? {
         return try {
             val asyncCommands = redisConnection?.async()
             asyncCommands?.get(key)?.toCompletableFuture()
-                ?: null
-        } catch (e: Exception) { null }
+        } catch (e: Exception) { if (printStackTraces) e.printStackTrace(); null }
     }
 
     fun asyncSet(key: String, value: String): CompletableFuture<Boolean> {
@@ -118,7 +119,7 @@ class DatabaseEssential(private val plugin: MClass) {
             val asyncCommands = redisConnection?.async()
             asyncCommands?.set(key, value)?.thenApply { it == "OK" }?.toCompletableFuture()
                 ?: CompletableFuture.completedFuture(false)
-        } catch (e: Exception) { CompletableFuture.completedFuture(false) }
+        } catch (e: Exception) { if (printStackTraces) e.printStackTrace(); CompletableFuture.completedFuture(false) }
     }
 
 }
