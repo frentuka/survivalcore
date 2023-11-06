@@ -56,42 +56,18 @@ class DatabaseEssential(private val plugin: MClass) {
     }
 
     /*
-            SYNC
+            UTILITIES
      */
 
-    fun syncPing(): Boolean {
-        return try {
+    fun ping(async: Boolean = true): CompletableFuture<Boolean> {
+        // sync
+        if (!async) return try {
             val syncCommands = redisConnection?.sync()
-            syncCommands?.ping() == "PONG"
-        } catch (e: Exception) { if (printStackTraces) e.printStackTrace(); false }
-    }
+            CompletableFuture.completedFuture(syncCommands?.ping() == "PONG")
+        } catch (e: Exception) { if (printStackTraces) e.printStackTrace(); CompletableFuture.completedFuture(false) }
 
-    fun syncExists(key: String): Boolean? {
-        return try {
-            val syncCommands = redisConnection?.sync()
-            syncCommands?.let{ it.exists(key) > 0 } ?: false
-        } catch (e: Exception) { if (printStackTraces) e.printStackTrace(); null }
-    }
 
-    fun syncGet(key: String): String? {
-        return try {
-            val syncCommands = redisConnection?.sync()
-            return syncCommands?.get(key) ?: ""
-        } catch (e: Exception) { if (printStackTraces) e.printStackTrace(); null }
-    }
-
-    fun syncSet(key: String, value: String): Boolean {
-        return try {
-            val syncCommands = redisConnection?.sync()
-            syncCommands?.set(key, value) == "OK"
-        } catch (e: Exception) { if (printStackTraces) e.printStackTrace(); false }
-    }
-
-    /*
-            ASYNC
-     */
-
-    fun asyncPing(): CompletableFuture<Boolean> {
+        // async
         return try {
             val asyncCommands = redisConnection?.async()
             asyncCommands?.ping()?.thenApply { it == "PONG" }?.toCompletableFuture()
@@ -99,7 +75,14 @@ class DatabaseEssential(private val plugin: MClass) {
         } catch (e: Exception) { if (printStackTraces) e.printStackTrace(); CompletableFuture.completedFuture(false) }
     }
 
-    fun asyncExists(key: String): CompletableFuture<Boolean>? {
+    fun exists(key: String, async: Boolean = true): CompletableFuture<Boolean>? {
+        // sync
+        if (!async) return try {
+            val syncCommands = redisConnection?.sync()
+            CompletableFuture.completedFuture(syncCommands?.let{ it.exists(key) > 0 }) // true-false-null
+        } catch (e: Exception) { if (printStackTraces) e.printStackTrace(); null }
+
+        // async
         return try {
             val asyncCommands = redisConnection?.async()
             asyncCommands?.exists(key)?.thenApply { it > 0 }?.toCompletableFuture()
@@ -107,14 +90,28 @@ class DatabaseEssential(private val plugin: MClass) {
         } catch (e: Exception) { if (printStackTraces) e.printStackTrace(); null }
     }
 
-    fun asyncGet(key: String): CompletableFuture<String>? {
+    fun get(key: String, async: Boolean = true): CompletableFuture<String>? {
+        // sync
+        if (!async) return try {
+            val syncCommands = redisConnection?.sync()
+            CompletableFuture.completedFuture(syncCommands?.get(key)) // value-null
+        } catch (e: Exception) { if (printStackTraces) e.printStackTrace(); null }
+
+        // async
         return try {
             val asyncCommands = redisConnection?.async()
             asyncCommands?.get(key)?.toCompletableFuture()
         } catch (e: Exception) { if (printStackTraces) e.printStackTrace(); null }
     }
 
-    fun asyncSet(key: String, value: String): CompletableFuture<Boolean> {
+    fun set(key: String, value: String, async: Boolean = true): CompletableFuture<Boolean> {
+        // async
+        if (!async) return try {
+            val syncCommands = redisConnection?.sync()
+            CompletableFuture.completedFuture(syncCommands?.set(key, value) == "OK")
+        } catch (e: Exception) { if (printStackTraces) e.printStackTrace(); CompletableFuture.completedFuture(false) }
+
+        // sync
         return try {
             val asyncCommands = redisConnection?.async()
             asyncCommands?.set(key, value)?.thenApply { it == "OK" }?.toCompletableFuture()
