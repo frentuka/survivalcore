@@ -10,20 +10,36 @@ import java.io.IOException
 import java.io.FileWriter
 import java.io.File
 import java.util.UUID
+import java.util.concurrent.CompletableFuture
 
-class PlayerDataEmergencySubservice(private val service: PlayerDataService, private val plugin: MClass) {
+class PlayerData_EmergencySubservice(private val service: PlayerDataService, private val plugin: MClass) {
     val logger: ServiceLogger = service.logger
 
     private val baseFolderPath = "${plugin.dataFolder.absolutePath}\\PlayerData"
     private val emergencyDumpFolderPath = "${baseFolderPath}\\EmergencyDump"
 
-    fun uploadAllDumpsToDatabase() {
+    fun uploadAllDumpsToDatabase(async: Boolean) {
         val dumps = getAvailableDumps()
 
-        for (dump in dumps)
-            service.output_ss.asyncSet(dump).whenCompleteAsync{ result, _ ->
-                if (result) deleteEmergencyDump(dump.uuid)
+        if (!plugin.dbEssential.health) {
+            logger.log("Tried to upload all dumps to database but no health check failed. Aborted.")
+            return
+        }
+
+        for (dump in dumps) {
+            val futureGet = if (async) service.input_ss.asyncGet(dump.uuid)
+            else CompletableFuture.completedFuture(service.input_ss.syncGet(dump.uuid))
+
+            futureGet.whenComplete{ result, _ ->
+                var shouldUpload = false // ONLY SHOULD UPLOAD IF EMERGENCY DUMP IS NEWER THAN DATABASE DATA
+                shouldUpload = if (result == null) true
+                else dump.updateTimestamp > result.updateTimestamp
+
+                if (shouldUpload)
+                    if (async) service.output_ss.asyncSet(dump)
+                    else service.output_ss.syncSet(dump)
             }
+        }
     }
 
     fun checkDumpExists(uuid: UUID, deleteIt: Boolean): PlayerData? {
@@ -60,10 +76,10 @@ class PlayerDataEmergencySubservice(private val service: PlayerDataService, priv
         val saveLocationFolder = File(emergencyDumpFolderPath)
         saveLocationFolder.mkdirs()
 
-        logger.log("Dumping ${playerdata.username} (${playerdata.uuid})", LoggingEssential.LogLevel.HIGH)
+        logger.log("Dumping ${playerdata.info.username} (${playerdata.uuid})", LoggingEssential.LogLevel.HIGH)
 
         // e.g. EmergencyDump\srleg_3988d2e9-60c4-4d81-bed0-a6b6c2d13080
-        val playerdataFile = "${saveLocationFolder.absolutePath}\\${playerdata.username}_${playerdata.uuid}.json"
+        val playerdataFile = "${saveLocationFolder.absolutePath}\\${playerdata.info.username}_${playerdata.uuid}.json"
 
         val bufferedWriter: BufferedWriter
         try {
