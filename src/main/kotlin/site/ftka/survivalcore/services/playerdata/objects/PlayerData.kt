@@ -1,24 +1,21 @@
 package site.ftka.survivalcore.services.playerdata.objects
 
 import com.google.gson.GsonBuilder
-import site.ftka.survivalcore.services.playerdata.PlayerDataService
+import site.ftka.survivalcore.services.playerdata.objects.modules.PlayerInformation
+import site.ftka.survivalcore.services.playerdata.objects.modules.PlayerLanguage
+import site.ftka.survivalcore.services.playerdata.objects.modules.PlayerPermissions
+import site.ftka.survivalcore.services.playerdata.objects.modules.PlayerState
 import java.util.UUID
 
-open class PlayerData(val uuid: UUID, var username: String) {
+data class PlayerData(val uuid: UUID) {
 
-    // language
-    var lang: String = "en"
-
-    // permissions
-    var staffGroup: Int? = null
-    var specialGroup: Int? = null
-    var normalGroup: Int = 0
-    var permissions: List<String> = listOf()
-
+    var info = PlayerInformation(uuid)
+    var state = PlayerState(uuid)
+    var perms = PlayerPermissions(uuid)
+    var lang = PlayerLanguage(uuid)
 
     // misc
     var updateTimestamp: Long = System.currentTimeMillis()
-
 
     fun toJson(): String {
         val gsonPretty = GsonBuilder().setPrettyPrinting().create()
