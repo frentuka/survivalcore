@@ -1,9 +1,11 @@
 package site.ftka.survivalcore.essentials.logging
 
+import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.format.NamedTextColor
+import net.kyori.adventure.text.format.TextColor
 import site.ftka.survivalcore.MClass
 import site.ftka.survivalcore.essentials.logging.objects.Log
 import site.ftka.survivalcore.essentials.logging.objects.ServiceLogger
-import site.ftka.survivalcore.utils.textUtils.col
 
 class LoggingEssential(private val plugin: MClass) {
 
@@ -12,15 +14,14 @@ class LoggingEssential(private val plugin: MClass) {
     // Won't print logs with level above default.
     private val printableLogLevel = LogLevel.NORMAL
 
-    fun print(tag: String?, log: Log) {
+    fun print(tag: Component, log: Log) {
         // Don't print higher-than-intended log levels.
         if (log.level > printableLogLevel) return
 
-        val message = "$tag  ${log.text}"
-        plugin.server.consoleSender.sendMessage(col(message)) // colorized
+        plugin.server.consoleSender.sendMessage(tag.colorIfAbsent(NamedTextColor.AQUA).append(Component.text(" | ").color(NamedTextColor.DARK_GRAY).append(log.text.colorIfAbsent(NamedTextColor.YELLOW)))) // colorized
     }
 
-    fun getLog(serviceName: String, serviceTag: String) = ServiceLogger(this, serviceName, serviceTag)
+    fun getLog(serviceName: String, serviceTag: Component) = ServiceLogger(this, serviceName, serviceTag)
 
     enum class LogLevel(value: Int) {
         DEBUG(9), HIGH(3), NORMAL(2), LOW(1)

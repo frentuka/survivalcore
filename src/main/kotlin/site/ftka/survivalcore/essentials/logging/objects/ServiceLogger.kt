@@ -4,6 +4,7 @@ import com.google.gson.GsonBuilder
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import net.kyori.adventure.text.Component
 import site.ftka.survivalcore.essentials.logging.LoggingEssential
 import site.ftka.survivalcore.essentials.logging.LoggingEssential.LogLevel
 import site.ftka.survivalcore.utils.dateUtils
@@ -13,7 +14,7 @@ import java.io.File
 import java.io.FileWriter
 import java.io.IOException
 
-class ServiceLogger(private val service: LoggingEssential, val serviceName: String, val serviceTag: String) {
+class ServiceLogger(private val service: LoggingEssential, val serviceName: String, val serviceTag: Component) {
 
     /*
         ServiceLogger will manage and allow services to create logs
@@ -42,9 +43,15 @@ class ServiceLogger(private val service: LoggingEssential, val serviceName: Stri
         ----------------------------------------------------------------------------------
      */
 
-    fun log(text: String) = log(text, LogLevel.NORMAL)
+    // using strings
+    fun log(text: String) = log(Component.text(text))
 
-    fun log(text: String, level: LogLevel) {
+    fun log(text: String, level: LogLevel) = log(Component.text(text), level)
+
+    // using component system
+    fun log(text: Component) = log(text, LogLevel.NORMAL)
+
+    fun log(text: Component, level: LogLevel) {
         val log = Log(text, level)
 
         // print
@@ -53,7 +60,7 @@ class ServiceLogger(private val service: LoggingEssential, val serviceName: Stri
         // process
         if (log.level in dumpableLogLevels) {
             logList.add(log)
-            logsSize += objectsSizeUtils.estimateStringSize(text)
+            logsSize += objectsSizeUtils.estimateStringSize(text.toString())
 
             // dump log list if necessary
             if (logsSize > logsMaxSize) dumpToStorage()
@@ -66,7 +73,7 @@ class ServiceLogger(private val service: LoggingEssential, val serviceName: Stri
         val fileName = dateUtils.timeFormat(dumpTimestamp, "yyyy-MM-dd_HH:mm:ss") + "_${serviceName}_log.json"
 
         // Dump log
-        log("New log dump: $fileName", LogLevel.DEBUG)
+        log(Component.text("New log dump: $fileName"), LogLevel.DEBUG)
 
         // Grab a copy of logs list and clear the current one.
         val logsCopy = logList.toList()
@@ -76,7 +83,7 @@ class ServiceLogger(private val service: LoggingEssential, val serviceName: Stri
         // Write
         // Using Kotlin Coroutines and BufferedWriter to improve performance and prevent resource hogging
         GlobalScope.launch {
-            val logsFolder = File("$logsFolderPath")
+            val logsFolder = File(logsFolderPath)
             logsFolder.mkdirs()
 
             val logsFile = File("${logsFolderPath}\\${fileName}")
