@@ -4,12 +4,24 @@ import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.entity.Player
 import org.bukkit.util.Vector
+import site.ftka.survivalcore.services.playerdata.objects.PlayerData
 import site.ftka.survivalcore.utils.base64Utils
 import site.ftka.survivalcore.utils.dataclasses.DoublesVector
 import java.util.UUID
 import site.ftka.survivalcore.utils.numericUtils.roundDecimals
 
-data class PlayerState(private val uuid: UUID) {
+data class PlayerState(private val uuid: UUID, private val playerdata: PlayerData) {
+
+    /*
+        This class is NOT meant to request data when player is online.
+        This class is only meant to save player's state in database
+        for offline usage.
+
+        It is saved before player unregister and loaded on player register.
+        It is NOT real-time data.
+
+        That's why variables doesn't have any connection to the physical player.
+     */
 
     var health: Double = 20.0
     var foodLevel: Int = 20
@@ -30,7 +42,7 @@ data class PlayerState(private val uuid: UUID) {
      */
 
 
-    fun replaceValuesFromPlayer(player: Player) {
+    fun gatherValuesFromPlayer(player: Player) {
         this.health = player.health
         this.foodLevel = player.foodLevel
         this.saturation = player.saturation
