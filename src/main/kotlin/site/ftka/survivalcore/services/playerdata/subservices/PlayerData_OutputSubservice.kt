@@ -22,14 +22,21 @@ class PlayerData_OutputSubservice(private val service: PlayerDataService, privat
     */
     val queuedPlayerData = mutableMapOf<UUID, PlayerData>()
 
-    val uuid_playerdata_sufix = "_data"
-
     // Sólo guarda/reescribe la información de la base de datos.
-    fun asyncSet(playerdata: PlayerData): CompletableFuture<Boolean> {
+    fun set(playerdata: PlayerData, async: Boolean = true): CompletableFuture<Boolean> {
+        // sync (no queuedPlayerData stuff needed here)
+        if (!async) {
+            val operation =
+                plugin.dbEssential.set(playerdata.uuid.toString(), playerdata.toJson()).get()
+            if (!operation) service.emergency_ss.emergencyDump(playerdata)
+            return CompletableFuture.completedFuture(operation)
+        }
+
+        // async
         queuedPlayerData[playerdata.uuid] = playerdata
 
         // Set
-        val future = plugin.dbEssential.asyncSet(playerdata.uuid.toString() + uuid_playerdata_sufix, playerdata.toJson())
+        val future = plugin.dbEssential.set(playerdata.uuid.toString(), playerdata.toJson())
 
         // Remove from queuedPlayerData when done
         // If database set failed, emergency dump playerdata
@@ -42,11 +49,4 @@ class PlayerData_OutputSubservice(private val service: PlayerDataService, privat
 
         return future
     }
-
-    // No need to implement queuedPlayerData here as this will stop the whole program until set is done.
-    fun syncSet(playerdata: PlayerData): Boolean {
-        // Realizar cambios
-        return plugin.dbEssential.syncSet(playerdata.uuid.toString() + uuid_playerdata_sufix, playerdata.toJson())
-    }
-
 }

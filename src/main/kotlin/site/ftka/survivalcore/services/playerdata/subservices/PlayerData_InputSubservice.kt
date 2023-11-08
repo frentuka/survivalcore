@@ -10,33 +10,27 @@ class PlayerData_InputSubservice(private val service: PlayerDataService, private
     // PlayerData getter
     // Recibir informacion directamente de la base de datos.
 
-    val uuid_playerdata_sufix = "_data"
+    fun get(uuid: UUID, async: Boolean = true): CompletableFuture<PlayerData?>? {
+        // sync
+        if (!async) {
+            // If queuedPlayerData contains this uuid key,
+            // the most recent version of the playerdata is in there.
+            if (service.output_ss.queuedPlayerData.containsKey(uuid))
+                return CompletableFuture.completedFuture(service.output_ss.queuedPlayerData[uuid])
+            return plugin.dbEssential.get(uuid.toString(), false)?.thenApply { service.fromJson(it) }
+        }
 
-    fun asyncGet(uuid: UUID): CompletableFuture<PlayerData?> {
+        // async
         // If queuedPlayerData contains this uuid key,
         // the most recent version of the playerdata is in there.
         if (service.output_ss.queuedPlayerData.containsKey(uuid))
             return CompletableFuture.completedFuture(service.output_ss.queuedPlayerData[uuid])
 
-        val futureString = plugin.dbEssential.asyncGet(uuid.toString() + uuid_playerdata_sufix)
+        val futureString = plugin.dbEssential.get(uuid.toString())
         return futureString?.thenApply{ service.fromJson(it) }
-            ?: CompletableFuture.completedFuture(null)
     }
 
-    fun syncGet(uuid: UUID): PlayerData? {
-        // If queuedPlayerData contains this uuid key,
-        // the most recent version of the playerdata is in there.
-        if (service.output_ss.queuedPlayerData.containsKey(uuid))
-            return service.output_ss.queuedPlayerData[uuid]
-
-        return service.fromJson(plugin.dbEssential.syncGet(uuid.toString() + uuid_playerdata_sufix))
-    }
-
-    fun asyncExists(uuid: UUID): CompletableFuture<Boolean>? {
-        return plugin.dbEssential.asyncExists(uuid.toString())
-    }
-
-    fun syncExists(uuid: UUID): Boolean? {
-        return plugin.dbEssential.syncExists(uuid.toString())
+    fun exists(uuid: UUID, async: Boolean = true): CompletableFuture<Boolean>? {
+        return plugin.dbEssential.exists(uuid.toString(), async)
     }
 }

@@ -27,17 +27,15 @@ class PlayerData_EmergencySubservice(private val service: PlayerDataService, pri
         }
 
         for (dump in dumps) {
-            val futureGet = if (async) service.input_ss.asyncGet(dump.uuid)
-            else CompletableFuture.completedFuture(service.input_ss.syncGet(dump.uuid))
+            val futureGet = service.input_ss.get(dump.uuid, async)
 
-            futureGet.whenComplete{ result, _ ->
+            futureGet?.whenComplete{ result, _ ->
                 var shouldUpload = false // ONLY SHOULD UPLOAD IF EMERGENCY DUMP IS NEWER THAN DATABASE DATA
                 shouldUpload = if (result == null) true
                 else dump.updateTimestamp > result.updateTimestamp
 
                 if (shouldUpload)
-                    if (async) service.output_ss.asyncSet(dump)
-                    else service.output_ss.syncSet(dump)
+                    service.output_ss.set(dump, async)
             }
         }
     }
@@ -97,7 +95,7 @@ class PlayerData_EmergencySubservice(private val service: PlayerDataService, pri
     fun deleteEmergencyDump(uuid: UUID) {
         val emergencyDumpFolderFile = File(emergencyDumpFolderPath)
 
-        for (file in emergencyDumpFolderFile.listFiles { file -> file.extension == "json" })
+        for (file in emergencyDumpFolderFile.listFiles { file -> file.extension == "json" }!!)
             if (file.name.contains(uuid.toString())) file.delete()
     }
 }
