@@ -24,7 +24,7 @@ class DatabaseHealthCheckSubservice(private val service: DatabaseEssential, priv
     }
 
     private fun healthCheck() {
-        service.asyncPing().whenCompleteAsync{ result, _ ->
+        service.ping().whenCompleteAsync{ result, _ ->
             if (firstRun) {
                 service.health = result
                 return@whenCompleteAsync
