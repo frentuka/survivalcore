@@ -21,12 +21,14 @@ class DatabaseEssential(private val plugin: MClass) {
     private var redisClient = RedisClient.create(RedisURI.create(redis_conn_host))
     private var redisConnection: StatefulRedisConnection<String, String>? = null
 
-    private var healthCheck_SS = DatabaseHealthCheckSubservice(this, plugin, 5000)
+    private var stateListener = DatabaseHealthCheckSubservice(this, plugin)
     var health = true
 
     fun init() {
         logger.log("Attempting first redis connection. Local host ip is ${java.net.InetAddress.getLocalHost().hostAddress}")
         val connected = connect()
+        redisConnection?.addListener(stateListener)
+
         if (!connected) {
             logger.log("First connection attempt failed. Shutting down.")
             plugin.server.shutdown()
@@ -44,15 +46,12 @@ class DatabaseEssential(private val plugin: MClass) {
         return try {
             if (redisConnection == null || !redisConnection!!.isOpen)
                 redisConnection = redisClient.connect()
-
-            healthCheck_SS.start()
             true
         } catch (e: Exception) { if (printStackTraces) e.printStackTrace(); false }
     }
 
     fun disconnect() {
         redisConnection?.closeAsync()
-        healthCheck_SS.stop()
     }
 
     /*

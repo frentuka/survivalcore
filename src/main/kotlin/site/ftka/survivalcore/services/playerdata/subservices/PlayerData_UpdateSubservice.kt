@@ -19,7 +19,7 @@ class PlayerData_UpdateSubservice(private val service: PlayerDataService, privat
             service.playerDataMap[playerdata.uuid] = playerdata
 
         // 2.
-        else service.output_ss.asyncSet(playerdata)
+        else service.output_ss.set(playerdata)
     }
 
 }

@@ -10,7 +10,7 @@ import site.ftka.survivalcore.utils.dataclasses.DoublesVector
 import java.util.UUID
 import site.ftka.survivalcore.utils.numericUtils.roundDecimals
 
-data class PlayerState(private val uuid: UUID, private val playerdata: PlayerData) {
+data class PlayerState(private val uuid: UUID) {
 
     /*
         This class is NOT meant to request data when player is online.
