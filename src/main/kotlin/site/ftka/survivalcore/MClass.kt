@@ -4,6 +4,7 @@ import org.bukkit.event.Listener
 import org.bukkit.plugin.java.JavaPlugin
 import site.ftka.survivalcore.essentials.database.DatabaseEssential
 import site.ftka.survivalcore.essentials.logging.LoggingEssential
+import site.ftka.survivalcore.essentials.proprietaryEvents.ProprietaryEventsEssential
 import site.ftka.survivalcore.services.ServicesCore
 
 class MClass: JavaPlugin() {
@@ -11,9 +12,13 @@ class MClass: JavaPlugin() {
     // Initialize essentials
     val loggingEssential = LoggingEssential(this)
     val dbEssential = DatabaseEssential(this)
+    val eventsEssential = ProprietaryEventsEssential(this)
 
     // Initialize services
     val servicesCore = ServicesCore(this)
+
+    var starting: Boolean = true
+    var stopping: Boolean = false
 
     override fun onEnable() {
         dbEssential.init()
@@ -21,9 +26,13 @@ class MClass: JavaPlugin() {
         servicesCore.initAll()
 
         initListeners()
+
+        starting = false
     }
 
     override fun onDisable() {
+        stopping = true
+
         dbEssential.disconnect()
     }
 
