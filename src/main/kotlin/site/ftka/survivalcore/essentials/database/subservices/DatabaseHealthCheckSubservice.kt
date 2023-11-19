@@ -1,49 +1,40 @@
 package site.ftka.survivalcore.essentials.database.subservices
 
+import io.lettuce.core.RedisChannelHandler
+import io.lettuce.core.RedisConnectionStateListener
 import kotlinx.coroutines.*
 import site.ftka.survivalcore.MClass
 import site.ftka.survivalcore.essentials.database.DatabaseEssential
-import site.ftka.survivalcore.essentials.database.events.DatabaseHealthCheckFailedEvent
+import site.ftka.survivalcore.essentials.database.events.DatabaseDisconnectEvent
 import site.ftka.survivalcore.essentials.database.events.DatabaseReconnectEvent
+import java.net.SocketAddress
 
-class DatabaseHealthCheckSubservice(private val service: DatabaseEssential, private val plugin: MClass, private val interval: Long) {
+class DatabaseHealthCheckSubservice(val essential: DatabaseEssential, val plugin: MClass): RedisConnectionStateListener {
 
-    private var firstRun = true
-
-    private var healthCheckJob: Job? = null
-
-    private val checkFailEvent = DatabaseHealthCheckFailedEvent()
+    private val checkFailEvent = DatabaseDisconnectEvent()
     private val reconnectEvent = DatabaseReconnectEvent()
 
-    fun start() {
-        healthCheckJob = CoroutineScope(Dispatchers.Default).launch { delay(interval); healthCheck() }
+    override fun onRedisConnected(connection: RedisChannelHandler<*, *>?, socketAddress: SocketAddress?) {
+        println("ON REDIS CONNECTED ${essential.health}")
+
+        if (essential.health)
+            return
+
+        essential.health = true
+        plugin.eventsEssential.fireEvent(reconnectEvent)
     }
 
-    fun stop() {
-        healthCheckJob?.cancel()
-    }
+    override fun onRedisDisconnected(connection: RedisChannelHandler<*, *>?) {
+        println("ON REDIS DISCONNECTED ${essential.health} ${plugin.stopping}")
 
-    private fun healthCheck() {
-        service.ping().whenCompleteAsync{ result, _ ->
-            if (firstRun) {
-                service.health = result
-                return@whenCompleteAsync
-            }
+        if (!essential.health)
+            return
 
-            if (result && service.health) return@whenCompleteAsync
+        if (plugin.stopping)
+            return
 
-            if (!result && service.health) {
-                service.health = false
-                plugin.server.pluginManager.callEvent(checkFailEvent)
-                return@whenCompleteAsync
-            }
-
-            if (result && !service.health) {
-                service.health = true
-                plugin.server.pluginManager.callEvent(reconnectEvent)
-                return@whenCompleteAsync
-            }
-        }
+        essential.health = false
+        plugin.eventsEssential.fireEvent(checkFailEvent)
     }
 
 }
