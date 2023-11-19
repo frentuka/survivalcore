@@ -2,9 +2,7 @@ package site.ftka.survivalcore.essentials.database.events
 
 import site.ftka.survivalcore.essentials.proprietaryEvents.objects.PropEvent
 
-class DatabaseReconnectEvent(): PropEvent {
-
+class DatabaseDisconnectEvent(): PropEvent {
     override val async = false
     override var cancelled = false
-
 }

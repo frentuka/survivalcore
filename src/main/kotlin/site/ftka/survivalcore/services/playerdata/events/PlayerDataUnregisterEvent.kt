@@ -2,27 +2,17 @@ package site.ftka.survivalcore.services.playerdata.events
 
 import org.bukkit.event.Event
 import org.bukkit.event.HandlerList
+import site.ftka.survivalcore.essentials.proprietaryEvents.objects.PropEvent
 import site.ftka.survivalcore.services.playerdata.objects.PlayerData
 import java.util.*
 
-class PlayerDataUnregisterEvent(val uuid: UUID, val playerdata: PlayerData?): Event(false) {
+class PlayerDataUnregisterEvent(val uuid: UUID, val playerdata: PlayerData?): PropEvent {
+
+    override val async = false
+    override var cancelled = false
 
     /*
         Register event of player's data
      */
 
-    companion object {
-        private val handlers = HandlerList()
-
-        @JvmStatic
-        fun getHandlerList(): HandlerList {
-            return handlers
-        }
-    }
-
-    private val handlers = HandlerList()
-
-    override fun getHandlers(): HandlerList {
-        return handlers
-    }
 }
