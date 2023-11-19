@@ -28,6 +28,9 @@ class PlayerDataService(private val plugin: MClass, private val services: Servic
     val update_ss = PlayerData_UpdateSubservice(this, plugin)
     val emergency_ss = PlayerData_EmergencySubservice(this, plugin)
 
+    // listeners
+    val playerDataListener = PlayerDataListener(this, plugin)
+
     // playerDataMap saves player's playerdata
     // onlinePlayers (UUIDs -> Usernames) is controlled by PlayerDataListener
     val playerDataMap: MutableMap<UUID, PlayerData> = mutableMapOf()
@@ -37,10 +40,11 @@ class PlayerDataService(private val plugin: MClass, private val services: Servic
         logger.log("&eInitializing PlayerData service.", LogLevel.LOW)
 
         // initialize listeners
-        plugin.initListener(PlayerDataListener(this, plugin))
+        plugin.initListener(playerDataListener)
+        plugin.eventsEssential.registerListener(playerDataListener)
 
         // call event
-        plugin.server.pluginManager.callEvent(PlayerDataInitEvent())
+        plugin.eventsEssential.fireEvent(PlayerDataInitEvent())
     }
 
     // Save and re-gather every connected player's information
@@ -80,13 +84,13 @@ class PlayerDataService(private val plugin: MClass, private val services: Servic
         // 3.
         for (player in plugin.server.onlinePlayers) {
             onlinePlayers[player.uniqueId] = player.name
-            registration_ss.register(player.uniqueId, player.name)
+            registration_ss.register(player.uniqueId, player)
         }
 
         isRestarting = false
 
         // 4.
-        plugin.server.pluginManager.callEvent(PlayerDataRestartEvent())
+        plugin.eventsEssential.fireEvent(PlayerDataRestartEvent())
     }
 
     fun fromJson(json: String?): PlayerData? = Gson().fromJson(json, PlayerData::class.java)
