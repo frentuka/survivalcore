@@ -4,27 +4,24 @@ import org.bukkit.entity.Player
 import site.ftka.survivalcore.MClass
 import site.ftka.survivalcore.essentials.logging.LoggingEssential
 import site.ftka.survivalcore.services.playerdata.PlayerDataService
-import site.ftka.survivalcore.services.playerdata.events.PlayerDataPreUnregisterEvent
 import site.ftka.survivalcore.services.playerdata.events.PlayerDataRegisterEvent
 import site.ftka.survivalcore.services.playerdata.events.PlayerDataUnregisterEvent
 import site.ftka.survivalcore.services.playerdata.objects.PlayerData
 import java.util.*
-import java.util.concurrent.CompletableFuture
 
 class PlayerData_RegistrationSubservice(private val service: PlayerDataService, private val plugin: MClass) {
-    val logger = service.logger
+    private val logger = service.logger
 
     // Register functions
     // 1. Obtain or create player's information (done in this function)
-    // 2. Store in cache (in finishRegistration())
-    // 3. Apply PlayerState
+    // 2. Apply appliable modules
+    // 3. Store in cache (in finishRegistration())
     // 4. Call PlayerDataRegistrationEvent (in finishRegistration())
-    fun register(uuid: UUID, name: String, async: Boolean = true) {
+    fun register(uuid: UUID, player: Player? = null, async: Boolean = true) {
         logger.log("Starting registration for uuid ($uuid)", LoggingEssential.LogLevel.DEBUG)
 
         // 1.
-        val exists = if (async) service.input_ss.asyncExists(uuid) ?: return
-        else CompletableFuture.completedFuture(service.input_ss.syncExists(uuid) ?: return)
+        val exists = service.input_ss.exists(uuid, async) ?: return
 
         exists.whenComplete { existsResult, _ ->
             // If existsResult, then get
@@ -34,41 +31,45 @@ class PlayerData_RegistrationSubservice(private val service: PlayerDataService, 
 
                 // Create and save
                 val playerdata = PlayerData(uuid) // create object
-                finishRegistration(playerdata)
+                finishRegistration(playerdata, player)
 
             } else { // Exists in database!
                 logger.log("Retrieving playerdata from database for uuid ($uuid)", LoggingEssential.LogLevel.HIGH)
 
-                val get = if (async) service.input_ss.asyncGet(uuid) ?: return@whenComplete
-                else CompletableFuture.completedFuture(service.input_ss.syncGet(uuid) ?: return@whenComplete)
+                val get = service.input_ss.get(uuid, async) ?: return@whenComplete
                 get.whenComplete { getResult, _ ->
-                    if (getResult == null) {
-                        logger.log(
-                            "Creating new playerdata as database data seems corrupted ($uuid)",
-                            LoggingEssential.LogLevel.HIGH
-                        )
-                        finishRegistration(PlayerData(uuid))
-                    } else
-                        finishRegistration(getResult)
+                    val playerdata = getResult ?: PlayerData(uuid)
+                    if (getResult == null)
+                        logger.log("Creating new playerdata as database data seems corrupted ($uuid)", LoggingEssential.LogLevel.HIGH)
+                    finishRegistration(playerdata, player)
                 }
             }
         }
     }
 
-    // Last 2 steps must be done in another function
-    // because of async whenComplete
-    private fun finishRegistration(playerdata: PlayerData) {
+    private fun finishRegistration(playerdata: PlayerData, player: Player? = null) {
         // 2.
+        player?.let {
+            // PlayerInformation
+            playerdata.info.updateValuesFromPlayer(it)
+
+            // PlayerState
+            playerdata.state.applyValuesToPlayer(it)
+        }
+
+        // 3.
         service.playerDataMap[playerdata.uuid] = playerdata
         logger.log("Successfully cached playerdata for ${playerdata.info.username} (${playerdata.uuid})", LoggingEssential.LogLevel.DEBUG)
 
         // 4.
-        plugin.server.pluginManager.callEvent(PlayerDataRegisterEvent(playerdata.uuid, playerdata))
+        plugin.eventsEssential.fireEvent(PlayerDataRegisterEvent(playerdata.uuid, playerdata))
     }
 
 
 
-    // 1. Call PlayerDataPreUnregistrationEvent
+
+
+    // 1. Gather PlayerState
     // 2. Save player's information in database (in finishUnregistration())
     // 3. Remove from cache (in finishUnregistration())
     // 4. Report PlayerDataUnregistrationEvent (in finishUnregistration())
@@ -79,9 +80,11 @@ class PlayerData_RegistrationSubservice(private val service: PlayerDataService, 
         }
         val playerdata = service.playerDataMap[uuid]!!
 
-        logger.log("Pre-unregistering playerdata: ($uuid)", LoggingEssential.LogLevel.DEBUG)
-
-        player?.let { plugin.server.pluginManager.callEvent(PlayerDataPreUnregisterEvent(uuid, playerdata, it)) }
+        // 1.
+        player?.let {
+            logger.log("Player found. Gathering playerstate for ($uuid)", LoggingEssential.LogLevel.DEBUG)
+            playerdata.state.gatherValuesFromPlayer(player)
+        }
 
         logger.log("Unregistering playerdata: ($uuid)", LoggingEssential.LogLevel.DEBUG)
 
@@ -92,7 +95,7 @@ class PlayerData_RegistrationSubservice(private val service: PlayerDataService, 
         val uuid = playerdata.uuid
 
         // 1.
-        service.output_ss.asyncSet(playerdata) // IF SET FAILS, EMERGENCY DUMP IS DONE IN OUTPUT SUBSERVICE
+        service.output_ss.set(playerdata, async) // IF SET FAILS, EMERGENCY DUMP IS DONE IN OUTPUT SUBSERVICE
 
         logger.log("Setted in database: ($uuid)", LoggingEssential.LogLevel.DEBUG)
 
@@ -102,7 +105,7 @@ class PlayerData_RegistrationSubservice(private val service: PlayerDataService, 
         logger.log("Calling unregister event: ($uuid)", LoggingEssential.LogLevel.DEBUG)
 
         // 3.
-        plugin.server.pluginManager.callEvent(PlayerDataUnregisterEvent(uuid, playerdata))
+        plugin.eventsEssential.fireEvent(PlayerDataUnregisterEvent(uuid, playerdata))
     }
 
 }
