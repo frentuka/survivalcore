@@ -60,7 +60,7 @@ class PlayerData_EmergencySubservice(private val service: PlayerDataService, pri
         if (!emergencyDumpFolderFile.exists() || !emergencyDumpFolderFile.isDirectory) return availableDumps.toList()
 
         // list every json file
-        for (file in emergencyDumpFolderFile.listFiles { file -> file.extension == "json" }) {
+        for (file in emergencyDumpFolderFile.listFiles { file -> file.extension == "json" }!!) {
             val fileText = file.readText()
             val extractedPlayerData = service.fromJson(fileText)
             extractedPlayerData?.let { availableDumps.add(it) }

@@ -12,7 +12,7 @@ class LoggingEssential(private val plugin: MClass) {
     val logsFolderPath = plugin.dataFolder.absolutePath + "\\logs"
 
     // Won't print logs with level above default.
-    private val printableLogLevel = LogLevel.NORMAL
+    private val printableLogLevel = LogLevel.DEBUG
 
     fun print(tag: Component, log: Log) {
         // Don't print higher-than-intended log levels.
