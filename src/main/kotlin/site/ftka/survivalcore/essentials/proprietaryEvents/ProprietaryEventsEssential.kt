@@ -7,6 +7,8 @@ import site.ftka.survivalcore.essentials.proprietaryEvents.annotations.PropEvent
 import site.ftka.survivalcore.essentials.proprietaryEvents.enums.PropEventPriority
 import site.ftka.survivalcore.essentials.proprietaryEvents.interfaces.PropListener
 import site.ftka.survivalcore.essentials.proprietaryEvents.objects.PropEvent
+import kotlin.reflect.KClassifier
+import kotlin.reflect.KFunction
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.memberFunctions
 
@@ -18,64 +20,65 @@ class ProprietaryEventsEssential(private val plugin: MClass) {
         to not depend on it.
      */
 
-    private val listeners = mutableListOf<PropListener>()
+    // Will save listener data for it to not be processed again
+    // As it constantly uses reflection, processing it multiple times
+    // would end in high cpu usage
+    private data class CallableFunction(val owner: PropListener, val function: KFunction<*>, val priority: PropEventPriority)
+    private val functions = mutableMapOf<CallableFunction, KClassifier>()
 
     // register a listener
-    fun registerListener(listener: PropListener) = listeners.add(listener)
+    fun registerListener(listener: PropListener) {
+        logger.log("Received listener to register: $listener", LoggingEssential.LogLevel.DEBUG)
 
-    // unregister a listener
-    fun unregisterListener(listener: PropListener) = listeners.remove(listener)
+        // loop every function
+        listener::class.memberFunctions.filter {
+            it.findAnnotation<PropEventHandler>() != null && // only functions with @PropEventHandler annotation
+                    it.parameters.size == 2 // only functions with 1 parameter
+        }.forEach{
+            logger.log("Discovered callable function: ${it.parameters[1].type}", LoggingEssential.LogLevel.DEBUG)
 
-    // prepare call for listeners when event is fired
-    fun fireEvent(event: PropEvent) {
+            // save to be called in the future
+            val priority = it.findAnnotation<PropEventHandler>()!!.priority
+            val newFun = CallableFunction(listener, it, priority)
 
-        logger.log("Firing event: $event", LoggingEssential.LogLevel.DEBUG)
-
-        val listenersToBeCalled = mutableMapOf<PropListener, kotlin.reflect.KFunction<*>>()
-
-        for (listener in listeners) {
-
-            logger.log("Detected listener: $listener", LoggingEssential.LogLevel.DEBUG)
-
-            // loop every function
-            listener::class.memberFunctions.filter {
-                it.findAnnotation<PropEventHandler>() != null && // only functions with @PropEventHandler annotation
-                it.parameters.size == 2 && // only functions with 1 parameter
-                it.parameters[1].type.classifier == event::class // only parameters equal to the event type
-            }.forEach{
-                listenersToBeCalled[listener] = it
-            }
-
-            logger.log("Added members to be called: ${listenersToBeCalled.size}")
+            val classifier = it.parameters[1].type.classifier as KClassifier
+            functions[newFun] = classifier
         }
-
-        // callListeners will process it's priority
-        callListeners(listenersToBeCalled, event)
     }
 
-    // will call listeners taking in count it's priority
-    private fun callListeners(listenerMembers: MutableMap<PropListener, kotlin.reflect.KFunction<*>>, event: PropEvent) {
-
-        // Iterate through priorities from first to last.
-        val lastPriority = PropEventPriority.MONITOR.ordinal
-        for (priorityIndex in 0..lastPriority) {
-
-            logger.log("Calling event $event for priority level $priorityIndex", LoggingEssential.LogLevel.DEBUG)
-
-            // for every listener...
-            for (member in listenerMembers) {
-                logger.log("Processing member $member", LoggingEssential.LogLevel.DEBUG)
-
-                val eventHandlerTag = member.value.findAnnotation<PropEventHandler>()
-                // if the listener priority is right
-                if (eventHandlerTag?.priority?.ordinal == priorityIndex) {
-                    logger.log("Successfully calling event for member $member", LoggingEssential.LogLevel.DEBUG)
-                    member.value.call(member.key, event) // call listener! (arg1: owner, the listener. arg2: event)
-                    listenerMembers.remove(member.key) // should not be taken in count for next iterations after being called
-                }
-            }
-
+    // unregister a listener
+    fun unregisterListener(listener: PropListener) {
+        val iterator = functions.iterator()
+        while (iterator.hasNext()) {
+            val entry = iterator.next()
+            if (entry.key.owner == listener)
+                iterator.remove()
         }
+    }
+    
+    /*
+            PROCESSING
+     */
+
+    // gather listeners to be called
+    fun fireEvent(event: PropEvent) {
+        logger.log("Firing event: $event", LoggingEssential.LogLevel.DEBUG)
+
+        // <CallableFunction, Priority>
+        val eventFunctions = mutableMapOf<CallableFunction, Int>()
+
+        for (function in functions)
+            if (function.value == event::class) eventFunctions[function.key] = function.key.priority.ordinal
+
+        val firstVal = PropEventPriority.FIRST.ordinal
+        val lastVal = PropEventPriority.MONITOR.ordinal
+        for (priorityIndex in firstVal..lastVal) {
+            val functionsToBeCalled = eventFunctions.filterValues { it == priorityIndex }.keys
+
+            logger.log("Calling functions for event ${event.name}")
+            functionsToBeCalled.forEach{ it.function.call(it.owner, event) }
+        }
+
     }
 
 }
