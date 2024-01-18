@@ -5,7 +5,7 @@ import org.bukkit.event.HandlerList
 import site.ftka.survivalcore.essentials.proprietaryEvents.objects.PropEvent
 
 class PlayerDataRestartEvent: PropEvent {
-
+    override val name = "PlayerDataRestartEvent"
     override val async = false
     override var cancelled = false
 

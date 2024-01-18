@@ -6,7 +6,7 @@ import site.ftka.survivalcore.services.playerdata.objects.PlayerData
 import java.util.*
 
 class PlayerDataPreUnregisterEvent(val uuid: UUID, val playerdata: PlayerData, val player: Player): PropEvent {
-
+    override val name = "PlayerDataPreUnregisterEvent"
     override val async = false
     override var cancelled = false
 

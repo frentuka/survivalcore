@@ -5,7 +5,7 @@ import site.ftka.survivalcore.services.playerdata.objects.PlayerData
 import java.util.*
 
 class PlayerDataJoinEvent(val uuid: UUID, val playerdata: PlayerData?): PropEvent {
-
+    override val name = "PlayerDataJoinEvent"
     override val async = false
     override var cancelled = false
 
