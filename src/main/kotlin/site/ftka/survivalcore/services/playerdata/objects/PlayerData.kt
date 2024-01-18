@@ -10,7 +10,7 @@ import java.util.UUID
 data class PlayerData(val uuid: UUID) {
 
     var info = PlayerInformation(uuid)
-    var state = PlayerState(uuid)
+    var state = PlayerState(uuid, this)
     var perms = PlayerPermissions(uuid)
     var lang = PlayerLanguage(uuid)
 
