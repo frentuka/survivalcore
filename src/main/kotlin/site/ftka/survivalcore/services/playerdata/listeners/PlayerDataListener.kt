@@ -3,7 +3,10 @@ package site.ftka.survivalcore.services.playerdata.listeners
 import net.kyori.adventure.text.Component
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
-import org.bukkit.event.player.PlayerLoginEvent
+import org.bukkit.event.entity.EntityDamageEvent
+import org.bukkit.event.player.PlayerJoinEvent
+import org.bukkit.event.player.PlayerKickEvent
+import org.bukkit.event.player.PlayerMoveEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import site.ftka.survivalcore.MClass
 import site.ftka.survivalcore.essentials.database.events.DatabaseDisconnectEvent
@@ -18,13 +21,12 @@ import site.ftka.survivalcore.services.playerdata.events.PlayerDataJoinEvent
 class PlayerDataListener(private val service: PlayerDataService, private val plugin: MClass): Listener, PropListener {
 
     @EventHandler
-    fun onPlayerJoin(event: PlayerLoginEvent) {
+    fun onPlayerJoin(event: PlayerJoinEvent) {
         val player_uuid = event.player.uniqueId
 
         // If database health is false, prevent player from joining
         if (!plugin.dbEssential.health) {
-            event.disallow(PlayerLoginEvent.Result.KICK_OTHER,
-                Component.text("PlayerData was unable to communicate with database"))
+            event.player.kick(Component.text("PlayerData was unable to communicate with database"), PlayerKickEvent.Cause.UNKNOWN)
             return
         }
 
@@ -70,4 +72,14 @@ class PlayerDataListener(private val service: PlayerDataService, private val plu
         service.logger.log("Database reconnected. Saving all emergency dumps if available.", LoggingEssential.LogLevel.LOW)
         service.emergency_ss.uploadAllDumpsToDatabase(false)
     }
+
+    /*
+        TESTING
+     */
+    @EventHandler
+    fun onMove(event: EntityDamageEvent) {
+
+    }
+
+
 }
