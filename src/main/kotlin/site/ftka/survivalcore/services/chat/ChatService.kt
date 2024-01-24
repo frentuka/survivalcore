@@ -3,7 +3,6 @@ package site.ftka.survivalcore.services.chat
 import net.kyori.adventure.text.Component
 import site.ftka.survivalcore.MClass
 import site.ftka.survivalcore.services.chat.objects.ChatChannel
-import site.ftka.survivalcore.services.chat.objects.ChatChannelSettings
 import java.util.UUID
 
 class ChatService(var plugin: MClass) {
