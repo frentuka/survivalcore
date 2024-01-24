@@ -51,9 +51,8 @@ class ChatService(var plugin: MClass) {
     // create elemental channels:
     // Global, Staff
     private fun createElementalChannels() {
-        var elementalChannelSettings = ChatChannelSettings()
-        elementalChannelSettings.maxChatEntries = 100
-        elementalChannelSettings.messageTimeoutSeconds = 7200
+        var elementalChannelSettings = ChatChannel.ChatChannelSettings()
+        elementalChannelSettings.maxStoredChatEntries = 100
 
         val globalChannel = ChatChannel(this, GLOBAL_CHANNEL_NAME, elementalChannelSettings)
         val staffChannel = ChatChannel(this, STAFF_CHANNEL_NAME, elementalChannelSettings)
