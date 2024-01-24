@@ -17,6 +17,11 @@ class PlayerData_InputSubservice(private val service: PlayerDataService, private
             // the most recent version of the playerdata is in there.
             if (service.output_ss.queuedPlayerData.containsKey(uuid))
                 return CompletableFuture.completedFuture(service.output_ss.queuedPlayerData[uuid])
+
+            // Also, playerdata could be found inside the caching service
+            if (service.caching_ss.isCached(uuid))
+                return CompletableFuture.completedFuture(service.caching_ss.getCachedPlayerData(uuid))
+
             return plugin.dbEssential.get(uuid.toString(), false)?.thenApply { service.fromJson(it) }
         }
 
@@ -25,6 +30,10 @@ class PlayerData_InputSubservice(private val service: PlayerDataService, private
         // the most recent version of the playerdata is in there.
         if (service.output_ss.queuedPlayerData.containsKey(uuid))
             return CompletableFuture.completedFuture(service.output_ss.queuedPlayerData[uuid])
+
+        // Also, playerdata could be found inside the caching service
+        if (service.caching_ss.isCached(uuid))
+            return CompletableFuture.completedFuture(service.caching_ss.getCachedPlayerData(uuid))
 
         val futureString = plugin.dbEssential.get(uuid.toString())
         return futureString?.thenApply{ service.fromJson(it) }

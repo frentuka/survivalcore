@@ -29,6 +29,10 @@ class PlayerData_OutputSubservice(private val service: PlayerDataService, privat
             val operation =
                 plugin.dbEssential.set(playerdata.uuid.toString(), playerdata.toJson()).get()
             if (!operation) service.emergency_ss.emergencyDump(playerdata)
+
+            // cache it
+            service.caching_ss.storeLatestPlayerData(playerdata)
+
             return CompletableFuture.completedFuture(operation)
         }
 
@@ -46,6 +50,9 @@ class PlayerData_OutputSubservice(private val service: PlayerDataService, privat
             // Emergency dump
             if (!result) service.emergency_ss.emergencyDump(playerdata)
         }
+
+        // cache it
+        service.caching_ss.storeLatestPlayerData(playerdata)
 
         return future
     }
