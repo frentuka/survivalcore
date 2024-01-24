@@ -5,6 +5,7 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.format.NamedTextColor
 import site.ftka.survivalcore.essentials.logging.LoggingEssential
 import site.ftka.survivalcore.essentials.logging.LoggingEssential.LogLevel
 import site.ftka.survivalcore.utils.dateUtils
@@ -14,7 +15,7 @@ import java.io.File
 import java.io.FileWriter
 import java.io.IOException
 
-class ServiceLogger(private val service: LoggingEssential, val serviceName: String, val serviceTag: Component) {
+class ServiceLogger(private val service: LoggingEssential, val serviceName: String, var serviceTag: Component) {
 
     /*
         ServiceLogger will manage and allow services to create logs
@@ -39,6 +40,27 @@ class ServiceLogger(private val service: LoggingEssential, val serviceName: Stri
     var dumpableLogLevels: Set<LogLevel> =
         setOf(LogLevel.DEBUG, LogLevel.HIGH, LogLevel.NORMAL, LogLevel.LOW)
 
+    var printableLogLevels: Set<LogLevel> =
+        setOf(LogLevel.DEBUG, LogLevel.HIGH, LogLevel.NORMAL, LogLevel.LOW)
+
+    /*
+        SubLogger
+     */
+    data class SubLogger(val logger: ServiceLogger, val tag: String) {
+        fun log(text: String, level: LogLevel = LogLevel.NORMAL) {
+            val newTag =
+                logger.serviceTag.append(Component.text(" {").color(NamedTextColor.WHITE))
+                    .append(Component.text(tag).color(NamedTextColor.WHITE))
+                    .append(Component.text("}").color(NamedTextColor.WHITE))
+            logger.log(Component.text(text), level, newTag)
+        }
+    }
+
+    // sub logger: logger for subsystems/subservices to include it's tag
+    fun sub(tag: String): SubLogger {
+        return SubLogger(this, tag)
+    }
+
     /*
         ----------------------------------------------------------------------------------
      */
@@ -51,19 +73,23 @@ class ServiceLogger(private val service: LoggingEssential, val serviceName: Stri
     // using component system
     fun log(text: Component) = log(text, LogLevel.NORMAL)
 
-    fun log(text: Component, level: LogLevel) {
+    @OptIn(DelicateCoroutinesApi::class)
+    fun log(text: Component, level: LogLevel, tag: Component = serviceTag) {
         val log = Log(text, level)
 
         // print
-        service.print(serviceTag, log)
+        GlobalScope.launch {
+            if (log.level in printableLogLevels)
+                service.print(tag, log)
 
-        // process
-        if (log.level in dumpableLogLevels) {
-            logList.add(log)
-            logsSize += objectsSizeUtils.estimateStringSize(text.toString())
+            // process
+            if (log.level in dumpableLogLevels) {
+                logList.add(log)
+                logsSize += objectsSizeUtils.estimateStringSize(text.toString())
 
-            // dump log list if necessary
-            if (logsSize > logsMaxSize) dumpToStorage()
+                // dump log list if necessary
+                if (logsSize > logsMaxSize) dumpToStorage()
+            }
         }
     }
 
