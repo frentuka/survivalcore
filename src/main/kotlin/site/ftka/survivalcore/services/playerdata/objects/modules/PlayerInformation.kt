@@ -6,7 +6,7 @@ import java.util.UUID
 data class PlayerInformation(private val uuid: UUID) {
 
     var username: String = "{unknown}"
-    val usernameHistory = mutableMapOf<Long, String>() // <Timestamp, Name>
+    var usernameHistory = mutableMapOf<Long, String>() // <Timestamp, Name>
 
     var lastConnection: Long? = null
 
@@ -15,16 +15,17 @@ data class PlayerInformation(private val uuid: UUID) {
         this.username = player.name
 
         // usernameHistory
-        var updateUsernameHistory = false
-        if (usernameHistory.isNotEmpty()) {
-            val newestKey = usernameHistory.keys.max()
-            if (!usernameHistory[newestKey].equals(player.name)) // If the newest key does NOT equal the current name
-                updateUsernameHistory = true
-        } else updateUsernameHistory = true
-        if (updateUsernameHistory) usernameHistory[System.currentTimeMillis()] = player.name
+        /*
+            FOR SOME FUCKING REASON THE IDE SAYS THAT THIS ELVIS OPERATOR IS USELESS
+            BUT IF REMOVED, USERNAMEHISTORY COULD BE NULL
+            DO NOT REMOVE IT.
+         */
+        usernameHistory ?: run { usernameHistory = mutableMapOf() }
+        val max = if (usernameHistory.isEmpty()) null else usernameHistory.maxByOrNull { it.key }
+        if (!max?.value.equals(this.username))
+            usernameHistory[System.currentTimeMillis()] = this.username
 
         // lastConnection
         lastConnection = System.currentTimeMillis()
-
     }
 }
