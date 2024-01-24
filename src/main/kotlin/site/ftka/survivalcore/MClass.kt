@@ -6,8 +6,12 @@ import site.ftka.survivalcore.essentials.database.DatabaseEssential
 import site.ftka.survivalcore.essentials.logging.LoggingEssential
 import site.ftka.survivalcore.essentials.proprietaryEvents.ProprietaryEventsEssential
 import site.ftka.survivalcore.services.ServicesCore
+import java.util.concurrent.Executors
 
 class MClass: JavaPlugin() {
+
+    // basics
+    val globalScheduler = Executors.newSingleThreadScheduledExecutor()
 
     // Initialize essentials
     val loggingEssential = LoggingEssential(this)
