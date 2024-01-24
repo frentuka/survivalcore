@@ -24,7 +24,7 @@ class ProprietaryEventsEssential(private val plugin: MClass) {
     // As it constantly uses reflection, processing it multiple times
     // would end in high cpu usage
     private data class CallableFunction(val owner: PropListener, val function: KFunction<*>, val priority: PropEventPriority)
-    private val functions = mutableMapOf<CallableFunction, KClassifier>()
+    private val functions = mutableMapOf<CallableFunction, KClassifier>() // <Function, Event>
 
     // register a listener
     fun registerListener(listener: PropListener) {
@@ -35,7 +35,7 @@ class ProprietaryEventsEssential(private val plugin: MClass) {
             it.findAnnotation<PropEventHandler>() != null && // only functions with @PropEventHandler annotation
                     it.parameters.size == 2 // only functions with 1 parameter
         }.forEach{
-            logger.log("Discovered callable function: ${it.parameters[1].type}", LoggingEssential.LogLevel.DEBUG)
+            logger.log("Discovered callable function: ${it.name}", LoggingEssential.LogLevel.DEBUG)
 
             // save to be called in the future
             val priority = it.findAnnotation<PropEventHandler>()!!.priority
@@ -62,7 +62,7 @@ class ProprietaryEventsEssential(private val plugin: MClass) {
 
     // gather listeners to be called
     fun fireEvent(event: PropEvent) {
-        logger.log("Firing event: $event", LoggingEssential.LogLevel.DEBUG)
+        logger.log("Firing event: ${event.name}", LoggingEssential.LogLevel.DEBUG)
 
         // <CallableFunction, Priority>
         val eventFunctions = mutableMapOf<CallableFunction, Int>()
@@ -73,10 +73,13 @@ class ProprietaryEventsEssential(private val plugin: MClass) {
         val firstVal = PropEventPriority.FIRST.ordinal
         val lastVal = PropEventPriority.MONITOR.ordinal
         for (priorityIndex in firstVal..lastVal) {
-            val functionsToBeCalled = eventFunctions.filterValues { it == priorityIndex }.keys
+            val functionsToBeCalled = eventFunctions.filter { it.value == priorityIndex }.keys
 
-            logger.log("Calling functions for event ${event.name}")
-            functionsToBeCalled.forEach{ it.function.call(it.owner, event) }
+            functionsToBeCalled.forEach{
+                val className = it.owner.javaClass.name.split(".").last()
+                logger.log("${event.name} -> $className.${it.function.name} (${it.priority})")
+                it.function.call(it.owner, event)
+            }
         }
 
     }
