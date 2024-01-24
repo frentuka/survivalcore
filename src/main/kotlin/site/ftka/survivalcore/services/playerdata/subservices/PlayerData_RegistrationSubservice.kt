@@ -1,5 +1,7 @@
 package site.ftka.survivalcore.services.playerdata.subservices
 
+import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.entity.Player
 import site.ftka.survivalcore.MClass
 import site.ftka.survivalcore.essentials.logging.LoggingEssential
@@ -10,7 +12,7 @@ import site.ftka.survivalcore.services.playerdata.objects.PlayerData
 import java.util.*
 
 class PlayerData_RegistrationSubservice(private val service: PlayerDataService, private val plugin: MClass) {
-    private val logger = service.logger
+    private val logger = service.logger.sub("Registration")
 
     // Register functions
     // 1. Obtain or create player's information (done in this function)
@@ -23,10 +25,17 @@ class PlayerData_RegistrationSubservice(private val service: PlayerDataService, 
         // 1.
         val exists = service.input_ss.exists(uuid, async) ?: return
 
-        exists.whenComplete { existsResult, _ ->
+        exists.whenComplete { existsResult, exc ->
+            if (exc != null) {
+                logger.log("An exception occurred when retrieving data for ($uuid). Kicking player.")
+                player?.kick()
+                exc.printStackTrace()
+            }
+
             // If existsResult, then get
             // If not, then create
             if (!existsResult) {
+
                 logger.log("Creating new playerdata ($uuid)")
 
                 // Create and save
@@ -34,16 +43,30 @@ class PlayerData_RegistrationSubservice(private val service: PlayerDataService, 
                 finishRegistration(playerdata, player)
 
             } else { // Exists in database!
-                logger.log("Retrieving playerdata from database for uuid ($uuid)", LoggingEssential.LogLevel.HIGH)
 
-                val get = service.input_ss.get(uuid, async) ?: return@whenComplete
-                get.whenComplete { getResult, _ ->
-                    val playerdata = getResult ?: PlayerData(uuid)
-                    if (getResult == null)
-                        logger.log("Creating new playerdata as database data seems corrupted ($uuid)", LoggingEssential.LogLevel.HIGH)
-                    finishRegistration(playerdata, player)
-                }
+                logger.log("Retrieving playerdata from database ($uuid)", LoggingEssential.LogLevel.HIGH)
+                gatherPlayerData(uuid, async, player)
+
             }
+        }
+    }
+
+    private fun gatherPlayerData(uuid: UUID, async: Boolean, player: Player?) {
+        val get = service.input_ss.get(uuid, async) ?: return
+        get.whenComplete { getResult, exc ->
+
+            if (exc != null) {
+                logger.log("There was an exception when trying to gather data from database for $uuid. Kicking player")
+                player?.kick()
+                exc.printStackTrace()
+                return@whenComplete
+            }
+
+            val playerdata = getResult ?: PlayerData(uuid)
+            if (getResult == null)
+                logger.log("Creating new playerdata as database data seems corrupted ($uuid)", LoggingEssential.LogLevel.LOW)
+
+            finishRegistration(playerdata, player)
         }
     }
 
@@ -54,7 +77,7 @@ class PlayerData_RegistrationSubservice(private val service: PlayerDataService, 
             playerdata.info.updateValuesFromPlayer(it)
 
             // PlayerState
-            playerdata.state.applyValuesToPlayer(it)
+            playerdata.state.applyValuesToPlayer(plugin, it)
         }
 
         // 3.
@@ -74,7 +97,14 @@ class PlayerData_RegistrationSubservice(private val service: PlayerDataService, 
     // 3. Remove from cache (in finishUnregistration())
     // 4. Report PlayerDataUnregistrationEvent (in finishUnregistration())
     fun unregister(uuid: UUID, player: Player? = null, async: Boolean = true) {
-        if (service.playerDataMap[uuid] == null ) {
+        // debug
+
+        println("unregistering: $uuid")
+        for (key in service.playerDataMap)
+            println(key.key.toString())
+
+        // debug end
+        if (service.playerDataMap[uuid] == null) {
             logger.log("Tried to unregister ($uuid) but no playerdata was found", LoggingEssential.LogLevel.DEBUG)
             return
         }
@@ -84,6 +114,7 @@ class PlayerData_RegistrationSubservice(private val service: PlayerDataService, 
         player?.let {
             logger.log("Player found. Gathering playerstate for ($uuid)", LoggingEssential.LogLevel.DEBUG)
             playerdata.state.gatherValuesFromPlayer(player)
+            playerdata.info.updateValuesFromPlayer(player)
         }
 
         logger.log("Unregistering playerdata: ($uuid)", LoggingEssential.LogLevel.DEBUG)
