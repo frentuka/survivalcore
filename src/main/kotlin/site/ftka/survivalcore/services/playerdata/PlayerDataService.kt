@@ -1,6 +1,9 @@
 package site.ftka.survivalcore.services.playerdata
 
 import com.google.gson.Gson
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import site.ftka.survivalcore.MClass
@@ -10,9 +13,11 @@ import site.ftka.survivalcore.services.ServicesCore
 import site.ftka.survivalcore.services.playerdata.events.PlayerDataInitEvent
 import site.ftka.survivalcore.services.playerdata.events.PlayerDataRestartEvent
 import site.ftka.survivalcore.services.playerdata.listeners.PlayerDataListener
+import site.ftka.survivalcore.services.playerdata.listeners.WorldPlayerDataDeleter
 import site.ftka.survivalcore.services.playerdata.objects.PlayerData
 import site.ftka.survivalcore.services.playerdata.subservices.*
 import java.util.UUID
+import java.util.concurrent.TimeUnit
 
 class PlayerDataService(private val plugin: MClass, private val services: ServicesCore) {
     val logger: ServiceLogger = plugin.loggingEssential.getLog("PlayerData", Component.text("PlayerData").color(NamedTextColor.DARK_AQUA))
@@ -25,8 +30,8 @@ class PlayerDataService(private val plugin: MClass, private val services: Servic
     val input_ss = PlayerData_InputSubservice(this, plugin)
     val output_ss = PlayerData_OutputSubservice(this, plugin)
     val registration_ss = PlayerData_RegistrationSubservice(this, plugin)
-    val update_ss = PlayerData_UpdateSubservice(this, plugin)
     val emergency_ss = PlayerData_EmergencySubservice(this, plugin)
+    val caching_ss = PlayerData_CachingSubservice(this, plugin)
 
     // listeners
     val playerDataListener = PlayerDataListener(this, plugin)
@@ -36,6 +41,7 @@ class PlayerDataService(private val plugin: MClass, private val services: Servic
     val playerDataMap: MutableMap<UUID, PlayerData> = mutableMapOf()
     val onlinePlayers: MutableMap<UUID, String> = mutableMapOf()
 
+    @OptIn(DelicateCoroutinesApi::class)
     fun init() {
         logger.log("&eInitializing PlayerData service.", LogLevel.LOW)
 
@@ -43,8 +49,13 @@ class PlayerDataService(private val plugin: MClass, private val services: Servic
         plugin.initListener(playerDataListener)
         plugin.eventsEssential.registerListener(playerDataListener)
 
-        // call event
-        plugin.eventsEssential.fireEvent(PlayerDataInitEvent())
+        plugin.initListener(WorldPlayerDataDeleter(plugin))
+
+        // call event after 1 second
+        GlobalScope.launch {
+            TimeUnit.SECONDS.sleep(1)
+            plugin.eventsEssential.fireEvent(PlayerDataInitEvent())
+        }
     }
 
     // Save and re-gather every connected player's information
