@@ -68,6 +68,7 @@ class ChatService(var plugin: MClass) {
      *
      * If you need to communicate with a player,
      * communicate using the player's channel.
+     *
      * Get the player's channel using the getPlayerChannel method
      */
     fun sendRawMessageToPlayer(uuid: UUID, message: Component) {
