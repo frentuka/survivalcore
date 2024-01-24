@@ -1,7 +1,6 @@
 package site.ftka.survivalcore.services.playerdata.subservices
 
 import site.ftka.survivalcore.MClass
-import site.ftka.survivalcore.essentials.logging.objects.ServiceLogger
 import site.ftka.survivalcore.services.playerdata.objects.PlayerData
 import site.ftka.survivalcore.services.playerdata.PlayerDataService
 import site.ftka.survivalcore.essentials.logging.LoggingEssential
@@ -10,7 +9,6 @@ import java.io.IOException
 import java.io.FileWriter
 import java.io.File
 import java.util.UUID
-import java.util.concurrent.CompletableFuture
 
 class PlayerData_EmergencySubservice(private val service: PlayerDataService, private val plugin: MClass) {
     val logger = service.logger.sub("Emergency")

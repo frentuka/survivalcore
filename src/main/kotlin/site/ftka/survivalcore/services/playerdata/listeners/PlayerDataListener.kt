@@ -6,7 +6,6 @@ import org.bukkit.event.Listener
 import org.bukkit.event.entity.EntityDamageEvent
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerKickEvent
-import org.bukkit.event.player.PlayerMoveEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import site.ftka.survivalcore.MClass
 import site.ftka.survivalcore.essentials.database.events.DatabaseDisconnectEvent

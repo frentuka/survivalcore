@@ -1,7 +1,5 @@
 package site.ftka.survivalcore.services.playerdata.subservices
 
-import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.entity.Player
 import site.ftka.survivalcore.MClass
 import site.ftka.survivalcore.essentials.logging.LoggingEssential
