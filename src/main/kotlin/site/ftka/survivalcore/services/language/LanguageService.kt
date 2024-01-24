@@ -28,7 +28,7 @@ class LanguageService(private val plugin: MClass, private val services: Services
         initLangMap()
 
         // initialize listeners
-        plugin.initListener(langListener)
+        plugin.eventsEssential.registerListener(langListener)
 
         for (playerdata in services.playerDataService.playerDataMap.values)
             userLangMap[playerdata.uuid] = playerdata.lang.language
