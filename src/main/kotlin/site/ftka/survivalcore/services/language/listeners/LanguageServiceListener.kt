@@ -1,21 +1,21 @@
 package site.ftka.survivalcore.services.language.listeners
 
-import org.bukkit.event.EventHandler
-import org.bukkit.event.Listener
 import site.ftka.survivalcore.MClass
+import site.ftka.survivalcore.essentials.proprietaryEvents.annotations.PropEventHandler
+import site.ftka.survivalcore.essentials.proprietaryEvents.interfaces.PropListener
 import site.ftka.survivalcore.services.language.LanguageService
 import site.ftka.survivalcore.services.playerdata.events.PlayerDataRegisterEvent
 import site.ftka.survivalcore.services.playerdata.events.PlayerDataUnregisterEvent
 
-class LanguageServiceListener(private val service: LanguageService, private val plugin: MClass): Listener {
+class LanguageServiceListener(private val service: LanguageService, private val plugin: MClass): PropListener {
 
-    @EventHandler
+    @PropEventHandler
     fun playerRegisterEvent(e: PlayerDataRegisterEvent) {
         if (e.playerdata == null) return
         service.userLangMap[e.uuid] = e.playerdata.lang.language
     }
 
-    @EventHandler
+    @PropEventHandler
     fun playerUnregisterEvent(e: PlayerDataUnregisterEvent) {
         service.userLangMap.remove(e.uuid)
     }
