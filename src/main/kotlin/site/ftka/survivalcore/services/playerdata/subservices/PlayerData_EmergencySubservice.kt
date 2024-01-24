@@ -13,7 +13,7 @@ import java.util.UUID
 import java.util.concurrent.CompletableFuture
 
 class PlayerData_EmergencySubservice(private val service: PlayerDataService, private val plugin: MClass) {
-    val logger: ServiceLogger = service.logger
+    val logger = service.logger.sub("Emergency")
 
     private val baseFolderPath = "${plugin.dataFolder.absolutePath}\\PlayerData"
     private val emergencyDumpFolderPath = "${baseFolderPath}\\EmergencyDump"
