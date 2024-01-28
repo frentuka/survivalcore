@@ -60,7 +60,7 @@ class PlayerDataService(private val plugin: MClass, private val services: Servic
 
     // Save and re-gather every connected player's information
     // 1. Unregister every cached player
-    // 2. If exist, send emergency dumps to database
+    // 2. If exists, send emergency dumps to database
     // 3. Register every online player
     // 4. Call event
     fun restart() {
