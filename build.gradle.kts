@@ -20,7 +20,7 @@ repositories {
 dependencies {
     testImplementation(kotlin("test"))
     implementation(kotlin("stdlib"))
-    implementation(kotlin("reflect")) // Needed for reading function's members in EventsEssentials
+    implementation(kotlin("reflect")) // Needed for proprietary events
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.5.21")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
 
