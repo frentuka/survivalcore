@@ -97,7 +97,6 @@ class PlayerData_RegistrationSubservice(private val service: PlayerDataService, 
     fun unregister(uuid: UUID, player: Player? = null, async: Boolean = true) {
         // debug
 
-        println("unregistering: $uuid")
         for (key in service.playerDataMap)
             println(key.key.toString())
 
