@@ -5,7 +5,6 @@ import site.ftka.survivalcore.MClass
 import site.ftka.survivalcore.services.ServicesCore
 import site.ftka.survivalcore.services.language.listeners.LanguageServiceListener
 import site.ftka.survivalcore.services.language.objects.LanguagePack
-import site.ftka.survivalcore.utils.jsonFileUtils
 import java.util.*
 
 class LanguageService(private val plugin: MClass, private val services: ServicesCore) {
@@ -45,9 +44,9 @@ class LanguageService(private val plugin: MClass, private val services: Services
 
     private fun readLangPacks(): List<LanguagePack> {
         val langpacks = mutableListOf<LanguagePack>()
-        jsonFileUtils.readAllJson(langFolderLocation).forEach{
-            langpacks.add(fromJson(it))
-        }
+        //jsonFileUtils.readAllJsons(langFolderLocation).forEach{
+        //    langpacks.add(fromJson(it))
+        //}
 
         return langpacks
     }
