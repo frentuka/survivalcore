@@ -1,30 +1,23 @@
 package site.ftka.survivalcore.services.permissions.objects
 
 import com.google.gson.GsonBuilder
+import net.kyori.adventure.text.format.NamedTextColor
+import java.util.UUID
 
-class PermissionGroup {
+data class PermissionGroup(val uuid: UUID = UUID.randomUUID()) {
 
-    constructor(id: Int) {
-        this.id = id
-    }
+    var name = "NONE"
+    var tag = "NONE"
+    var category = GroupCategory.normal
+    var primaryColor = NamedTextColor.GRAY
+    var secondaryColor = NamedTextColor.DARK_GRAY
+    var perms = setOf<String>()
+    var inheritances = setOf<UUID>()
 
-    constructor(id: Int, name: String)
-
-    var id: Int = -666
-    var name : String = "DEFAULT"
-    var tag: String = "DEF"
-    var category: GroupCategory = GroupCategory.normal
-    var primaryColor: Char = '7'
-    var secondaryColor: Char = '8'
-    var perms = mutableListOf<String>()
-    var inheritances = mutableListOf<Int>()
+    enum class GroupCategory { normal, special, staff }
 
     fun toJson(): String {
         val gsonPretty = GsonBuilder().setPrettyPrinting().create()
         return gsonPretty.toJson(this)
-    }
-
-    enum class GroupCategory{
-        normal, special, staff
     }
 }
