@@ -4,10 +4,8 @@ import java.util.UUID
 
 data class PlayerPermissions(private val uuid: UUID) {
 
-    var normalGroup: Int = 0
-    var specialGroup: Int? = null
-    var staffGroup: Int? = null
+    var groups = listOf<UUID>()
 
-    var permissions: List<String> = listOf()
+    var permissions: Set<String> = setOf()
 
 }
