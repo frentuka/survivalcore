@@ -35,11 +35,10 @@ class PermissionsService_InputOutputSubservice(private val service: PermissionsS
                 // check if group name is right in the file name
                 // file name should be {groupname}.json (all lowercase)
                 val groupNameLowercase = group.name.lowercase()
-                val correctFileName = "$groupNameLowercase"
 
-                if (correctFileName != possibleGroupFile.nameWithoutExtension) {
-                    logger.log("Group file discrepancy detected: File name is ${possibleGroupFile.name} when it should be $correctFileName. Renaming.")
-                    renameGroupFile(possibleGroupFile.nameWithoutExtension, correctFileName)
+                if (groupNameLowercase != possibleGroupFile.nameWithoutExtension) {
+                    logger.log("Group file discrepancy detected: File name is ${possibleGroupFile.name} when it should be $groupNameLowercase. Renaming.")
+                    renameGroupFile(possibleGroupFile.nameWithoutExtension, groupNameLowercase)
                 }
 
             } catch (e: Exception) {
@@ -64,7 +63,7 @@ class PermissionsService_InputOutputSubservice(private val service: PermissionsS
     fun saveGroupToStorage(group: PermissionGroup, overwriteIfExists: Boolean = true): Boolean {
         val groupsFolderFile = File(groupsFolderAbsolutePath)
         if (!groupsFolderFile.exists()) groupsFolderFile.mkdirs()
-        if (!groupsFolderFile.isDirectory()) return false // something weird
+        if (!groupsFolderFile.isDirectory) return false // something weird
 
         val groupFileName = "${group.name}.json"
         val groupFileAbsolutePath = "$groupsFolderFile\\$groupFileName"
