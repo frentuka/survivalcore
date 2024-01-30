@@ -24,6 +24,16 @@ class PermissionsService(val plugin: MClass, private val services: ServicesCore)
 
     fun init() {
         loadGroupsFromStorage()
+
+        // create example group
+        if (inout_ss.readGroupsFromStorage().isEmpty()) {
+            val group = PermissionGroup()
+            group.name = "housemaster"
+            val asd = setOf("asd.asd1.asd2")
+            group.perms = asd
+
+            inout_ss.saveGroupToStorage(group)
+        }
     }
 
     fun restart() {
