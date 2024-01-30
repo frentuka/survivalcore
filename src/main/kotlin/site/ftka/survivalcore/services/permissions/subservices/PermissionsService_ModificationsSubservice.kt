@@ -11,6 +11,7 @@ class PermissionsService_ModificationsSubservice(private val service: Permission
 
     /*
         Group renaming is done here because it's more complex than other modifications
+        as the group's name is the same as the file name.
         Other modifications should be done anywhere it's needed and use commitNewGroup() fun
      */
 
@@ -35,15 +36,8 @@ class PermissionsService_ModificationsSubservice(private val service: Permission
         // save group into cache
         service.groupsNameIDMap.remove(oldName)
 
-        commitNewGroup(group)
-    }
-
-    fun commitNewGroup(group: PermissionGroup) {
-        // save group into file, overwriting
         service.inout_ss.saveGroupToStorage(group)
 
-        // save group into cache
-        service.groupsNameIDMap[group.name] = group.uuid
-        service.groupsMap[group.uuid] = group
+        service.materializeGroup(group)
     }
 }
