@@ -12,11 +12,11 @@ class LanguageServiceListener(private val service: LanguageService, private val 
     @PropEventHandler
     fun playerRegisterEvent(e: PlayerDataRegisterEvent) {
         if (e.playerdata == null) return
-        service.userLangMap[e.uuid] = e.playerdata.lang.language
+        service.playerLangMap[e.uuid] = e.playerdata.lang.language
     }
 
     @PropEventHandler
     fun playerUnregisterEvent(e: PlayerDataUnregisterEvent) {
-        service.userLangMap.remove(e.uuid)
+        service.playerLangMap.remove(e.uuid)
     }
 }
