@@ -9,8 +9,7 @@ class LanguagePack {
 
     val name: String = "en"
 
-
-    var command_error_player_noPermission: String = "&c&lERROR: &7You are not allowed to do this."
+   var command_error_player_noPermission: String = "&c&lERROR: &7You're not allowed to do this."
 
 
 
