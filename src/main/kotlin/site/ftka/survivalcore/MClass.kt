@@ -2,6 +2,7 @@ package site.ftka.survivalcore
 
 import org.bukkit.event.Listener
 import org.bukkit.plugin.java.JavaPlugin
+import site.ftka.survivalcore.apps.InventoryGUITester.invguitester
 import site.ftka.survivalcore.essentials.database.DatabaseEssential
 import site.ftka.survivalcore.essentials.logging.LoggingEssential
 import site.ftka.survivalcore.essentials.proprietaryEvents.ProprietaryEventsEssential
@@ -32,6 +33,8 @@ class MClass: JavaPlugin() {
         initListeners()
 
         starting = false
+
+        val invgt = invguitester(this)
     }
 
     override fun onDisable() {
