@@ -5,6 +5,7 @@ import site.ftka.survivalcore.MClass
 import site.ftka.survivalcore.services.ServicesCore
 import site.ftka.survivalcore.services.language.listeners.LanguageServiceListener
 import site.ftka.survivalcore.services.language.objects.LanguagePack
+import site.ftka.survivalcore.services.language.subservices.LanguageService_InputSubservice
 import java.util.*
 
 class LanguageService(private val plugin: MClass, private val services: ServicesCore) {
@@ -15,43 +16,33 @@ class LanguageService(private val plugin: MClass, private val services: Services
         to allow customizable messages to user's choice.
      */
 
-    val userLangMap = mutableMapOf<UUID, String>()
-
-    private val langFolderLocation = "${plugin.dataFolder.absolutePath}\\language"
-
     private var langListener = LanguageServiceListener(this, plugin)
 
-    private val langMap = mutableMapOf<String, LanguagePack>()
+    val input_ss = LanguageService_InputSubservice(this, plugin)
+
+    val langMap = mutableMapOf<String, LanguagePack>()
+    val playerLangMap = mutableMapOf<UUID, String>()
 
     fun init() {
-        initLangMap()
+        mapLanguagePacks()
 
         // initialize listeners
         plugin.eventsEssential.registerListener(langListener)
 
         for (playerdata in services.playerDataService.playerDataMap.values)
-            userLangMap[playerdata.uuid] = playerdata.lang.language
+            playerLangMap[playerdata.uuid] = playerdata.lang.language
     }
 
     fun restart() {
-        langMap.clear()
-        initLangMap()
+        mapLanguagePacks()
     }
 
-    private fun initLangMap() {
-        readLangPacks().forEach{ langMap[it.name] = it }
+    fun mapLanguagePacks(clearMap: Boolean = true) {
+        if (clearMap) langMap.clear()
+        input_ss.gatherAllLanguagePacks().forEach{ langMap[it.name] = it }
     }
 
-    private fun readLangPacks(): List<LanguagePack> {
-        val langpacks = mutableListOf<LanguagePack>()
-        //jsonFileUtils.readAllJsons(langFolderLocation).forEach{
-        //    langpacks.add(fromJson(it))
-        //}
-
-        return langpacks
-    }
-
-    private fun fromJson(json: String): LanguagePack {
+    fun fromJson(json: String): LanguagePack {
         val gson = Gson()
         return gson.fromJson(json, LanguagePack::class.java)
     }
