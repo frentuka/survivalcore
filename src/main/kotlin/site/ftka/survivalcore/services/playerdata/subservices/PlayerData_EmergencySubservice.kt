@@ -60,8 +60,12 @@ class PlayerData_EmergencySubservice(private val service: PlayerDataService, pri
         // list every json file
         for (file in emergencyDumpFolderFile.listFiles { file -> file.extension == "json" }!!) {
             val fileText = file.readText()
-            val extractedPlayerData = service.fromJson(fileText)
-            extractedPlayerData?.let { availableDumps.add(it) }
+            try {
+                val extractedPlayerData = service.fromJson(fileText)
+                extractedPlayerData?.let { availableDumps.add(it) }
+            } catch (e: Exception) {
+                logger.log("Fatal error occurred in emergency dump deserialization...")
+            }
         }
 
         return availableDumps
