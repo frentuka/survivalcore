@@ -13,7 +13,6 @@ interface InventoryGUIOwner: InventoryHolder {
     fun openEvent(event: InventoryOpenEvent)
     fun closeEvent(event: InventoryCloseEvent)
 
-    fun interactEvent(event: InventoryInteractEvent)
     fun clickEvent(event: InventoryClickEvent)
 
 }
