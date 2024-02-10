@@ -2,7 +2,6 @@ package site.ftka.survivalcore.essentials.database.subservices
 
 import io.lettuce.core.RedisChannelHandler
 import io.lettuce.core.RedisConnectionStateListener
-import kotlinx.coroutines.*
 import site.ftka.survivalcore.MClass
 import site.ftka.survivalcore.essentials.database.DatabaseEssential
 import site.ftka.survivalcore.essentials.database.events.DatabaseDisconnectEvent
@@ -21,7 +20,7 @@ class DatabaseHealthCheckSubservice(val essential: DatabaseEssential, val plugin
             return
 
         essential.health = true
-        plugin.eventsEssential.fireEvent(reconnectEvent)
+        plugin.propEventsInitless.fireEvent(reconnectEvent)
     }
 
     override fun onRedisDisconnected(connection: RedisChannelHandler<*, *>?) {
@@ -34,7 +33,7 @@ class DatabaseHealthCheckSubservice(val essential: DatabaseEssential, val plugin
             return
 
         essential.health = false
-        plugin.eventsEssential.fireEvent(checkFailEvent)
+        plugin.propEventsInitless.fireEvent(checkFailEvent)
     }
 
 }

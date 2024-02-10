@@ -1,6 +1,6 @@
 package site.ftka.survivalcore.essentials.database.events
 
-import site.ftka.survivalcore.essentials.proprietaryEvents.objects.PropEvent
+import site.ftka.survivalcore.initless.proprietaryEvents.objects.PropEvent
 
 class DatabaseReconnectEvent(): PropEvent {
     override val name = "DatabaseReconnectEvent"

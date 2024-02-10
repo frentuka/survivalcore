@@ -3,7 +3,7 @@ package site.ftka.survivalcore.services.playerdata.subservices
 import site.ftka.survivalcore.MClass
 import site.ftka.survivalcore.services.playerdata.objects.PlayerData
 import site.ftka.survivalcore.services.playerdata.PlayerDataService
-import site.ftka.survivalcore.essentials.logging.LoggingEssential
+import site.ftka.survivalcore.initless.logging.LoggingInitless
 import java.io.BufferedWriter
 import java.io.IOException
 import java.io.FileWriter
@@ -76,7 +76,7 @@ class PlayerData_EmergencySubservice(private val service: PlayerDataService, pri
         val saveLocationFolder = File(emergencyDumpFolderPath)
         saveLocationFolder.mkdirs()
 
-        logger.log("Dumping ${playerdata.info.username} (${playerdata.uuid})", LoggingEssential.LogLevel.HIGH)
+        logger.log("Dumping ${playerdata.info.username} (${playerdata.uuid})", LoggingInitless.LogLevel.HIGH)
 
         // e.g. EmergencyDump\srleg_3988d2e9-60c4-4d81-bed0-a6b6c2d13080
         val playerdataFile = "${saveLocationFolder.absolutePath}\\${playerdata.info.username}_${playerdata.uuid}.json"

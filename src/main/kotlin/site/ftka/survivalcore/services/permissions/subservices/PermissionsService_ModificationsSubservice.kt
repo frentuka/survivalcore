@@ -1,9 +1,8 @@
 package site.ftka.survivalcore.services.permissions.subservices
 
 import site.ftka.survivalcore.MClass
-import site.ftka.survivalcore.essentials.logging.LoggingEssential.*
+import site.ftka.survivalcore.initless.logging.LoggingInitless.*
 import site.ftka.survivalcore.services.permissions.PermissionsService
-import site.ftka.survivalcore.services.permissions.objects.PermissionGroup
 import java.util.UUID
 
 class PermissionsService_ModificationsSubservice(private val service: PermissionsService, private val plugin: MClass) {

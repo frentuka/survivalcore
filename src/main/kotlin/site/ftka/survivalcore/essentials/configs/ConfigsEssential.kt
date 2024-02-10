@@ -3,15 +3,14 @@ package site.ftka.survivalcore.essentials.configs
 import com.google.gson.Gson
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
-import net.kyori.adventure.text.format.Style
 import site.ftka.survivalcore.MClass
 import site.ftka.survivalcore.essentials.configs.interfaces.ConfigFile
 import site.ftka.survivalcore.essentials.configs.objects.GeneralConfig
-import site.ftka.survivalcore.essentials.logging.LoggingEssential.*
+import site.ftka.survivalcore.initless.logging.LoggingInitless.*
 import java.io.File
 
 class ConfigsEssential(private val plugin: MClass) {
-    val logger = plugin.loggingEssential.getLog("ConfigEssential", Component.text("Config").color(NamedTextColor.GOLD))
+    val logger = plugin.loggingInitless.getLog("ConfigEssential", Component.text("Config").color(NamedTextColor.GOLD))
 
     private val configsFolderAbsolutePath = "${plugin.dataFolder.absolutePath}\\configs"
 

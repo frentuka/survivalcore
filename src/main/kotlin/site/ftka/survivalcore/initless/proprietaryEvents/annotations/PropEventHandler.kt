@@ -1,6 +1,6 @@
-package site.ftka.survivalcore.essentials.proprietaryEvents.annotations
+package site.ftka.survivalcore.initless.proprietaryEvents.annotations
 
-import site.ftka.survivalcore.essentials.proprietaryEvents.enums.PropEventPriority
+import site.ftka.survivalcore.initless.proprietaryEvents.enums.PropEventPriority
 
 @Target(AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.RUNTIME)

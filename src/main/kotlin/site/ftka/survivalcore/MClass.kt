@@ -5,9 +5,10 @@ import org.bukkit.plugin.java.JavaPlugin
 import site.ftka.survivalcore.apps.InventoryGUITester.invguitester
 import site.ftka.survivalcore.essentials.configs.ConfigsEssential
 import site.ftka.survivalcore.essentials.database.DatabaseEssential
-import site.ftka.survivalcore.essentials.logging.LoggingEssential
-import site.ftka.survivalcore.essentials.proprietaryEvents.ProprietaryEventsEssential
-import site.ftka.survivalcore.services.ServicesCore
+import site.ftka.survivalcore.initless.logging.LoggingInitless
+import site.ftka.survivalcore.initless.metrics.MetricsInitless
+import site.ftka.survivalcore.initless.proprietaryEvents.ProprietaryEventsInitless
+import site.ftka.survivalcore.services.ServicesFramework
 import java.util.concurrent.Executors
 
 class MClass: JavaPlugin() {
@@ -15,24 +16,26 @@ class MClass: JavaPlugin() {
     // basics
     val globalScheduler = Executors.newSingleThreadScheduledExecutor()
 
-    // Initialize essentials
-    val loggingEssential = LoggingEssential(this)
+    // Instantiate essentials
     val configsEssential = ConfigsEssential(this)
     val dbEssential = DatabaseEssential(this)
-    val eventsEssential = ProprietaryEventsEssential(this)
 
-    // Initialize services
-    val servicesCore = ServicesCore(this)
+    // Instantiate initless
+    val loggingInitless = LoggingInitless(this)
+    val metricsInitless = MetricsInitless(this)
+    val propEventsInitless = ProprietaryEventsInitless(this)
+
+    // Instantiate services
+    val servicesFwk = ServicesFramework(this)
 
     var starting: Boolean = true
     var stopping: Boolean = false
 
     override fun onEnable() {
-        // loggingEssential does not have init nor restart
+        // initialize all essentials
         configsEssential.init()
         dbEssential.init()
-        servicesCore.initAll()
-        // eventsEssential does not have init nor restart
+        servicesFwk.initAll()
 
         initListeners()
 

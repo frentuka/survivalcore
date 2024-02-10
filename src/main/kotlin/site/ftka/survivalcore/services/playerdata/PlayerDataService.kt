@@ -7,9 +7,9 @@ import kotlinx.coroutines.launch
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import site.ftka.survivalcore.MClass
-import site.ftka.survivalcore.essentials.logging.LoggingEssential.LogLevel
-import site.ftka.survivalcore.essentials.logging.objects.ServiceLogger
-import site.ftka.survivalcore.services.ServicesCore
+import site.ftka.survivalcore.initless.logging.LoggingInitless.LogLevel
+import site.ftka.survivalcore.initless.logging.objects.ServiceLogger
+import site.ftka.survivalcore.services.ServicesFramework
 import site.ftka.survivalcore.services.playerdata.events.PlayerDataInitEvent
 import site.ftka.survivalcore.services.playerdata.events.PlayerDataRestartEvent
 import site.ftka.survivalcore.services.playerdata.listeners.PlayerDataListener
@@ -19,8 +19,8 @@ import site.ftka.survivalcore.services.playerdata.subservices.*
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
-class PlayerDataService(private val plugin: MClass, private val services: ServicesCore) {
-    val logger: ServiceLogger = plugin.loggingEssential.getLog("PlayerData", Component.text("PlayerData").color(NamedTextColor.DARK_AQUA))
+class PlayerDataService(private val plugin: MClass, private val services: ServicesFramework) {
+    val logger: ServiceLogger = plugin.loggingInitless.getLog("PlayerData", Component.text("PlayerData").color(NamedTextColor.DARK_AQUA))
 
     // Some things must not be done while service is restarting
     // like playerdata modifications or unregister
@@ -47,14 +47,14 @@ class PlayerDataService(private val plugin: MClass, private val services: Servic
 
         // initialize listeners
         plugin.initListener(playerDataListener)
-        plugin.eventsEssential.registerListener(playerDataListener)
+        plugin.propEventsInitless.registerListener(playerDataListener)
 
         plugin.initListener(WorldPlayerDataDeleter(plugin))
 
         // call event after 1 second
         GlobalScope.launch {
             TimeUnit.SECONDS.sleep(1)
-            plugin.eventsEssential.fireEvent(PlayerDataInitEvent())
+            plugin.propEventsInitless.fireEvent(PlayerDataInitEvent())
         }
     }
 
@@ -101,7 +101,7 @@ class PlayerDataService(private val plugin: MClass, private val services: Servic
         isRestarting = false
 
         // 4.
-        plugin.eventsEssential.fireEvent(PlayerDataRestartEvent())
+        plugin.propEventsInitless.fireEvent(PlayerDataRestartEvent())
     }
 
     fun fromJson(json: String?): PlayerData? = Gson().fromJson(json, PlayerData::class.java)

@@ -1,3 +1,0 @@
-package site.ftka.survivalcore.essentials.proprietaryEvents.interfaces
-
-interface PropListener

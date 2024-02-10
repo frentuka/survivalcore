@@ -1,12 +1,12 @@
-package site.ftka.survivalcore.essentials.logging
+package site.ftka.survivalcore.initless.logging
 
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import site.ftka.survivalcore.MClass
-import site.ftka.survivalcore.essentials.logging.objects.Log
-import site.ftka.survivalcore.essentials.logging.objects.ServiceLogger
+import site.ftka.survivalcore.initless.logging.objects.Log
+import site.ftka.survivalcore.initless.logging.objects.ServiceLogger
 
-class LoggingEssential(private val plugin: MClass) {
+class LoggingInitless(private val plugin: MClass) {
 
     val logsFolderPath = plugin.dataFolder.absolutePath + "\\logs"
 

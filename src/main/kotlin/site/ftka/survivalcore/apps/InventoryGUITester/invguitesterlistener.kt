@@ -18,7 +18,7 @@ class invguitesterlistener(private val app: invguitester, private val plugin: MC
         val owner = app.invgowner
         val invtype = InventoryType.BARREL
         val title = Component.text("XD").color(NamedTextColor.DARK_AQUA)
-        val inv = plugin.servicesCore.inventoryGUIService.createInventory(owner, invtype, title)
+        val inv = plugin.servicesFwk.inventoryGUIService.createInventory(owner, invtype, title)
 
         val itemS = ItemStack(Material.ACACIA_BOAT, 5)
         itemS.displayName().append(Component.text("XDD").color(NamedTextColor.RED))

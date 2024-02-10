@@ -4,15 +4,15 @@ import com.google.gson.Gson
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import site.ftka.survivalcore.MClass
-import site.ftka.survivalcore.services.ServicesCore
+import site.ftka.survivalcore.services.ServicesFramework
 import site.ftka.survivalcore.services.permissions.objects.PermissionGroup
 import site.ftka.survivalcore.services.permissions.subservices.PermissionsService_InputOutputSubservice
 import site.ftka.survivalcore.services.permissions.subservices.PermissionsService_ModificationsSubservice
 import site.ftka.survivalcore.services.permissions.subservices.PermissionsService_PermissionsSubservice
 import java.util.UUID
 
-class PermissionsService(val plugin: MClass, private val services: ServicesCore) {
-    val logger = plugin.loggingEssential.getLog("PermissionsService", Component.text("Perms").color(NamedTextColor.BLUE))
+class PermissionsService(val plugin: MClass, private val services: ServicesFramework) {
+    val logger = plugin.loggingInitless.getLog("PermissionsService", Component.text("Perms").color(NamedTextColor.BLUE))
 
 
     val permissions_ss = PermissionsService_PermissionsSubservice(this, plugin)

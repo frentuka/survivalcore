@@ -2,13 +2,13 @@ package site.ftka.survivalcore.services.language
 
 import com.google.gson.Gson
 import site.ftka.survivalcore.MClass
-import site.ftka.survivalcore.services.ServicesCore
+import site.ftka.survivalcore.services.ServicesFramework
 import site.ftka.survivalcore.services.language.listeners.LanguageServiceListener
 import site.ftka.survivalcore.services.language.objects.LanguagePack
 import site.ftka.survivalcore.services.language.subservices.LanguageService_InputSubservice
 import java.util.*
 
-class LanguageService(private val plugin: MClass, private val services: ServicesCore) {
+class LanguageService(private val plugin: MClass, private val services: ServicesFramework) {
 
     /*
         LanguageService
@@ -27,7 +27,7 @@ class LanguageService(private val plugin: MClass, private val services: Services
         mapLanguagePacks()
 
         // initialize listeners
-        plugin.eventsEssential.registerListener(langListener)
+        plugin.propEventsInitless.registerListener(langListener)
 
         for (playerdata in services.playerDataService.playerDataMap.values)
             playerLangMap[playerdata.uuid] = playerdata.lang.language

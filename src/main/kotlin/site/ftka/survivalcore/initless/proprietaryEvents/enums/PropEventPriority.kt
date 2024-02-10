@@ -1,4 +1,4 @@
-package site.ftka.survivalcore.essentials.proprietaryEvents.enums
+package site.ftka.survivalcore.initless.proprietaryEvents.enums
 
 enum class PropEventPriority(priority: Int) {
 

@@ -1,4 +1,4 @@
-package site.ftka.survivalcore.essentials.logging.objects
+package site.ftka.survivalcore.initless.logging.objects
 
 import com.google.gson.GsonBuilder
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -6,8 +6,8 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
-import site.ftka.survivalcore.essentials.logging.LoggingEssential
-import site.ftka.survivalcore.essentials.logging.LoggingEssential.LogLevel
+import site.ftka.survivalcore.initless.logging.LoggingInitless
+import site.ftka.survivalcore.initless.logging.LoggingInitless.LogLevel
 import site.ftka.survivalcore.utils.dateUtils
 import site.ftka.survivalcore.utils.objectsSizeUtils
 import java.io.BufferedWriter
@@ -15,7 +15,7 @@ import java.io.File
 import java.io.FileWriter
 import java.io.IOException
 
-class ServiceLogger(private val service: LoggingEssential, val serviceName: String, var serviceTag: Component) {
+class ServiceLogger(private val service: LoggingInitless, val serviceName: String, var serviceTag: Component) {
 
     /*
         ServiceLogger will manage and allow services to create logs

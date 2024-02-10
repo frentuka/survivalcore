@@ -1,19 +1,19 @@
-package site.ftka.survivalcore.essentials.proprietaryEvents
+package site.ftka.survivalcore.initless.proprietaryEvents
 
 import net.kyori.adventure.text.Component
 import site.ftka.survivalcore.MClass
-import site.ftka.survivalcore.essentials.logging.LoggingEssential
-import site.ftka.survivalcore.essentials.proprietaryEvents.annotations.PropEventHandler
-import site.ftka.survivalcore.essentials.proprietaryEvents.enums.PropEventPriority
-import site.ftka.survivalcore.essentials.proprietaryEvents.interfaces.PropListener
-import site.ftka.survivalcore.essentials.proprietaryEvents.objects.PropEvent
+import site.ftka.survivalcore.initless.logging.LoggingInitless
+import site.ftka.survivalcore.initless.proprietaryEvents.annotations.PropEventHandler
+import site.ftka.survivalcore.initless.proprietaryEvents.enums.PropEventPriority
+import site.ftka.survivalcore.initless.proprietaryEvents.interfaces.PropListener
+import site.ftka.survivalcore.initless.proprietaryEvents.objects.PropEvent
 import kotlin.reflect.KClassifier
 import kotlin.reflect.KFunction
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.memberFunctions
 
-class ProprietaryEventsEssential(private val plugin: MClass) {
-    private val logger = plugin.loggingEssential.getLog("Events", Component.text("Events"))
+class ProprietaryEventsInitless(private val plugin: MClass) {
+    private val logger = plugin.loggingInitless.getLog("Events", Component.text("Events"))
 
     /*
         Recreate Bukkit's event system
@@ -28,14 +28,14 @@ class ProprietaryEventsEssential(private val plugin: MClass) {
 
     // register a listener
     fun registerListener(listener: PropListener) {
-        logger.log("Received listener to register: $listener", LoggingEssential.LogLevel.DEBUG)
+        logger.log("Received listener to register: $listener", LoggingInitless.LogLevel.DEBUG)
 
         // loop every function
         listener::class.memberFunctions.filter {
             it.findAnnotation<PropEventHandler>() != null && // only functions with @PropEventHandler annotation
                     it.parameters.size == 2 // only functions with 1 parameter
         }.forEach{
-            logger.log("Discovered callable function: ${it.name}", LoggingEssential.LogLevel.DEBUG)
+            logger.log("Discovered callable function: ${it.name}", LoggingInitless.LogLevel.DEBUG)
 
             // save to be called in the future
             val priority = it.findAnnotation<PropEventHandler>()!!.priority
@@ -62,7 +62,7 @@ class ProprietaryEventsEssential(private val plugin: MClass) {
 
     // gather listeners to be called
     fun fireEvent(event: PropEvent) {
-        logger.log("Firing event: ${event.name}", LoggingEssential.LogLevel.DEBUG)
+        logger.log("Firing event: ${event.name}", LoggingInitless.LogLevel.DEBUG)
 
         // <CallableFunction, Priority>
         val eventFunctions = mutableMapOf<CallableFunction, Int>()

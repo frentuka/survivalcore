@@ -5,13 +5,13 @@ import org.bukkit.Bukkit
 import org.bukkit.event.inventory.InventoryType
 import org.bukkit.inventory.Inventory
 import site.ftka.survivalcore.MClass
-import site.ftka.survivalcore.services.ServicesCore
+import site.ftka.survivalcore.services.ServicesFramework
 import site.ftka.survivalcore.services.inventorygui.events.InventoryGUIInitEvent
 import site.ftka.survivalcore.services.inventorygui.events.InventoryGUIRestartEvent
 import site.ftka.survivalcore.services.inventorygui.interfaces.InventoryGUIOwner
 import site.ftka.survivalcore.services.inventorygui.listeners.InventoryGUIDetectionListener
 
-class InventoryGUIService(private val plugin: MClass, private val services: ServicesCore) {
+class InventoryGUIService(private val plugin: MClass, private val services: ServicesFramework) {
 
     /*
         This service is meant to control
@@ -30,12 +30,12 @@ class InventoryGUIService(private val plugin: MClass, private val services: Serv
         plugin.initListener(detectionListener)
 
         val event = InventoryGUIInitEvent()
-        plugin.eventsEssential.fireEvent(event)
+        plugin.propEventsInitless.fireEvent(event)
     }
 
     fun restart() {
         val event = InventoryGUIRestartEvent()
-        plugin.eventsEssential.fireEvent(event)
+        plugin.propEventsInitless.fireEvent(event)
     }
 
     fun createInventory(owner: InventoryGUIOwner, type: InventoryType, title: Component): Inventory {

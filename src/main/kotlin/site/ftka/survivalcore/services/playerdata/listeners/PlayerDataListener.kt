@@ -10,10 +10,10 @@ import org.bukkit.event.player.PlayerQuitEvent
 import site.ftka.survivalcore.MClass
 import site.ftka.survivalcore.essentials.database.events.DatabaseDisconnectEvent
 import site.ftka.survivalcore.essentials.database.events.DatabaseReconnectEvent
-import site.ftka.survivalcore.essentials.logging.LoggingEssential
-import site.ftka.survivalcore.essentials.proprietaryEvents.annotations.PropEventHandler
-import site.ftka.survivalcore.essentials.proprietaryEvents.enums.PropEventPriority
-import site.ftka.survivalcore.essentials.proprietaryEvents.interfaces.PropListener
+import site.ftka.survivalcore.initless.logging.LoggingInitless
+import site.ftka.survivalcore.initless.proprietaryEvents.annotations.PropEventHandler
+import site.ftka.survivalcore.initless.proprietaryEvents.enums.PropEventPriority
+import site.ftka.survivalcore.initless.proprietaryEvents.interfaces.PropListener
 import site.ftka.survivalcore.services.playerdata.PlayerDataService
 import site.ftka.survivalcore.services.playerdata.events.PlayerDataJoinEvent
 
@@ -37,19 +37,19 @@ class PlayerDataListener(private val service: PlayerDataService, private val plu
 
         // Call event
         val playerdataJoinEvent = PlayerDataJoinEvent(event.player.uniqueId, service.playerDataMap[event.player.uniqueId])
-        plugin.eventsEssential.fireEvent(playerdataJoinEvent)
+        plugin.propEventsInitless.fireEvent(playerdataJoinEvent)
     }
 
     @EventHandler
     fun onPlayerQuit(event: PlayerQuitEvent) {
         val player = event.player
 
-        service.logger.log("Player quit event", LoggingEssential.LogLevel.DEBUG)
+        service.logger.log("Player quit event", LoggingInitless.LogLevel.DEBUG)
 
         // Remove from online players
         service.onlinePlayers.remove(player.uniqueId)
 
-        service.logger.log("Removed ${event.player.name} from online players", LoggingEssential.LogLevel.DEBUG)
+        service.logger.log("Removed ${event.player.name} from online players", LoggingInitless.LogLevel.DEBUG)
 
         // Unregister
         service.registration_ss.unregister(player.uniqueId, player)
@@ -58,7 +58,7 @@ class PlayerDataListener(private val service: PlayerDataService, private val plu
     // Make emergency dump for every player
     @PropEventHandler(priority = PropEventPriority.FIRST)
     fun onDatabaseHealthCheckFail(event: DatabaseDisconnectEvent) {
-        service.logger.log("Database health check failed. Dumping all playerdata into storage.", LoggingEssential.LogLevel.LOW)
+        service.logger.log("Database health check failed. Dumping all playerdata into storage.", LoggingInitless.LogLevel.LOW)
 
         for (playerdata in service.playerDataMap.values) {
             service.emergency_ss.emergencyDump(playerdata)
@@ -68,7 +68,7 @@ class PlayerDataListener(private val service: PlayerDataService, private val plu
 
     @PropEventHandler(priority = PropEventPriority.FIRST)
     fun onDatabaseReconnect(event: DatabaseReconnectEvent) {
-        service.logger.log("Database reconnected. Saving all emergency dumps if available.", LoggingEssential.LogLevel.LOW)
+        service.logger.log("Database reconnected. Saving all emergency dumps if available.", LoggingInitless.LogLevel.LOW)
         service.emergency_ss.uploadAllDumpsToDatabase(false)
     }
 
