@@ -11,16 +11,12 @@ class invguitesterowner: InventoryGUIOwner {
     override val ownerName = "InvGUITester"
 
     override fun openEvent(event: InventoryOpenEvent) {
-        println("OPEN EVENT")
     }
 
     override fun closeEvent(event: InventoryCloseEvent) {
-        println("CLOSE EVENT")
     }
 
     override fun clickEvent(event: InventoryClickEvent) {
-        println("CLICK EVENT")
-
         if (event.slot == 10) {
             event.isCancelled = true
             if (event.click == ClickType.SHIFT_RIGHT)
