@@ -3,6 +3,7 @@ package site.ftka.survivalcore
 import org.bukkit.event.Listener
 import org.bukkit.plugin.java.JavaPlugin
 import site.ftka.survivalcore.apps.InventoryGUITester.invguitester
+import site.ftka.survivalcore.essentials.configs.ConfigsEssential
 import site.ftka.survivalcore.essentials.database.DatabaseEssential
 import site.ftka.survivalcore.essentials.logging.LoggingEssential
 import site.ftka.survivalcore.essentials.proprietaryEvents.ProprietaryEventsEssential
@@ -16,6 +17,7 @@ class MClass: JavaPlugin() {
 
     // Initialize essentials
     val loggingEssential = LoggingEssential(this)
+    val configsEssential = ConfigsEssential(this)
     val dbEssential = DatabaseEssential(this)
     val eventsEssential = ProprietaryEventsEssential(this)
 
@@ -26,9 +28,11 @@ class MClass: JavaPlugin() {
     var stopping: Boolean = false
 
     override fun onEnable() {
+        // loggingEssential does not have init nor restart
+        configsEssential.init()
         dbEssential.init()
-
         servicesCore.initAll()
+        // eventsEssential does not have init nor restart
 
         initListeners()
 
