@@ -1,10 +1,7 @@
 package site.ftka.survivalcore.services.playerdata.objects
 
 import com.google.gson.GsonBuilder
-import site.ftka.survivalcore.services.playerdata.objects.modules.PlayerInformation
-import site.ftka.survivalcore.services.playerdata.objects.modules.PlayerLanguage
-import site.ftka.survivalcore.services.playerdata.objects.modules.PlayerPermissions
-import site.ftka.survivalcore.services.playerdata.objects.modules.PlayerState
+import site.ftka.survivalcore.services.playerdata.objects.modules.*
 import java.util.UUID
 
 data class PlayerData(val uuid: UUID) {
@@ -12,7 +9,7 @@ data class PlayerData(val uuid: UUID) {
     var info = PlayerInformation(uuid)
     var state = PlayerState(uuid)
     var perms = PlayerPermissions(uuid)
-    var lang = PlayerLanguage(uuid)
+    var settings = PlayerSettings(uuid)
 
     // misc
     var updateTimestamp: Long = System.currentTimeMillis()
