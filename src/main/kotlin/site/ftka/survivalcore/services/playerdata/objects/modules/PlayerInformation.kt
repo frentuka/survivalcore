@@ -9,6 +9,7 @@ data class PlayerInformation(private val uuid: UUID) {
     var usernameHistory = mutableMapOf<Long, String>() // <Timestamp, Name>
 
     var lastConnection: Long? = null
+    val firstConnection: Long = System.currentTimeMillis()
 
     fun updateValuesFromPlayer(player: Player) {
         // username
