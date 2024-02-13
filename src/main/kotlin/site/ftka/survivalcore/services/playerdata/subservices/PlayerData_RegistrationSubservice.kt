@@ -38,7 +38,7 @@ class PlayerData_RegistrationSubservice(private val service: PlayerDataService, 
 
                 // Create and save
                 val playerdata = PlayerData(uuid) // create object
-                finishRegistration(playerdata, player)
+                finishRegistration(playerdata, player, true)
 
             } else { // Exists in database!
 
@@ -68,7 +68,7 @@ class PlayerData_RegistrationSubservice(private val service: PlayerDataService, 
         }
     }
 
-    private fun finishRegistration(playerdata: PlayerData, player: Player? = null) {
+    private fun finishRegistration(playerdata: PlayerData, player: Player? = null, firstJoin: Boolean = false) {
         // 2.
         player?.let {
             // PlayerInformation
@@ -83,7 +83,7 @@ class PlayerData_RegistrationSubservice(private val service: PlayerDataService, 
         logger.log("Successfully cached playerdata for ${playerdata.info.username} (${playerdata.uuid})", LoggingInitless.LogLevel.DEBUG)
 
         // 4.
-        plugin.propEventsInitless.fireEvent(PlayerDataRegisterEvent(playerdata.uuid, playerdata))
+        plugin.propEventsInitless.fireEvent(PlayerDataRegisterEvent(playerdata.uuid, playerdata, firstJoin))
     }
 
 
