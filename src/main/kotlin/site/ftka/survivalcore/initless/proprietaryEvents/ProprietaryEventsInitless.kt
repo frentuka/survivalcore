@@ -28,7 +28,8 @@ class ProprietaryEventsInitless(private val plugin: MClass) {
 
     // register a listener
     fun registerListener(listener: PropListener) {
-        logger.log("Received listener to register: $listener", LoggingInitless.LogLevel.DEBUG)
+        val properListenerClassName = listener.toString().split(".").last().split("@").first()
+        logger.log("Received listener to register: $properListenerClassName", LoggingInitless.LogLevel.DEBUG)
 
         // loop every function
         listener::class.memberFunctions.filter {
