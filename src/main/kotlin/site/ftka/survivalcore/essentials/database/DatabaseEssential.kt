@@ -3,6 +3,7 @@ package site.ftka.survivalcore.essentials.database
 import io.lettuce.core.RedisClient
 import io.lettuce.core.RedisURI
 import io.lettuce.core.api.StatefulRedisConnection
+import kotlinx.coroutines.runBlocking
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import site.ftka.survivalcore.MClass
@@ -25,28 +26,45 @@ class DatabaseEssential(private val plugin: MClass) {
     var health = true
 
     fun init() {
-        logger.log("Attempting first redis connection. Local host ip is ${java.net.InetAddress.getLocalHost().hostAddress}")
-        val connected = connect()
-        redisConnection?.addListener(stateListener)
+        logger.log("Initializing...")
+
+        val connected = attemptConnectionInitialization()
 
         if (!connected) {
             logger.log("First connection attempt failed. Shutting down.")
             plugin.server.shutdown()
+        } else {
+            logger.log("Successfully connected with database")
         }
     }
 
     fun restart() {
+        logger.log("Restarting...")
         disconnect()
 
         redisConnection = null
-        init()
+
+        if (!attemptConnectionInitialization()) {
+            logger.log("Connection failed on restart. Shutting down.")
+            plugin.server.shutdown()
+        }
+    }
+
+    // connects, adds listener and returns result
+    private fun attemptConnectionInitialization(): Boolean {
+        val connected = connect()
+        redisConnection?.addListener(stateListener)
+
+        return connected
     }
 
     private fun connect(): Boolean {
         return try {
-            if (redisConnection == null || !redisConnection!!.isOpen)
-                redisConnection = redisClient.connect()
-            true
+            runBlocking {
+                if (redisConnection == null || !redisConnection!!.isOpen)
+                    redisConnection = redisClient.connect()
+                true
+            }
         } catch (e: Exception) { if (printStackTraces) e.printStackTrace(); false }
     }
 
