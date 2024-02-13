@@ -1,7 +1,10 @@
 package site.ftka.survivalcore.services.language
 
 import com.google.gson.Gson
+import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.format.NamedTextColor
 import site.ftka.survivalcore.MClass
+import site.ftka.survivalcore.initless.logging.LoggingInitless.*
 import site.ftka.survivalcore.services.ServicesFramework
 import site.ftka.survivalcore.services.language.listeners.LanguageServiceListener
 import site.ftka.survivalcore.services.language.objects.LanguagePack
@@ -9,6 +12,7 @@ import site.ftka.survivalcore.services.language.subservices.LanguageService_Inpu
 import java.util.*
 
 class LanguageService(private val plugin: MClass, private val services: ServicesFramework) {
+    val logger = plugin.loggingInitless.getLog("Language", Component.text("Lang").color(NamedTextColor.WHITE))
 
     /*
         LanguageService
@@ -24,16 +28,19 @@ class LanguageService(private val plugin: MClass, private val services: Services
     val playerLangMap = mutableMapOf<UUID, String>()
 
     fun init() {
+        logger.log("Initializing...")
+
         mapLanguagePacks()
 
         // initialize listeners
         plugin.propEventsInitless.registerListener(langListener)
 
         for (playerdata in services.playerDataService.playerDataMap.values)
-            playerLangMap[playerdata.uuid] = playerdata.lang.language
+            playerLangMap[playerdata.uuid] = playerdata.settings.language
     }
 
     fun restart() {
+        logger.log("Restarting...", LogLevel.LOW)
         mapLanguagePacks()
     }
 

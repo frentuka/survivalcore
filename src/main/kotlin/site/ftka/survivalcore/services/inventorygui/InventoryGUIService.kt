@@ -1,10 +1,13 @@
 package site.ftka.survivalcore.services.inventorygui
 
 import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.format.NamedTextColor
+import net.kyori.adventure.text.format.TextColor
 import org.bukkit.Bukkit
 import org.bukkit.event.inventory.InventoryType
 import org.bukkit.inventory.Inventory
 import site.ftka.survivalcore.MClass
+import site.ftka.survivalcore.initless.logging.LoggingInitless.*
 import site.ftka.survivalcore.services.ServicesFramework
 import site.ftka.survivalcore.services.inventorygui.events.InventoryGUIInitEvent
 import site.ftka.survivalcore.services.inventorygui.events.InventoryGUIRestartEvent
@@ -12,6 +15,7 @@ import site.ftka.survivalcore.services.inventorygui.interfaces.InventoryGUIOwner
 import site.ftka.survivalcore.services.inventorygui.listeners.InventoryGUIDetectionListener
 
 class InventoryGUIService(private val plugin: MClass, private val services: ServicesFramework) {
+    val logger = plugin.loggingInitless.getLog("InventoryGUI", Component.text("InvGUI").color(TextColor.fromHexString("#cc6600")))
 
     /*
         This service is meant to control
@@ -27,6 +31,7 @@ class InventoryGUIService(private val plugin: MClass, private val services: Serv
     private val inventoryOwnersMap = mutableMapOf<String, InventoryGUIOwner>()
 
     fun init() {
+        logger.log("Initializing...", LogLevel.LOW)
         plugin.initListener(detectionListener)
 
         val event = InventoryGUIInitEvent()
@@ -34,6 +39,7 @@ class InventoryGUIService(private val plugin: MClass, private val services: Serv
     }
 
     fun restart() {
+        logger.log("Restarting...", LogLevel.LOW)
         val event = InventoryGUIRestartEvent()
         plugin.propEventsInitless.fireEvent(event)
     }

@@ -1,12 +1,15 @@
 package site.ftka.survivalcore.services.chat
 
 import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.format.NamedTextColor
 import site.ftka.survivalcore.MClass
+import site.ftka.survivalcore.initless.logging.LoggingInitless.*
 import site.ftka.survivalcore.services.chat.subservices.ChatService_ChannelsSubservice
 import site.ftka.survivalcore.services.chat.subservices.ChatService_ScreensSubservice
 import java.util.UUID
 
 class ChatService(var plugin: MClass) {
+    val logger = plugin.loggingInitless.getLog("Chat", Component.text("Chat").color(NamedTextColor.DARK_RED))
 
     /*
         ChatService
@@ -22,6 +25,7 @@ class ChatService(var plugin: MClass) {
     val screens_ss = ChatService_ScreensSubservice(this, plugin)
 
     fun init() {
+        logger.log("Initializing...", LogLevel.LOW)
         channels_ss.createElementalChannels()
     }
 
@@ -29,6 +33,8 @@ class ChatService(var plugin: MClass) {
     // 2. create elemental channels
     // 3. create all needed channels (player, clan, etc)
     fun restart() {
+        logger.log("Restarting...", LogLevel.LOW)
+
         // 1.
         channels_ss.clearMaps()
 

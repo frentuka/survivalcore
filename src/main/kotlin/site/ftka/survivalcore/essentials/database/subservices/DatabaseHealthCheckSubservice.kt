@@ -14,8 +14,6 @@ class DatabaseHealthCheckSubservice(val essential: DatabaseEssential, val plugin
     private val reconnectEvent = DatabaseReconnectEvent()
 
     override fun onRedisConnected(connection: RedisChannelHandler<*, *>?, socketAddress: SocketAddress?) {
-        println("ON REDIS CONNECTED ${essential.health}")
-
         if (essential.health)
             return
 
