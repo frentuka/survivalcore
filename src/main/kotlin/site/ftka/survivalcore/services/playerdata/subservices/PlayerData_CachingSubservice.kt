@@ -9,19 +9,23 @@ import java.util.concurrent.TimeUnit
 class PlayerData_CachingSubservice(private val service: PlayerDataService, private val plugin: MClass) {
     private val logger = service.logger.sub("Caching")
 
+    private val essFwk = plugin.essentialsFwk
+
     /*
         Saved playerdata will be stored here for a couple minutes (defined by recentPlayerDataSaveTime)
         This service is meant to reduce calls to database
     */
 
-    //                                  <UUID, Death time>
+    //                                      <UUID, Death time>
+    val playerDataCfg = essFwk.configsEssential.playerdataCfg()
+
     private val expirationTimes = mutableMapOf<UUID, Long>()
     private val storedPlayerData = mutableMapOf<UUID, PlayerData>()
-    private val expirationTimeAmount = 1000*60*30 // 30 minutes (in millis)
+    private var cachedDataTTL = playerDataCfg.cache.timeToLiveMillis // 30 minutes (in millis)
 
     init {
         plugin.globalScheduler.scheduleAtFixedRate(
-            { cleanupExpiredData() }, 10, 10, TimeUnit.SECONDS)
+            { cleanupExpiredData() }, 10, playerDataCfg.cache.clockLoopTimeSecs, TimeUnit.SECONDS)
     }
 
     private fun cleanupExpiredData() {
@@ -49,7 +53,7 @@ class PlayerData_CachingSubservice(private val service: PlayerDataService, priva
 
     fun storeLatestPlayerData(playerdata: PlayerData) {
         val currentTime = System.currentTimeMillis()
-        val expireTime = currentTime + expirationTimeAmount
+        val expireTime = currentTime + cachedDataTTL
 
         expirationTimes[playerdata.uuid] = expireTime
         storedPlayerData[playerdata.uuid] = playerdata
