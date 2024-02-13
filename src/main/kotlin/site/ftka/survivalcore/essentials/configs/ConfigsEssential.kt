@@ -4,87 +4,61 @@ import com.google.gson.Gson
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import site.ftka.survivalcore.MClass
-import site.ftka.survivalcore.essentials.configs.interfaces.ConfigFile
-import site.ftka.survivalcore.essentials.configs.objects.GeneralConfig
+import site.ftka.survivalcore.essentials.configs.configurations.GeneralConfig
+import site.ftka.survivalcore.essentials.configs.configurations.PlayerDataConfig
+import site.ftka.survivalcore.essentials.configs.subservices.ConfigsEssential_InOutSubservice
 import site.ftka.survivalcore.initless.logging.LoggingInitless.*
-import java.io.File
 
 class ConfigsEssential(private val plugin: MClass) {
     val logger = plugin.loggingInitless.getLog("ConfigEssential", Component.text("Config").color(NamedTextColor.GOLD))
 
-    private val configsFolderAbsolutePath = "${plugin.dataFolder.absolutePath}\\configs"
+    val inout_ss = ConfigsEssential_InOutSubservice(this, plugin)
 
     /*
         File names
      */
-    private enum class configFilesEnum(name: String, val defaultConfigFile: ConfigFile) {
-        GENERAL("general_config", GeneralConfig())
+    enum class defaultConfigFilesEnum(val filename: String, val defaultJson: String) {
+        GENERAL("general_config", GeneralConfig().toJson()),
+        PLAYERDATA("playerdata_config", PlayerDataConfig().toJson())
     }
+
+    // Where configs are stored
+    private var generalConfig: GeneralConfig = GeneralConfig()
+    private var playerdataConfig: PlayerDataConfig = PlayerDataConfig()
 
     /*
-        Where to effectively GET CONFIGS
+        Where to effectively get ready-to-use configs
      */
-    fun generalCfg(): GeneralConfig { // returns default if no file found
-        val enumEntry = configFilesEnum.GENERAL
-        return loadedConfigsMap.computeIfAbsent(enumEntry.name) {
-            logger.log(Component.text("FATAL ERROR: GLOBAL CONFIG DID NOT EXIST. SHUTTING DOWN.").color(NamedTextColor.RED), LogLevel.LOW)
-            plugin.server.shutdown(); enumEntry.defaultConfigFile
-        } as GeneralConfig
-    }
-
-    private val loadedConfigsMap = mutableMapOf<String, ConfigFile>()
+    fun generalCfg(): GeneralConfig = generalConfig
+    fun playerdataCfg(): PlayerDataConfig = playerdataConfig
 
     fun init() {
-        loadConfigsIntoMap()
+        logger.log("Initializing...", LogLevel.LOW)
+        loadConfigs()
     }
 
     fun restart() {
-        loadedConfigsMap.clear()
-        loadConfigsIntoMap()
+        logger.log("Restarting...", LogLevel.LOW)
+        loadConfigs()
     }
 
-    private fun loadConfigsIntoMap() {
-        val configsFolderFile = File(configsFolderAbsolutePath)
-        if (!configsFolderFile.exists()) configsFolderFile.mkdirs()
-        if (configsFolderFile.listFiles()?.size == 0) // no config file, create 'em all
-            for (enumValue in configFilesEnum.entries)
-                createConfig(enumValue.name, enumValue.defaultConfigFile)
+    private fun loadConfigs() {
+        // for some reason IDE says version check is always false but I think it's failing
 
-        for (enumValue in configFilesEnum.entries) {
-            val configFileAbsolutePath = "$configsFolderAbsolutePath\\${enumValue.name}.json"
-            val configFile = File(configFileAbsolutePath)
+        // general
+        val generalEnum = defaultConfigFilesEnum.GENERAL
+        val generalConfigJson = inout_ss.gatherConfigJson(generalEnum.filename, generalEnum.defaultJson)
+        generalConfig = Gson().fromJson(generalConfigJson, GeneralConfig::class.java) as GeneralConfig
+        // update file if outdated
+        if (generalConfig.version < GeneralConfig().version) { generalConfig.version = GeneralConfig().version; inout_ss.createConfig(generalEnum.filename, generalConfig.toJson(), true) }
 
-            if (!configFile.exists()) {
-                logger.log("Config file ${configFile.name} does not exist. Creating it.")
-                createConfig(enumValue.name, enumValue.defaultConfigFile)
-                continue
-            }
-
-            try { // load config into map
-                val configFileObject = fromJson(configFile.readText())
-                configFileObject?.let{
-                    loadedConfigsMap[enumValue.name] = it
-                    logger.log("Successfully loaded config file: ${enumValue.name}")
-                }
-            } catch (e: Exception) {
-                logger.log("FATAL ERROR: CONFIG FILE DID NOT LOAD. Name: ${configFile.name}. SHUTTING DOWN", LogLevel.LOW)
-                plugin.server.shutdown()
-            }
-        }
+        // playerdata
+        val playerdataEnum = defaultConfigFilesEnum.PLAYERDATA
+        val playerdataConfigJson = inout_ss.gatherConfigJson(playerdataEnum.filename, playerdataEnum.defaultJson)
+        playerdataConfig = Gson().fromJson(playerdataConfigJson, PlayerDataConfig::class.java) as PlayerDataConfig
+        // update file if outdated
+        if (playerdataConfig.version < PlayerDataConfig().version) { playerdataConfig.version = PlayerDataConfig().version; inout_ss.createConfig(playerdataEnum.filename, playerdataConfig.toJson()) }
     }
 
-    private fun createConfig(fileName: String, defaultConfig: ConfigFile, overwrite: Boolean = true) {
-        val configsFolderFile = File(configsFolderAbsolutePath)
-        if (!configsFolderFile.exists()) configsFolderFile.mkdirs()
-
-        val configFile = File("$configsFolderAbsolutePath\\$fileName.json")
-        if (configFile.exists() && !overwrite) return
-
-        configFile.delete() // idk if necessary, just in case
-
-        // create
-        if (configFile.createNewFile()) configFile.writeText(defaultConfig.toJson())
-    }
-
-    private fun fromJson(json: String?): ConfigFile? = Gson().fromJson(json, ConfigFile::class.java)
+    fun fromJson(json: String?): String? = Gson().fromJson(json, String::class.java)
 }
