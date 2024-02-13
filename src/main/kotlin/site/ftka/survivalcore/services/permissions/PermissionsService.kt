@@ -3,7 +3,9 @@ package site.ftka.survivalcore.services.permissions
 import com.google.gson.Gson
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
+import net.kyori.adventure.text.format.TextColor
 import site.ftka.survivalcore.MClass
+import site.ftka.survivalcore.initless.logging.LoggingInitless.*
 import site.ftka.survivalcore.services.ServicesFramework
 import site.ftka.survivalcore.services.permissions.objects.PermissionGroup
 import site.ftka.survivalcore.services.permissions.subservices.PermissionsService_InputOutputSubservice
@@ -12,7 +14,7 @@ import site.ftka.survivalcore.services.permissions.subservices.PermissionsServic
 import java.util.UUID
 
 class PermissionsService(val plugin: MClass, private val services: ServicesFramework) {
-    val logger = plugin.loggingInitless.getLog("PermissionsService", Component.text("Perms").color(NamedTextColor.BLUE))
+    val logger = plugin.loggingInitless.getLog("PermissionsService", Component.text("Perms").color(TextColor.fromHexString("#8298d9")))
 
 
     val permissions_ss = PermissionsService_PermissionsSubservice(this, plugin)
@@ -23,6 +25,7 @@ class PermissionsService(val plugin: MClass, private val services: ServicesFrame
     val groupsNameIDMap = mutableMapOf<String, UUID>()
 
     fun init() {
+        logger.log("Initializing...", LogLevel.LOW)
         loadGroupsFromStorage()
 
         // create example group
