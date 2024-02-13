@@ -15,16 +15,18 @@ import site.ftka.survivalcore.initless.proprietaryEvents.annotations.PropEventHa
 import site.ftka.survivalcore.initless.proprietaryEvents.enums.PropEventPriority
 import site.ftka.survivalcore.initless.proprietaryEvents.interfaces.PropListener
 import site.ftka.survivalcore.services.playerdata.PlayerDataService
-import site.ftka.survivalcore.services.playerdata.events.PlayerDataJoinEvent
 
 class PlayerDataListener(private val service: PlayerDataService, private val plugin: MClass): Listener, PropListener {
+
+    // fast access vals
+    private val essFwk = plugin.essentialsFwk
 
     @EventHandler
     fun onPlayerJoin(event: PlayerJoinEvent) {
         val player_uuid = event.player.uniqueId
 
         // If database health is false, prevent player from joining
-        if (!plugin.dbEssential.health) {
+        if (!essFwk.dbEssential.health) {
             event.player.kick(Component.text("PlayerData was unable to communicate with database"), PlayerKickEvent.Cause.UNKNOWN)
             return
         }
@@ -34,10 +36,6 @@ class PlayerDataListener(private val service: PlayerDataService, private val plu
 
         // Register
         service.registration_ss.register(event.player.uniqueId, event.player)
-
-        // Call event
-        val playerdataJoinEvent = PlayerDataJoinEvent(event.player.uniqueId, service.playerDataMap[event.player.uniqueId])
-        plugin.propEventsInitless.fireEvent(playerdataJoinEvent)
     }
 
     @EventHandler
