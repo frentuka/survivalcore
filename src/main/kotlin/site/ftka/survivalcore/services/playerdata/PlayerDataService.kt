@@ -22,6 +22,9 @@ import java.util.concurrent.TimeUnit
 class PlayerDataService(private val plugin: MClass, private val services: ServicesFramework) {
     val logger: ServiceLogger = plugin.loggingInitless.getLog("PlayerData", Component.text("PlayerData").color(NamedTextColor.DARK_AQUA))
 
+    // fast access vals
+    private val essFwk = plugin.essentialsFwk
+
     // Some things must not be done while service is restarting
     // like playerdata modifications or unregister
     var isRestarting = false
@@ -43,7 +46,7 @@ class PlayerDataService(private val plugin: MClass, private val services: Servic
 
     @OptIn(DelicateCoroutinesApi::class)
     fun init() {
-        logger.log("&eInitializing PlayerData service.", LogLevel.LOW)
+        logger.log("Initializing...", LogLevel.LOW)
 
         // initialize listeners
         plugin.initListener(playerDataListener)
@@ -64,8 +67,8 @@ class PlayerDataService(private val plugin: MClass, private val services: Servic
     // 3. Register every online player
     // 4. Call event
     fun restart() {
+        logger.log("Restarting...", LogLevel.LOW)
         isRestarting = true
-        logger.log("Restarting PlayerData service.", LogLevel.LOW)
 
         // unregister everyone
         for (playerdata in playerDataMap.values) {
@@ -78,7 +81,7 @@ class PlayerDataService(private val plugin: MClass, private val services: Servic
         }
 
         // if database is not available
-        if (!plugin.dbEssential.health) { // ABORT EVERYTHING!!!!!
+        if (!essFwk.dbEssential.health) { // ABORT EVERYTHING!!!!!
             logger.log("CRITICAL ERROR. DATABASE PING FAILED. ABORTING.", LogLevel.LOW)
             plugin.server.shutdown()
             return

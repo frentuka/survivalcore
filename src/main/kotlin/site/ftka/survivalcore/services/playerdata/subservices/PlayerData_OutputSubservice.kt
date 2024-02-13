@@ -7,8 +7,9 @@ import java.util.*
 import java.util.concurrent.CompletableFuture
 
 class PlayerData_OutputSubservice(private val service: PlayerDataService, private val plugin: MClass) {
-    // PlayerData setter
-    // Escribir informacion directamente a la base de datos.
+
+    // fast access vals
+    private val essFwk = plugin.essentialsFwk
 
     /*
         There could be a case where the most recent playerdata is neither in the Database nor the cache.
@@ -27,7 +28,7 @@ class PlayerData_OutputSubservice(private val service: PlayerDataService, privat
         // sync (no queuedPlayerData stuff needed here)
         if (!async) {
             val operation =
-                plugin.dbEssential.set(playerdata.uuid.toString(), playerdata.toJson()).get()
+                essFwk.dbEssential.set(playerdata.uuid.toString(), playerdata.toJson()).get()
             if (!operation) service.emergency_ss.emergencyDump(playerdata)
 
             // cache it
@@ -40,7 +41,7 @@ class PlayerData_OutputSubservice(private val service: PlayerDataService, privat
         queuedPlayerData[playerdata.uuid] = playerdata
 
         // Set
-        val future = plugin.dbEssential.set(playerdata.uuid.toString(), playerdata.toJson())
+        val future = essFwk.dbEssential.set(playerdata.uuid.toString(), playerdata.toJson())
 
         // Remove from queuedPlayerData when done
         // If database set failed, emergency dump playerdata

@@ -7,8 +7,9 @@ import java.util.UUID
 import java.util.concurrent.CompletableFuture
 
 class PlayerData_InputSubservice(private val service: PlayerDataService, private val plugin: MClass) {
-    // PlayerData getter
-    // Recibir informacion directamente de la base de datos.
+
+    // fast access vals
+    private val essFwk = plugin.essentialsFwk
 
     fun get(uuid: UUID, async: Boolean = true): CompletableFuture<PlayerData?>? {
         // sync
@@ -22,7 +23,7 @@ class PlayerData_InputSubservice(private val service: PlayerDataService, private
             if (service.caching_ss.isCached(uuid))
                 return CompletableFuture.completedFuture(service.caching_ss.getCachedPlayerData(uuid))
 
-            return plugin.dbEssential.get(uuid.toString(), false)?.thenApply { service.fromJson(it) }
+            return essFwk.dbEssential.get(uuid.toString(), false)?.thenApply { service.fromJson(it) }
         }
 
         // async
@@ -35,11 +36,11 @@ class PlayerData_InputSubservice(private val service: PlayerDataService, private
         if (service.caching_ss.isCached(uuid))
             return CompletableFuture.completedFuture(service.caching_ss.getCachedPlayerData(uuid))
 
-        val futureString = plugin.dbEssential.get(uuid.toString())
+        val futureString = essFwk.dbEssential.get(uuid.toString())
         return futureString?.thenApply{ service.fromJson(it) }
     }
 
     fun exists(uuid: UUID, async: Boolean = true): CompletableFuture<Boolean>? {
-        return plugin.dbEssential.exists(uuid.toString(), async)
+        return essFwk.dbEssential.exists(uuid.toString(), async)
     }
 }
