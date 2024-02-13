@@ -13,13 +13,16 @@ import java.util.UUID
 class PlayerData_EmergencySubservice(private val service: PlayerDataService, private val plugin: MClass) {
     val logger = service.logger.sub("Emergency")
 
+    // fast access vals
+    private val essFwk = plugin.essentialsFwk
+
     private val baseFolderPath = "${plugin.dataFolder.absolutePath}\\PlayerData"
     private val emergencyDumpFolderPath = "${baseFolderPath}\\EmergencyDump"
 
     fun uploadAllDumpsToDatabase(async: Boolean) {
         val dumps = getAvailableDumps()
 
-        if (!plugin.dbEssential.health) {
+        if (!essFwk.dbEssential.health) {
             logger.log("Tried to upload all dumps to database but no health check failed. Aborted.")
             return
         }
