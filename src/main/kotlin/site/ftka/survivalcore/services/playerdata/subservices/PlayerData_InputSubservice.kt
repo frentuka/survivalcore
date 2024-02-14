@@ -23,7 +23,7 @@ class PlayerData_InputSubservice(private val service: PlayerDataService, private
             if (service.caching_ss.isCached(uuid))
                 return CompletableFuture.completedFuture(service.caching_ss.getCachedPlayerData(uuid))
 
-            return essFwk.dbEssential.get(uuid.toString(), false)?.thenApply { service.fromJson(it) }
+            return essFwk.database.get(uuid.toString(), false)?.thenApply { service.fromJson(it) }
         }
 
         // async
@@ -36,11 +36,11 @@ class PlayerData_InputSubservice(private val service: PlayerDataService, private
         if (service.caching_ss.isCached(uuid))
             return CompletableFuture.completedFuture(service.caching_ss.getCachedPlayerData(uuid))
 
-        val futureString = essFwk.dbEssential.get(uuid.toString())
+        val futureString = essFwk.database.get(uuid.toString())
         return futureString?.thenApply{ service.fromJson(it) }
     }
 
     fun exists(uuid: UUID, async: Boolean = true): CompletableFuture<Boolean>? {
-        return essFwk.dbEssential.exists(uuid.toString(), async)
+        return essFwk.database.exists(uuid.toString(), async)
     }
 }

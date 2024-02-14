@@ -6,7 +6,7 @@ import site.ftka.survivalcore.initless.logging.LoggingInitless
 import site.ftka.survivalcore.initless.proprietaryEvents.annotations.PropEventHandler
 import site.ftka.survivalcore.initless.proprietaryEvents.enums.PropEventPriority
 import site.ftka.survivalcore.initless.proprietaryEvents.interfaces.PropListener
-import site.ftka.survivalcore.initless.proprietaryEvents.objects.PropEvent
+import site.ftka.survivalcore.initless.proprietaryEvents.interfaces.PropEvent
 import kotlin.reflect.KClassifier
 import kotlin.reflect.KFunction
 import kotlin.reflect.full.findAnnotation

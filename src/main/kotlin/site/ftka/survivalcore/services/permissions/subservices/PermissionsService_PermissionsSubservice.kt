@@ -13,7 +13,7 @@ class PermissionsService_PermissionsSubservice(private val service: PermissionsS
         hasPerm(groupPerms(groupID), permission)
 
     fun playerHasPerm(uuid: UUID, permission: String): Boolean {
-        val playerdata = plugin.servicesFwk.playerDataService.playerDataMap[uuid] ?: return false
+        val playerdata = plugin.servicesFwk.playerData.playerDataMap[uuid] ?: return false
         val playerPerms = mutableSetOf<String>()
         // player's own permissions
         playerPerms.addAll(playerdata.perms.permissions)
@@ -40,7 +40,7 @@ class PermissionsService_PermissionsSubservice(private val service: PermissionsS
     }
 
     fun playerPerms(playerUUID: UUID): Set<String> {
-        val playerdata = plugin.servicesFwk.playerDataService.playerDataMap[playerUUID] ?: return setOf()
+        val playerdata = plugin.servicesFwk.playerData.playerDataMap[playerUUID] ?: return setOf()
         val groupsUUIDs = playerdata.perms.groups
 
         val perms = mutableSetOf<String>()

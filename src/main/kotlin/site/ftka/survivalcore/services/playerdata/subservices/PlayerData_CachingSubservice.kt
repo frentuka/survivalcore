@@ -17,7 +17,7 @@ class PlayerData_CachingSubservice(private val service: PlayerDataService, priva
     */
 
     //                                      <UUID, Death time>
-    val playerDataCfg = essFwk.configsEssential.playerdataCfg()
+    val playerDataCfg = essFwk.configs.playerdataCfg()
 
     private val expirationTimes = mutableMapOf<UUID, Long>()
     private val storedPlayerData = mutableMapOf<UUID, PlayerData>()

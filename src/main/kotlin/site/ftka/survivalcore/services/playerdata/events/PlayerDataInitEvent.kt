@@ -1,6 +1,6 @@
 package site.ftka.survivalcore.services.playerdata.events
 
-import site.ftka.survivalcore.initless.proprietaryEvents.objects.PropEvent
+import site.ftka.survivalcore.initless.proprietaryEvents.interfaces.PropEvent
 
 class PlayerDataInitEvent: PropEvent {
     override val name = "PlayerDataInitEvent"

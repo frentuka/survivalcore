@@ -26,7 +26,7 @@ class PlayerDataListener(private val service: PlayerDataService, private val plu
         val player_uuid = event.player.uniqueId
 
         // If database health is false, prevent player from joining
-        if (!essFwk.dbEssential.health) {
+        if (!essFwk.database.health) {
             event.player.kick(Component.text("PlayerData was unable to communicate with database"), PlayerKickEvent.Cause.UNKNOWN)
             return
         }

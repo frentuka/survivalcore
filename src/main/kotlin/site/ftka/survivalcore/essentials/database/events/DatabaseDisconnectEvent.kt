@@ -1,6 +1,6 @@
 package site.ftka.survivalcore.essentials.database.events
 
-import site.ftka.survivalcore.initless.proprietaryEvents.objects.PropEvent
+import site.ftka.survivalcore.initless.proprietaryEvents.interfaces.PropEvent
 
 class DatabaseDisconnectEvent(): PropEvent {
     override val name = "DatabaseDisconnectEvent"

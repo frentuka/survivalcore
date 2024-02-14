@@ -22,7 +22,7 @@ class PlayerData_EmergencySubservice(private val service: PlayerDataService, pri
     fun uploadAllDumpsToDatabase(async: Boolean) {
         val dumps = getAvailableDumps()
 
-        if (!essFwk.dbEssential.health) {
+        if (!essFwk.database.health) {
             logger.log("Tried to upload all dumps to database but no health check failed. Aborted.")
             return
         }

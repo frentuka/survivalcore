@@ -24,4 +24,7 @@ object textUtils {
         }
         return sb.toString()
     }
+
+    fun hexComponent(text: String, hexColor: String) =
+        Component.text(text).color(TextColor.fromHexString(hexColor))
 }

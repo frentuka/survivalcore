@@ -9,21 +9,21 @@ import site.ftka.survivalcore.essentials.database.DatabaseEssential
 class EssentialsFramework(private val plugin: MClass) {
     private val logger = plugin.loggingInitless.getLog("EssentialsFramework", Component.text("Essentials").color(NamedTextColor.RED))
 
-    val configsEssential = ConfigsEssential(plugin)
-    val dbEssential = DatabaseEssential(plugin)
+    val configs = ConfigsEssential(plugin)
+    val database = DatabaseEssential(plugin)
 
     fun initAll() {
         logger.log("Initializing essentials...")
 
-        configsEssential.init()
-        dbEssential.init()
+        configs.init()
+        database.init()
     }
 
     fun restartAll() {
         logger.log("Restarting essentials...")
 
-        configsEssential.restart()
-        dbEssential.restart()
+        configs.restart()
+        database.restart()
     }
 
 }

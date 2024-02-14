@@ -1,6 +1,6 @@
 package site.ftka.survivalcore.services.inventorygui.events
 
-import site.ftka.survivalcore.initless.proprietaryEvents.objects.PropEvent
+import site.ftka.survivalcore.initless.proprietaryEvents.interfaces.PropEvent
 
 class InventoryGUIInitEvent: PropEvent {
 

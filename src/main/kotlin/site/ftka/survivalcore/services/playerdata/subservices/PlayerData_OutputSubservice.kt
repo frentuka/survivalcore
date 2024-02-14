@@ -28,7 +28,7 @@ class PlayerData_OutputSubservice(private val service: PlayerDataService, privat
         // sync (no queuedPlayerData stuff needed here)
         if (!async) {
             val operation =
-                essFwk.dbEssential.set(playerdata.uuid.toString(), playerdata.toJson()).get()
+                essFwk.database.set(playerdata.uuid.toString(), playerdata.toJson()).get()
             if (!operation) service.emergency_ss.emergencyDump(playerdata)
 
             // cache it
@@ -41,7 +41,7 @@ class PlayerData_OutputSubservice(private val service: PlayerDataService, privat
         queuedPlayerData[playerdata.uuid] = playerdata
 
         // Set
-        val future = essFwk.dbEssential.set(playerdata.uuid.toString(), playerdata.toJson())
+        val future = essFwk.database.set(playerdata.uuid.toString(), playerdata.toJson())
 
         // Remove from queuedPlayerData when done
         // If database set failed, emergency dump playerdata

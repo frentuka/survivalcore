@@ -1,4 +1,4 @@
-package site.ftka.survivalcore.initless.proprietaryEvents.objects
+package site.ftka.survivalcore.initless.proprietaryEvents.interfaces
 
 interface PropEvent {
     val name: String

@@ -65,16 +65,10 @@ class ServiceLogger(private val service: LoggingInitless, val serviceName: Strin
         ----------------------------------------------------------------------------------
      */
 
-    // using strings
-    fun log(text: String) = log(Component.text(text))
-
-    fun log(text: String, level: LogLevel) = log(Component.text(text), level)
-
-    // using component system
-    fun log(text: Component) = log(text, LogLevel.NORMAL)
+    fun log(text: String, level: LogLevel = LogLevel.NORMAL) = log(Component.text(text), level)
 
     @OptIn(DelicateCoroutinesApi::class)
-    fun log(text: Component, level: LogLevel, tag: Component = serviceTag) {
+    fun log(text: Component, level: LogLevel = LogLevel.NORMAL, tag: Component = serviceTag) {
         val log = Log(text, level)
 
         // print

@@ -11,27 +11,27 @@ import site.ftka.survivalcore.services.playerdata.PlayerDataService
 class ServicesFramework(private val plugin: MClass) {
     private val logger = plugin.loggingInitless.getLog("ServicesFramework", Component.text("Services").color(NamedTextColor.RED))
 
-    var playerDataService = PlayerDataService(plugin, this)
-    var languageService = LanguageService(plugin, this)
-    var permissionsService = PermissionsService(plugin, this)
-    var inventoryGUIService = InventoryGUIService(plugin, this)
+    var playerData = PlayerDataService(plugin, this)
+    var language = LanguageService(plugin, this)
+    var permissions = PermissionsService(plugin, this)
+    var inventoryGUI = InventoryGUIService(plugin, this)
 
     fun initAll() {
         logger.log("Initializing services...")
 
-        playerDataService.init()
-        languageService.init()
-        permissionsService.init()
-        inventoryGUIService.init()
+        playerData.init()
+        language.init()
+        permissions.init()
+        inventoryGUI.init()
     }
 
     fun restartAll() {
         logger.log("Restarting services...")
 
-        playerDataService.restart()
-        languageService.restart()
-        permissionsService.restart()
-        inventoryGUIService.restart()
+        playerData.restart()
+        language.restart()
+        permissions.restart()
+        inventoryGUI.restart()
     }
 
 }

@@ -81,7 +81,7 @@ class PlayerDataService(private val plugin: MClass, private val services: Servic
         }
 
         // if database is not available
-        if (!essFwk.dbEssential.health) { // ABORT EVERYTHING!!!!!
+        if (!essFwk.database.health) { // ABORT EVERYTHING!!!!!
             logger.log("CRITICAL ERROR. DATABASE PING FAILED. ABORTING.", LogLevel.LOW)
             plugin.server.shutdown()
             return
