@@ -4,3 +4,8 @@ main: site.ftka.survivalcore.MClass
 description: Survival Core
 author: srleg
 api-version: '1.20'
+commands:
+  server:
+    description: run ServerAdministration app
+    aliases: sv
+    usage: /server
