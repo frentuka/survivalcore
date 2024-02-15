@@ -22,8 +22,8 @@ class ServerAdministration_serverCommand(private val plugin: MClass): CommandExe
     override fun onCommand(sender: CommandSender, cmd: Command, label: String, args: Array<out String>?): Boolean {
         if (sender !is ConsoleCommandSender) {
             if (sender !is Player) return false
-            else if (!servFwk.playerDataService.playerDataMap.containsKey(sender.uniqueId)) return false // if not exists in pdata
-            if (!servFwk.permissionsService.permissions_ss.playerHasPerm(sender.uniqueId, SERVER_ADMINISTRATION_PLAYER_PERMISSION))
+            else if (!servFwk.playerData.playerDataMap.containsKey(sender.uniqueId)) return false // if not exists in pdata
+            if (!servFwk.permissions.permissions_ss.playerHasPerm(sender.uniqueId, SERVER_ADMINISTRATION_PLAYER_PERMISSION))
                 return false // if player does not have permission
         }
 
