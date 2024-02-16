@@ -13,7 +13,7 @@ class LoggingInitless(private val plugin: MClass) {
 
     // below vars will switch one color to another for each message
     // to improve readability
-    private val messageColorSwitch = Pair(TextColor.fromHexString("#FFFF44")!!, TextColor.fromHexString("#FFFFBB")!!)
+    private val messageColorSwitch = Pair(TextColor.fromHexString("#FFFF22")!!, TextColor.fromHexString("#FFFFBB")!!)
     private var currentMessageColor = true // true = first, false = second
     fun print(tag: Component, log: Log) {
         val msgColor = if (currentMessageColor) messageColorSwitch.first

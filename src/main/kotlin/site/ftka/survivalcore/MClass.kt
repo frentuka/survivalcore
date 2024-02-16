@@ -5,6 +5,7 @@ import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
 import org.bukkit.event.Listener
 import org.bukkit.plugin.java.JavaPlugin
+import site.ftka.survivalcore.apps.AppsFramework
 import site.ftka.survivalcore.essentials.EssentialsFramework
 import site.ftka.survivalcore.initless.logging.LoggingInitless
 import site.ftka.survivalcore.initless.metrics.MetricsInitless
@@ -28,6 +29,9 @@ class MClass: JavaPlugin(), CommandExecutor {
     // Instantiate services
     val servicesFwk = ServicesFramework(this)
 
+    // Instantiate apps
+    val appsFwk = AppsFramework(this)
+
     var starting: Boolean = true
     var stopping: Boolean = false
 
@@ -41,6 +45,7 @@ class MClass: JavaPlugin(), CommandExecutor {
         initListeners()
 
         // apps
+        appsFwk.initAll()
 
         starting = false
 
