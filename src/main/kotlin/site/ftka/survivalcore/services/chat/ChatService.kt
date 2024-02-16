@@ -10,6 +10,7 @@ import java.util.UUID
 
 class ChatService(var plugin: MClass) {
     val logger = plugin.loggingInitless.getLog("Chat", Component.text("Chat").color(NamedTextColor.DARK_RED))
+    val api = ChatAPI(this)
 
     /*
         ChatService

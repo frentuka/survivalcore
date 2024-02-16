@@ -13,6 +13,7 @@ import java.util.*
 
 class LanguageService(private val plugin: MClass, private val services: ServicesFramework) {
     val logger = plugin.loggingInitless.getLog("Language", Component.text("Lang").color(NamedTextColor.WHITE))
+    val api = LanguageAPI(this)
 
     /*
         LanguageService
@@ -24,13 +25,15 @@ class LanguageService(private val plugin: MClass, private val services: Services
 
     val input_ss = LanguageService_InputSubservice(this, plugin)
 
+    val defaultLanguagePack = LanguagePack()
+
     val langMap = mutableMapOf<String, LanguagePack>()
     val playerLangMap = mutableMapOf<UUID, String>()
 
     fun init() {
         logger.log("Initializing...")
 
-        mapLanguagePacks()
+        loadLanguagePacksIntoMap()
 
         // initialize listeners
         plugin.propEventsInitless.registerListener(langListener)
@@ -41,10 +44,10 @@ class LanguageService(private val plugin: MClass, private val services: Services
 
     fun restart() {
         logger.log("Restarting...", LogLevel.LOW)
-        mapLanguagePacks()
+        loadLanguagePacksIntoMap()
     }
 
-    fun mapLanguagePacks(clearMap: Boolean = true) {
+    fun loadLanguagePacksIntoMap(clearMap: Boolean = true) {
         if (clearMap) langMap.clear()
         input_ss.gatherAllLanguagePacks().forEach{ langMap[it.name] = it }
     }

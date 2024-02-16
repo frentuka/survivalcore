@@ -12,11 +12,21 @@ class ChatService_ScreensSubservice(private val service: ChatService, private va
     val activeScreens = mutableMapOf<String, ChatScreen>()
     val playersInsideActiveScreens = mutableMapOf<UUID, String>()
 
+    /* todo
+        rething the whole Screens subservice...
+        unusable until then. this is a mess.
+     */
+
     private val delayedPlayerMessages = mutableMapOf<UUID, MutableList<Component>>()
     fun sendMessageAfterScreen(uuid: UUID, message: Component) {
         if (delayedPlayerMessages.containsKey(uuid)) delayedPlayerMessages[uuid]?.add(message)
         else delayedPlayerMessages[uuid] = mutableListOf(message)
         delayMessageAfterScreen_scheduler()
+    }
+
+    fun showScreen(uuid: UUID, screen: ChatScreen) {
+        activeScreens[screen.name] = screen
+        playersInsideActiveScreens[uuid] = screen.name
     }
 
     private var dMASscheduler_isStarted = false

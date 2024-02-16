@@ -11,6 +11,7 @@ import site.ftka.survivalcore.initless.logging.LoggingInitless.*
 
 class ConfigsEssential(private val plugin: MClass) {
     val logger = plugin.loggingInitless.getLog("ConfigEssential", Component.text("Config").color(NamedTextColor.GOLD))
+    val api = ConfigsAPI(this)
 
     val inout_ss = ConfigsEssential_InOutSubservice(this, plugin)
 

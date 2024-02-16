@@ -16,6 +16,7 @@ import site.ftka.survivalcore.services.inventorygui.listeners.InventoryGUIDetect
 
 class InventoryGUIService(private val plugin: MClass, private val services: ServicesFramework) {
     val logger = plugin.loggingInitless.getLog("InventoryGUI", Component.text("InvGUI").color(TextColor.fromHexString("#cc6600")))
+    val api = InventoryGUIAPI(this)
 
     /*
         This service is meant to control

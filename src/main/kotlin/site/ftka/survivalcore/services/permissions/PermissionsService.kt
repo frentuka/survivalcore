@@ -15,7 +15,7 @@ import java.util.UUID
 
 class PermissionsService(val plugin: MClass, private val services: ServicesFramework) {
     val logger = plugin.loggingInitless.getLog("PermissionsService", Component.text("Perms").color(TextColor.fromHexString("#8298d9")))
-
+    val api = PermissionsAPI(this)
 
     val permissions_ss = PermissionsService_PermissionsSubservice(this, plugin)
     val modifications_ss = PermissionsService_ModificationsSubservice(this, plugin)

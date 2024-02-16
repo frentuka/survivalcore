@@ -13,8 +13,9 @@ import kotlin.Exception
 
 
 class DatabaseEssential(private val plugin: MClass) {
-
     val logger = plugin.loggingInitless.getLog("DatabaseService", Component.text("Database").color(NamedTextColor.LIGHT_PURPLE))
+    val api = DatabaseAPI(this)
+
     private var printStackTraces = true
 
     private val redis_conn_host = "redis://13548@127.0.0.1:6379/0"

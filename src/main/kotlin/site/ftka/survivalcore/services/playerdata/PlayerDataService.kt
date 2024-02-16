@@ -21,6 +21,7 @@ import java.util.concurrent.TimeUnit
 
 class PlayerDataService(private val plugin: MClass, private val services: ServicesFramework) {
     val logger: ServiceLogger = plugin.loggingInitless.getLog("PlayerData", Component.text("PlayerData").color(NamedTextColor.DARK_AQUA))
+    val api = PlayerDataAPI(this)
 
     // fast access vals
     private val essFwk = plugin.essentialsFwk
