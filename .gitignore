@@ -4,8 +4,6 @@
 
 /build/
 /gradle/
-/.gradle/
-.gradle
 
 *.bat
 gradlew
