@@ -8,7 +8,6 @@ import org.bukkit.plugin.java.JavaPlugin
 import site.ftka.survivalcore.apps.AppsFramework
 import site.ftka.survivalcore.essentials.EssentialsFramework
 import site.ftka.survivalcore.initless.logging.LoggingInitless
-import site.ftka.survivalcore.initless.metrics.MetricsInitless
 import site.ftka.survivalcore.initless.proprietaryEvents.ProprietaryEventsInitless
 import site.ftka.survivalcore.services.ServicesFramework
 import java.util.concurrent.Executors
@@ -20,7 +19,6 @@ class MClass: JavaPlugin(), CommandExecutor {
 
     // Instantiate initless-es
     val loggingInitless = LoggingInitless(this)
-    val metricsInitless = MetricsInitless(this)
     val propEventsInitless = ProprietaryEventsInitless(this)
 
     // Instantiate essentials
