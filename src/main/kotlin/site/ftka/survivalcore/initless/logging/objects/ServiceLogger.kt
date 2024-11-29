@@ -47,7 +47,7 @@ class ServiceLogger(private val service: LoggingInitless, val serviceName: Strin
         SubLogger
      */
     data class SubLogger(val logger: ServiceLogger, val tag: String) {
-        fun log(text: String, level: LogLevel = LogLevel.NORMAL) {
+        fun log(text: String, level: LogLevel = LogLevel.NORMAL, color: NamedTextColor = logger.service.defaultTextColor) {
             val newTag =
                 logger.serviceTag.append(Component.text(" {").color(NamedTextColor.WHITE))
                     .append(Component.text(tag).color(NamedTextColor.WHITE))
@@ -65,16 +65,16 @@ class ServiceLogger(private val service: LoggingInitless, val serviceName: Strin
         ----------------------------------------------------------------------------------
      */
 
-    fun log(text: String, level: LogLevel = LogLevel.NORMAL) = log(Component.text(text), level)
+    fun log(text: String, level: LogLevel = LogLevel.NORMAL, color: NamedTextColor = service.defaultTextColor) = log(Component.text(text), level, serviceTag, color)
 
     @OptIn(DelicateCoroutinesApi::class)
-    fun log(text: Component, level: LogLevel = LogLevel.NORMAL, tag: Component = serviceTag) {
-        val log = Log(text, level)
+    fun log(text: Component, level: LogLevel = LogLevel.NORMAL, tag: Component = serviceTag, color: NamedTextColor = service.defaultTextColor) {
+        val log = Log(color, text, level)
 
         // print
         GlobalScope.launch {
             if (log.level in printableLogLevels)
-                service.print(tag, log)
+                service.print(tag, log, color)
 
             // process
             if (log.level in dumpableLogLevels) {
