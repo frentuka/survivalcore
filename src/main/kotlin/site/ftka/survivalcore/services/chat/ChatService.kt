@@ -23,7 +23,7 @@ class ChatService(var plugin: MClass) {
      */
 
     val channels_ss = ChatService_ChannelsSubservice(this, plugin)
-    val screens_ss = ChatService_ScreensSubservice(this, plugin)
+    val screens_ss  = ChatService_ScreensSubservice(this, plugin)
 
     fun init() {
         logger.log("Initializing...", LogLevel.LOW)

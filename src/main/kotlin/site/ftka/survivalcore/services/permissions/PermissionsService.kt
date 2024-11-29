@@ -17,9 +17,9 @@ class PermissionsService(val plugin: MClass, private val services: ServicesFrame
     val logger = plugin.loggingInitless.getLog("PermissionsService", Component.text("Perms").color(TextColor.fromHexString("#8298d9")))
     val api = PermissionsAPI(this)
 
-    val permissions_ss = PermissionsService_PermissionsSubservice(this, plugin)
-    val modifications_ss = PermissionsService_ModificationsSubservice(this, plugin)
-    val inout_ss = PermissionsService_InputOutputSubservice(this, plugin)
+    val permissions_ss      = PermissionsService_PermissionsSubservice(this, plugin)
+    val modifications_ss    = PermissionsService_ModificationsSubservice(this, plugin)
+    val inout_ss            = PermissionsService_InputOutputSubservice(this, plugin)
 
     val groupsMap = mutableMapOf<UUID, PermissionGroup>()
     val groupsNameIDMap = mutableMapOf<String, UUID>()

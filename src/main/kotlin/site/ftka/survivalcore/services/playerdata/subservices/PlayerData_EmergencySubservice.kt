@@ -79,10 +79,10 @@ class PlayerData_EmergencySubservice(private val service: PlayerDataService, pri
         val saveLocationFolder = File(emergencyDumpFolderPath)
         saveLocationFolder.mkdirs()
 
-        logger.log("Dumping ${playerdata.info.username} (${playerdata.uuid})", LoggingInitless.LogLevel.HIGH)
+        logger.log("Dumping ${playerdata.information.username} (${playerdata.uuid})", LoggingInitless.LogLevel.HIGH)
 
         // e.g. EmergencyDump\srleg_3988d2e9-60c4-4d81-bed0-a6b6c2d13080
-        val playerdataFile = "${saveLocationFolder.absolutePath}\\${playerdata.info.username}_${playerdata.uuid}.json"
+        val playerdataFile = "${saveLocationFolder.absolutePath}\\${playerdata.information.username}_${playerdata.uuid}.json"
 
         val bufferedWriter: BufferedWriter
         try {

@@ -75,7 +75,7 @@ class PlayerData_RegistrationSubservice(private val service: PlayerDataService, 
         // 2.
         player?.let {
             // PlayerInformation
-            playerdata.info.updateValuesFromPlayer(it)
+            playerdata.information.updateValuesFromPlayer(it)
 
             // PlayerState
             playerdata.state.applyValuesToPlayer(plugin, it)
@@ -83,7 +83,7 @@ class PlayerData_RegistrationSubservice(private val service: PlayerDataService, 
 
         // 3.
         service.playerDataMap[playerdata.uuid] = playerdata
-        logger.log("Stored playerdata in memory for ${playerdata.info.username} (${playerdata.uuid})", LogLevel.DEBUG)
+        logger.log("Stored playerdata in memory for ${playerdata.information.username} (${playerdata.uuid})", LogLevel.DEBUG)
 
         // 4.
         plugin.propEventsInitless.fireEvent(PlayerDataRegisterEvent(playerdata.uuid, playerdata, firstJoin))
@@ -114,7 +114,7 @@ class PlayerData_RegistrationSubservice(private val service: PlayerDataService, 
         player?.let {
             logger.log("Player found. Gathering playerstate for ($uuid)", LogLevel.DEBUG)
             playerdata.state.gatherValuesFromPlayer(player)
-            playerdata.info.updateValuesFromPlayer(player)
+            playerdata.information.updateValuesFromPlayer(player)
         }
 
         logger.log("Unregistering playerdata: ($uuid)", LogLevel.DEBUG)

@@ -6,10 +6,10 @@ import java.util.UUID
 
 data class PlayerData(val uuid: UUID) {
 
-    var info = PlayerInformation()
-    var state = PlayerState()
-    var perms = PlayerPermissions()
-    var settings = PlayerSettings()
+    var information:    PlayerInformation   = PlayerInformation()
+    var state:          PlayerState         = PlayerState()
+    var permissions:    PlayerPermissions   = PlayerPermissions()
+    var settings:       PlayerSettings      = PlayerSettings()
 
     // misc
     var updateTimestamp: Long = System.currentTimeMillis()

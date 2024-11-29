@@ -8,7 +8,6 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import site.ftka.survivalcore.MClass
 import site.ftka.survivalcore.essentials.database.subservices.DatabaseHealthCheckSubservice
-import site.ftka.survivalcore.initless.logging.LoggingInitless
 import site.ftka.survivalcore.initless.logging.LoggingInitless.*
 import java.util.concurrent.CompletableFuture
 import kotlin.Exception
@@ -25,7 +24,7 @@ class DatabaseEssential(private val plugin: MClass) {
     private var redisClient = RedisClient.create(RedisURI.create(redis_conn_host))
     private var redisConnection: StatefulRedisConnection<String, String>? = null
 
-    private var stateListener = DatabaseHealthCheckSubservice(this, plugin)
+    private var healthCheck_ss = DatabaseHealthCheckSubservice(this, plugin)
     var health = true
 
     fun init() {
@@ -56,7 +55,7 @@ class DatabaseEssential(private val plugin: MClass) {
     // connects, adds listener and returns result
     private fun attemptConnectionInitialization(): Boolean {
         val connected = connect()
-        redisConnection?.addListener(stateListener)
+        redisConnection?.addListener(healthCheck_ss)
 
         return connected
     }

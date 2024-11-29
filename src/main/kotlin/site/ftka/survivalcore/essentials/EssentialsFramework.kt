@@ -9,8 +9,8 @@ import site.ftka.survivalcore.essentials.database.DatabaseEssential
 class EssentialsFramework(private val plugin: MClass) {
     private val logger = plugin.loggingInitless.getLog("EssentialsFramework", Component.text("Essentials").color(NamedTextColor.RED))
 
-    val configs = ConfigsEssential(plugin)
-    val database = DatabaseEssential(plugin)
+    val configs     = ConfigsEssential(plugin)
+    val database    = DatabaseEssential(plugin)
 
     fun initAll() {
         logger.log("Initializing essentials...")

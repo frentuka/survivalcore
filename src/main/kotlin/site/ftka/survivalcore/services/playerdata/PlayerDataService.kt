@@ -33,11 +33,11 @@ class PlayerDataService(private val plugin: MClass, private val services: Servic
     var isRestarting = false
 
     // subservices
-    val input_ss = PlayerData_InputSubservice(this, plugin)
-    val output_ss = PlayerData_OutputSubservice(this, plugin)
+    val input_ss        = PlayerData_InputSubservice(this, plugin)
+    val output_ss       = PlayerData_OutputSubservice(this, plugin)
     val registration_ss = PlayerData_RegistrationSubservice(this, plugin)
-    val emergency_ss = PlayerData_EmergencySubservice(this, plugin)
-    val caching_ss = PlayerData_CachingSubservice(this, plugin)
+    val emergency_ss    = PlayerData_EmergencySubservice(this, plugin)
+    val caching_ss      = PlayerData_CachingSubservice(this, plugin)
 
     // listeners
     val playerDataListener = PlayerDataListener(this, plugin)
