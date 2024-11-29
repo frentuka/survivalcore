@@ -1,5 +1,7 @@
 package site.ftka.survivalcore.services.playerdata
 
+
+
 import com.google.gson.Gson
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
@@ -83,7 +85,7 @@ class PlayerDataService(private val plugin: MClass, private val services: Servic
 
         // if database is not available
         if (!essFwk.database.health) { // ABORT EVERYTHING!!!!!
-            logger.log("CRITICAL ERROR. DATABASE PING FAILED. ABORTING.", LogLevel.LOW)
+            logger.log("CRITICAL ERROR. DATABASE PING FAILED. ABORTING.", LogLevel.LOW, NamedTextColor.RED)
             plugin.server.shutdown()
             return
         }

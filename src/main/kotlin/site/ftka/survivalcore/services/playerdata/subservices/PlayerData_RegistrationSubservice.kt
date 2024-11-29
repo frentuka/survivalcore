@@ -1,8 +1,10 @@
 package site.ftka.survivalcore.services.playerdata.subservices
 
+import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.entity.Player
 import site.ftka.survivalcore.MClass
 import site.ftka.survivalcore.initless.logging.LoggingInitless
+import site.ftka.survivalcore.initless.logging.LoggingInitless.*
 import site.ftka.survivalcore.services.playerdata.PlayerDataService
 import site.ftka.survivalcore.services.playerdata.events.PlayerDataRegisterEvent
 import site.ftka.survivalcore.services.playerdata.events.PlayerDataUnregisterEvent
@@ -34,6 +36,7 @@ class PlayerData_RegistrationSubservice(private val service: PlayerDataService, 
             // If not, then create
             if (!existsResult) {
 
+                logger.log("Does not exist in database", LogLevel.HIGH)
                 logger.log("Creating new playerdata ($uuid)")
 
                 // Create and save
@@ -42,7 +45,7 @@ class PlayerData_RegistrationSubservice(private val service: PlayerDataService, 
 
             } else { // Exists in database!
 
-                logger.log("Retrieving playerdata from database ($uuid)", LoggingInitless.LogLevel.HIGH)
+                logger.log("PlayerData exists in database ($uuid)", LogLevel.HIGH)
                 gatherPlayerData(uuid, async, player)
 
             }
@@ -54,7 +57,7 @@ class PlayerData_RegistrationSubservice(private val service: PlayerDataService, 
         get.whenComplete { getResult, exc ->
 
             if (exc != null) {
-                logger.log("There was an exception when trying to gather data from database for $uuid. Kicking player")
+                logger.log("There was an exception when trying to gather data from database for $uuid. Kicking player", LogLevel.LOW, NamedTextColor.RED)
                 player?.kick()
                 exc.printStackTrace()
                 return@whenComplete
@@ -62,7 +65,7 @@ class PlayerData_RegistrationSubservice(private val service: PlayerDataService, 
 
             val playerdata = getResult ?: PlayerData(uuid)
             if (getResult == null)
-                logger.log("Creating new playerdata as database data seems corrupted ($uuid)", LoggingInitless.LogLevel.LOW)
+                logger.log("Creating new playerdata as database data seems corrupted ($uuid)", LogLevel.LOW)
 
             finishRegistration(playerdata, player)
         }
@@ -80,7 +83,7 @@ class PlayerData_RegistrationSubservice(private val service: PlayerDataService, 
 
         // 3.
         service.playerDataMap[playerdata.uuid] = playerdata
-        logger.log("Successfully cached playerdata for ${playerdata.info.username} (${playerdata.uuid})", LoggingInitless.LogLevel.DEBUG)
+        logger.log("Stored playerdata in memory for ${playerdata.info.username} (${playerdata.uuid})", LogLevel.DEBUG)
 
         // 4.
         plugin.propEventsInitless.fireEvent(PlayerDataRegisterEvent(playerdata.uuid, playerdata, firstJoin))
@@ -102,19 +105,19 @@ class PlayerData_RegistrationSubservice(private val service: PlayerDataService, 
 
         // debug end
         if (service.playerDataMap[uuid] == null) {
-            logger.log("Tried to unregister ($uuid) but no playerdata was found", LoggingInitless.LogLevel.DEBUG)
+            logger.log("Tried to unregister ($uuid) but no playerdata was found", LogLevel.LOW, NamedTextColor.RED)
             return
         }
         val playerdata = service.playerDataMap[uuid]!!
 
         // 1.
         player?.let {
-            logger.log("Player found. Gathering playerstate for ($uuid)", LoggingInitless.LogLevel.DEBUG)
+            logger.log("Player found. Gathering playerstate for ($uuid)", LogLevel.DEBUG)
             playerdata.state.gatherValuesFromPlayer(player)
             playerdata.info.updateValuesFromPlayer(player)
         }
 
-        logger.log("Unregistering playerdata: ($uuid)", LoggingInitless.LogLevel.DEBUG)
+        logger.log("Unregistering playerdata: ($uuid)", LogLevel.DEBUG)
 
         finishUnregistration(playerdata, async)
     }
@@ -125,12 +128,12 @@ class PlayerData_RegistrationSubservice(private val service: PlayerDataService, 
         // 1.
         service.output_ss.set(playerdata, async) // IF SET FAILS, EMERGENCY DUMP IS DONE IN OUTPUT SUBSERVICE
 
-        logger.log("Setted in database: ($uuid)", LoggingInitless.LogLevel.DEBUG)
+        logger.log("Set in database: ($uuid)", LogLevel.DEBUG)
 
         // 2.
         service.playerDataMap.remove(uuid)
 
-        logger.log("Calling unregister event: ($uuid)", LoggingInitless.LogLevel.DEBUG)
+        logger.log("Calling unregister event: ($uuid)", LogLevel.DEBUG)
 
         // 3.
         plugin.propEventsInitless.fireEvent(PlayerDataUnregisterEvent(uuid, playerdata))
