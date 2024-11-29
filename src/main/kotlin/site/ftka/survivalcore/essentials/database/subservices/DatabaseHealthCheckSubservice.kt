@@ -22,8 +22,6 @@ class DatabaseHealthCheckSubservice(val essential: DatabaseEssential, val plugin
     }
 
     override fun onRedisDisconnected(connection: RedisChannelHandler<*, *>?) {
-        println("ON REDIS DISCONNECTED ${essential.health} ${plugin.stopping}")
-
         if (!essential.health)
             return
 

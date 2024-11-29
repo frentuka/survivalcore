@@ -1,8 +1,6 @@
 package site.ftka.survivalcore
 
-import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
-import org.bukkit.command.CommandSender
 import org.bukkit.event.Listener
 import org.bukkit.plugin.java.JavaPlugin
 import site.ftka.survivalcore.apps.AppsFramework
@@ -71,16 +69,6 @@ class MClass: JavaPlugin(), CommandExecutor {
             server.pluginManager.registerEvents(listener, this)
             listenerList.remove(listener)
         }
-    }
-
-    // restart command: 0000
-    override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>?): Boolean {
-        if (label.lowercase() == "0000") {
-            this.server.pluginManager.disablePlugin(this)
-            this.server.pluginManager.enablePlugin(this)
-        }
-
-        return super.onCommand(sender, command, label, args)
     }
 
 }

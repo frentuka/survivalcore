@@ -8,6 +8,8 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import site.ftka.survivalcore.MClass
 import site.ftka.survivalcore.essentials.database.subservices.DatabaseHealthCheckSubservice
+import site.ftka.survivalcore.initless.logging.LoggingInitless
+import site.ftka.survivalcore.initless.logging.LoggingInitless.*
 import java.util.concurrent.CompletableFuture
 import kotlin.Exception
 
@@ -32,7 +34,7 @@ class DatabaseEssential(private val plugin: MClass) {
         val connected = attemptConnectionInitialization()
 
         if (!connected) {
-            logger.log("First connection attempt failed. Shutting down.")
+            logger.log("First connection attempt failed. Shutting down.", LogLevel.LOW, NamedTextColor.RED)
             plugin.server.shutdown()
         } else {
             logger.log("Successfully connected with database")
@@ -46,7 +48,7 @@ class DatabaseEssential(private val plugin: MClass) {
         redisConnection = null
 
         if (!attemptConnectionInitialization()) {
-            logger.log("Connection failed on restart. Shutting down.")
+            logger.log("Connection failed on restart. Shutting down.", LogLevel.LOW, NamedTextColor.RED)
             plugin.server.shutdown()
         }
     }
