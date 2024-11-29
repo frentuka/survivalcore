@@ -7,7 +7,7 @@ import java.io.File
 
 class LanguageService_InputSubservice(private val service: LanguageService, private val plugin: MClass) {
 
-    private val languagePackFolderAbsolutePath = "${plugin.dataFolder.absolutePath}\\language"
+    private val languagePackFolderAbsolutePath = "/${plugin.dataFolder.absolutePath}/language"
 
     fun gatherAllLanguagePacks(): List<LanguagePack> {
         val lpackList = mutableListOf<LanguagePack>()

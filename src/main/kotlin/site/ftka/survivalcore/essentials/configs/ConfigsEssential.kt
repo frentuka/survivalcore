@@ -18,6 +18,7 @@ class ConfigsEssential(private val plugin: MClass) {
     /*
         File names
      */
+
     enum class defaultConfigFilesEnum(val filename: String, val defaultJson: String) {
         GENERAL("general_config", GeneralConfig().toJson()),
         PLAYERDATA("playerdata_config", PlayerDataConfig().toJson())

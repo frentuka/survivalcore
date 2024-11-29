@@ -11,7 +11,7 @@ import java.io.IOException
 class ConfigsEssential_InOutSubservice(private val essential: ConfigsEssential, private val plugin: MClass) {
     private val logger = essential.logger.sub("InOut")
 
-    private val configsFolderAbsolutePath = "${plugin.dataFolder.absolutePath}\\configs"
+    private val configsFolderAbsolutePath = "/${plugin.dataFolder.absolutePath}/configs"
 
     // Will return <FilenameWithoutExtension, JsonContent>
     fun gatherConfigJson(fileName: String, defaultJson: String): String {
@@ -41,7 +41,7 @@ class ConfigsEssential_InOutSubservice(private val essential: ConfigsEssential, 
         val configsFolderFile = File(configsFolderAbsolutePath)
         if (!configsFolderFile.exists()) configsFolderFile.mkdirs()
 
-        val configFile = File("${configsFolderAbsolutePath}\\$fileName.json")
+        val configFile = File("/${configsFolderAbsolutePath}/$fileName.json")
         if (configFile.exists() && !overwrite) return
 
         configFile.delete() // idk if necessary, just in case

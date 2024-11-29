@@ -9,7 +9,7 @@ import java.io.File
 class PermissionsService_InputOutputSubservice(private val service: PermissionsService, private val plugin: MClass) {
     private val logger = service.logger.sub("InOut")
 
-    private val groupsFolderAbsolutePath = "${plugin.dataFolder.absolutePath}\\groups"
+    private val groupsFolderAbsolutePath = "/${plugin.dataFolder.absolutePath}/groups"
 
     fun readGroupsFromStorage(): List<PermissionGroup> {
         logger.log("Attempting to read groups from storage", LogLevel.HIGH)
@@ -65,7 +65,7 @@ class PermissionsService_InputOutputSubservice(private val service: PermissionsS
         if (!groupsFolderFile.isDirectory) return false // something weird
 
         val groupFileName = "${group.name}.json"
-        val groupFileAbsolutePath = "$groupsFolderFile\\$groupFileName"
+        val groupFileAbsolutePath = "/$groupsFolderFile/$groupFileName"
         val groupFile = File(groupFileAbsolutePath)
 
         if (groupFile.exists() && !overwriteIfExists) return false
@@ -82,12 +82,12 @@ class PermissionsService_InputOutputSubservice(private val service: PermissionsS
         if (!groupsFolderFile.exists()) return false
         if (!groupsFolderFile.isDirectory) return false
 
-        val groupFileAbsolutePath = "$groupsFolderAbsolutePath\\$groupFileName.json"
+        val groupFileAbsolutePath = "/$groupsFolderAbsolutePath/$groupFileName.json"
         val groupFile = File(groupFileAbsolutePath)
 
         if (!groupFile.exists()) return false
 
-        val newGroupFileAbsolutePath = "$groupsFolderAbsolutePath\\$newGroupFileName.json"
+        val newGroupFileAbsolutePath = "/$groupsFolderAbsolutePath/$newGroupFileName.json"
         val newGroupFile = File(newGroupFileAbsolutePath)
 
         return groupFile.renameTo(newGroupFile)
