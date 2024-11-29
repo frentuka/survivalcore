@@ -8,7 +8,7 @@ import site.ftka.survivalcore.utils.base64Utils
 import java.util.UUID
 import site.ftka.survivalcore.utils.serializers.SerializedLocation
 
-data class PlayerState(private val uuid: UUID) {
+class PlayerState {
 
     /*
         This class is NOT meant to request data when player is online.

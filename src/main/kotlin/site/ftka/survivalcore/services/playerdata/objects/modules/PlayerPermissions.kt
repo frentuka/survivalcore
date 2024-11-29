@@ -2,7 +2,7 @@ package site.ftka.survivalcore.services.playerdata.objects.modules
 
 import java.util.UUID
 
-data class PlayerPermissions(private val uuid: UUID) {
+class PlayerPermissions {
 
     var groups = listOf<UUID>()
 

@@ -3,7 +3,7 @@ package site.ftka.survivalcore.services.playerdata.objects.modules
 import org.bukkit.entity.Player
 import java.util.UUID
 
-data class PlayerInformation(private val uuid: UUID) {
+class PlayerInformation {
 
     var username: String = "{unknown}"
     var usernameHistory = mutableMapOf<Long, String>() // <Timestamp, Name>
