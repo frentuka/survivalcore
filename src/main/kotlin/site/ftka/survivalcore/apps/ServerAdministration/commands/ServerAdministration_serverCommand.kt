@@ -29,10 +29,19 @@ class ServerAdministration_serverCommand(private val src: ServerAdministrationAp
         CHAT, INVENTORYGUI, LANGUAGE, PERMISSIONS, PLAYERDATA
     }
 
+    private enum class AppsEnum {
+        NOTHING, HERE, YET
+    }
+
     override fun onCommand(sender: CommandSender, cmd: Command, label: String, args: Array<out String>?): Boolean {
+        if (sender is Player) {
+            sender.sendMessage(servFwk.playerData.getPlayerDataMap().keys.toString())
+            sender.sendMessage(sender.uniqueId.toString())
+        }
+
         if (sender !is ConsoleCommandSender) { // check authorization
-            if (sender !is Player) return false
-            else if (!servFwk.playerData.playerDataMap.containsKey(sender.uniqueId)) return false // if not exists in pdata
+            if (sender !is Player) return false // can't happen
+            else if (!servFwk.playerData.getPlayerDataMap().containsKey(sender.uniqueId)) return false // if not exists in pdata
             if (!servFwk.permissions.permissions_ss.playerHasPerm(sender.uniqueId, SERVER_ADMINISTRATION_PLAYER_PERMISSION)) {
                 val noPermissionMessage = plugin.servicesFwk.language.api.playerLanguagePack(sender.uniqueId).command_error_player_noPermission
                 sender.sendMessage(noPermissionMessage) // player doesn't have permission
@@ -40,7 +49,7 @@ class ServerAdministration_serverCommand(private val src: ServerAdministrationAp
             }
         }
 
-        val msg = ServerAdminCommandMessages()
+        //val msg = ServerAdminCommandMessages()
 
         // get help
         if (args == null || args.isEmpty()) {
@@ -50,7 +59,7 @@ class ServerAdministration_serverCommand(private val src: ServerAdministrationAp
 
         if (args.get(0) == "service") return false
 
-        // todo
+
         return false
     }
 
@@ -65,27 +74,28 @@ class ServerAdministration_serverCommand(private val src: ServerAdministrationAp
 
         // first stage: /cmd (suggestion)
         if (splatBuffer.size == 1) {
-            event.completions.add("app")
-            event.completions.add("service")
+            event.completions.add(event.buffer + " app")
+            event.completions.add(event.buffer + " service")
         }
 
         // second stage: /cmd <app/service> (suggestion)
         if (splatBuffer.size == 2) {
-            if (splatBuffer[1].lowercase() == "app") {
-                // nothing to do here.. yet
-            }
+            when (splatBuffer[1].lowercase()) {
+                "app" -> {
+                    for (enums in AppsEnum.entries)
+                        event.completions.add(event.buffer + " " + enums.name.lowercase())
+                }
 
-            if (splatBuffer[1].lowercase() == "service") {
-                for (enums in ServicesEnum.entries) {
-                    event.completions.add(enums.name.lowercase())
+                "service" -> {
+                    for (enums in ServicesEnum.entries)
+                        event.completions.add(event.buffer + " " + enums.name.lowercase())
                 }
             }
         }
-    }
 
-    private class ServerAdminCommandMessages {
-
-
+        // third stage: /cmd <app/service> <selection> reload
+        if (splatBuffer.size == 3)
+            event.completions.add(event.buffer + " reload")
     }
 
 }

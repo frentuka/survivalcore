@@ -47,6 +47,7 @@ class InventoryGUIService(private val plugin: MClass, private val services: Serv
 
     fun createInventory(owner: InventoryGUIOwner, type: InventoryType, title: Component): Inventory {
         inventoryOwnersMap[owner.ownerName] = owner
+        val inv = Bukkit.createInventory(owner, type, title)
         return Bukkit.createInventory(owner, type, title)
     }
 

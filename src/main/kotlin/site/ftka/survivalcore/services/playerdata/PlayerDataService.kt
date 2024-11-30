@@ -25,6 +25,8 @@ class PlayerDataService(private val plugin: MClass, private val services: Servic
     val logger: ServiceLogger = plugin.loggingInitless.getLog("PlayerData", Component.text("PlayerData").color(NamedTextColor.DARK_AQUA))
     val api = PlayerDataAPI(this)
 
+    val baseFolderPath = "/${plugin.dataFolder.absolutePath}/PlayerData"
+
     // fast access vals
     private val essFwk = plugin.essentialsFwk
 
@@ -35,6 +37,7 @@ class PlayerDataService(private val plugin: MClass, private val services: Servic
     // subservices
     val input_ss        = PlayerData_InputSubservice(this, plugin)
     val output_ss       = PlayerData_OutputSubservice(this, plugin)
+    val backup_ss       = PlayerData_BackupSubservice(this, plugin)
     val registration_ss = PlayerData_RegistrationSubservice(this, plugin)
     val emergency_ss    = PlayerData_EmergencySubservice(this, plugin)
     val caching_ss      = PlayerData_CachingSubservice(this, plugin)
@@ -44,8 +47,8 @@ class PlayerDataService(private val plugin: MClass, private val services: Servic
 
     // playerDataMap saves player's playerdata
     // onlinePlayers (UUIDs -> Usernames) is controlled by PlayerDataListener
-    val playerDataMap: MutableMap<UUID, PlayerData> = mutableMapOf()
-    val onlinePlayers: MutableMap<UUID, String> = mutableMapOf()
+    private val playerDataMap: MutableMap<UUID, PlayerData> = mutableMapOf()
+    private val onlinePlayers: MutableMap<UUID, String> = mutableMapOf()
 
     @OptIn(DelicateCoroutinesApi::class)
     fun init() {
@@ -108,6 +111,34 @@ class PlayerDataService(private val plugin: MClass, private val services: Servic
 
         // 4.
         plugin.propEventsInitless.fireEvent(PlayerDataRestartEvent())
+    }
+
+    fun getPlayerDataMap(): MutableMap<UUID, PlayerData> {
+        return playerDataMap
+    }
+
+    fun getPlayerData(uuid: UUID): PlayerData? {
+        return playerDataMap[uuid]
+    }
+
+    fun putPlayerDataMap(uuid: UUID, playerData: PlayerData) {
+        playerDataMap[uuid] = playerData
+    }
+
+    fun removePlayerData(uuid: UUID) {
+        playerDataMap.remove(uuid)
+    }
+
+    fun getOnlinePlayers(): MutableMap<UUID, String> {
+        return onlinePlayers
+    }
+
+    fun setOnlinePlayer(uuid: UUID, username: String) {
+        onlinePlayers[uuid] = username
+    }
+
+    fun removeOnlinePlayer(uuid: UUID) {
+        onlinePlayers.remove(uuid)
     }
 
     fun fromJson(json: String?): PlayerData? = Gson().fromJson(json, PlayerData::class.java)

@@ -8,20 +8,41 @@ class PermissionsService_PermissionsSubservice(private val service: PermissionsS
 
     // Yes it DOES include inheritances.
     private val groupPermissionsMap = mutableMapOf<UUID, Set<String>>()
+    private val playerPermissionsCache = mutableMapOf<UUID, Set<String>>()
 
     fun groupHasPerm(groupID: UUID, permission: String) =
         hasPerm(groupPerms(groupID), permission)
 
     fun playerHasPerm(uuid: UUID, permission: String): Boolean {
-        val playerdata = plugin.servicesFwk.playerData.playerDataMap[uuid] ?: return false
-        val playerPerms = mutableSetOf<String>()
-        // player's own permissions
-        playerPerms.addAll(playerdata.permissions.permissions)
-        for (groupID in playerdata.permissions.groups)
-            playerPerms.addAll(groupPerms(groupID))
+        val playerdata = plugin.servicesFwk.playerData.getPlayerData(uuid) ?: run {
+            playerPermissionsCache.remove(uuid)
+            return false
+        }
+
+        // if player's permissions are already inside cache, check it
+        playerPermissionsCache[uuid]?.let {
+            if (hasPerm(it, permission)) return true
+        }
+
+        // if not, calculate it
+        val playerPerms = playerPerms(uuid)
+
+        // add to cache
+        playerPermissionsCache[uuid] = playerPerms
 
         return hasPerm(playerPerms, permission)
     }
+
+    // cache should be invalidated when a player's permissions change
+    // or when a group's permissions change
+
+    // invalidates cache for a player
+    fun invalidateCache(playerUUID: UUID) =
+        playerPermissionsCache.remove(playerUUID)
+
+    // invalidates cache for all players
+    fun invalidateCache() =
+        playerPermissionsCache.clear()
 
     /*
         When is a permission granted? (permission.needed.asd)
@@ -39,11 +60,13 @@ class PermissionsService_PermissionsSubservice(private val service: PermissionsS
         return false
     }
 
+    // returns all permissions of a player
     fun playerPerms(playerUUID: UUID): Set<String> {
-        val playerdata = plugin.servicesFwk.playerData.playerDataMap[playerUUID] ?: return setOf()
-        val groupsUUIDs = playerdata.permissions.groups
+        val playerdata = plugin.servicesFwk.playerData.getPlayerData(playerUUID) ?: return setOf()
+        val groupsUUIDs = playerdata.permissions?.groups ?: setOf()
 
         val perms = mutableSetOf<String>()
+        playerdata.permissions?.let { perms.addAll(it.permissions) }
 
         for (groupUUID in groupsUUIDs) {
             perms.addAll(groupPerms(groupUUID))

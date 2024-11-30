@@ -9,6 +9,10 @@ import site.ftka.survivalcore.services.playerdata.PlayerDataService
 import site.ftka.survivalcore.services.playerdata.events.PlayerDataRegisterEvent
 import site.ftka.survivalcore.services.playerdata.events.PlayerDataUnregisterEvent
 import site.ftka.survivalcore.services.playerdata.objects.PlayerData
+import site.ftka.survivalcore.services.playerdata.objects.modules.PlayerInformation
+import site.ftka.survivalcore.services.playerdata.objects.modules.PlayerPermissions
+import site.ftka.survivalcore.services.playerdata.objects.modules.PlayerSettings
+import site.ftka.survivalcore.services.playerdata.objects.modules.PlayerState
 import java.util.*
 
 class PlayerData_RegistrationSubservice(private val service: PlayerDataService, private val plugin: MClass) {
@@ -53,8 +57,8 @@ class PlayerData_RegistrationSubservice(private val service: PlayerDataService, 
     }
 
     private fun gatherPlayerData(uuid: UUID, async: Boolean, player: Player?) {
-        val get = service.input_ss.get(uuid, async) ?: return
-        get.whenComplete { getResult, exc ->
+        val get = service.input_ss.get(uuid, async)
+        get?.whenComplete { getResult, exc ->
 
             if (exc != null) {
                 logger.log("There was an exception when trying to gather data from database for $uuid. Kicking player", LogLevel.LOW, NamedTextColor.RED)
@@ -64,26 +68,49 @@ class PlayerData_RegistrationSubservice(private val service: PlayerDataService, 
             }
 
             val playerdata = getResult ?: PlayerData(uuid)
-            if (getResult == null)
+            if (getResult == null) {
                 logger.log("Creating new playerdata as database data seems corrupted ($uuid)", LogLevel.LOW)
+                service.backup_ss.backupFromRequestBuffer(uuid)
+            }
 
-            finishRegistration(playerdata, player)
+            logger.log("Gathered playerdata from database: $getResult", LogLevel.DEBUG)
+            finishRegistration(playerdata, player, false)
         }
     }
 
     private fun finishRegistration(playerdata: PlayerData, player: Player? = null, firstJoin: Boolean = false) {
         // 2.
+
         player?.let {
+            // PlayerData's modules could be null because of wrong json parsing.
+            // In this case, missing modules are replaced and a copy of database's response is backed up.
+            if (playerdata.information == null
+                || playerdata.state == null
+                || playerdata.settings == null
+                || playerdata.permissions == null) {
+                logger.log("PlayerInformation is null. Creating new one. Backup will be saved.", LogLevel.LOW, NamedTextColor.RED)
+                service.backup_ss.backupFromRequestBuffer(player.uniqueId)
+
+                player.sendMessage(plugin.servicesFwk.language.defaultLanguagePack.playerdata_error_corruptedPlayerData)
+            }
+
+            if (playerdata.information == null) playerdata.information = PlayerInformation()
+            if (playerdata.state == null) playerdata.state = PlayerState()
+            if (playerdata.settings == null) playerdata.settings = PlayerSettings()
+            if (playerdata.permissions == null) playerdata.permissions = PlayerPermissions()
+
+
+            // Update some modules that need to be updated
             // PlayerInformation
-            playerdata.information.updateValuesFromPlayer(it)
+            playerdata.information?.updateValuesFromPlayer(it)
 
             // PlayerState
-            playerdata.state.applyValuesToPlayer(plugin, it)
+            playerdata.state?.applyValuesToPlayer(plugin, it)
         }
 
         // 3.
-        service.playerDataMap[playerdata.uuid] = playerdata
-        logger.log("Stored playerdata in memory for ${playerdata.information.username} (${playerdata.uuid})", LogLevel.DEBUG)
+        service.putPlayerDataMap(playerdata.uuid, playerdata)
+        logger.log("Stored playerdata in memory for ${playerdata.information?.username} (${playerdata.uuid})", LogLevel.DEBUG)
 
         // 4.
         plugin.propEventsInitless.fireEvent(PlayerDataRegisterEvent(playerdata.uuid, playerdata, firstJoin))
@@ -100,21 +127,21 @@ class PlayerData_RegistrationSubservice(private val service: PlayerDataService, 
     fun unregister(uuid: UUID, player: Player? = null, async: Boolean = true) {
         // debug
 
-        for (key in service.playerDataMap)
+        for (key in service.getPlayerDataMap())
             println(key.key.toString())
 
         // debug end
-        if (service.playerDataMap[uuid] == null) {
+        if (service.getPlayerData(uuid) == null) {
             logger.log("Tried to unregister ($uuid) but no playerdata was found", LogLevel.LOW, NamedTextColor.RED)
             return
         }
-        val playerdata = service.playerDataMap[uuid]!!
+        val playerdata = service.getPlayerData(uuid)!!
 
         // 1.
         player?.let {
             logger.log("Player found. Gathering playerstate for ($uuid)", LogLevel.DEBUG)
-            playerdata.state.gatherValuesFromPlayer(player)
-            playerdata.information.updateValuesFromPlayer(player)
+            playerdata.state?.gatherValuesFromPlayer(player)
+            playerdata.information?.updateValuesFromPlayer(player)
         }
 
         logger.log("Unregistering playerdata: ($uuid)", LogLevel.DEBUG)
@@ -131,7 +158,7 @@ class PlayerData_RegistrationSubservice(private val service: PlayerDataService, 
         logger.log("Set in database: ($uuid)", LogLevel.DEBUG)
 
         // 2.
-        service.playerDataMap.remove(uuid)
+        service.removePlayerData(uuid)
 
         logger.log("Calling unregister event: ($uuid)", LogLevel.DEBUG)
 

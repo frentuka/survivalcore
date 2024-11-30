@@ -16,8 +16,7 @@ class PlayerData_EmergencySubservice(private val service: PlayerDataService, pri
     // fast access vals
     private val essFwk = plugin.essentialsFwk
 
-    private val baseFolderPath = "${plugin.dataFolder.absolutePath}\\PlayerData"
-    private val emergencyDumpFolderPath = "${baseFolderPath}\\EmergencyDump"
+    private val emergencyDumpFolderPath = "/${service.baseFolderPath}/EmergencyDump"
 
     fun uploadAllDumpsToDatabase(async: Boolean) {
         val dumps = getAvailableDumps()
@@ -49,7 +48,7 @@ class PlayerData_EmergencySubservice(private val service: PlayerDataService, pri
         for (file in emergencyDumpFolderFile.listFiles { file -> file.extension == "json" && file.name.contains(uuid.toString()) }!!)
             dumpFile = file
 
-        var fileText = dumpFile?.readText()
+        val fileText = dumpFile?.readText()
         if (deleteIt) dumpFile?.delete()
         return service.fromJson(fileText)
     }
@@ -79,10 +78,10 @@ class PlayerData_EmergencySubservice(private val service: PlayerDataService, pri
         val saveLocationFolder = File(emergencyDumpFolderPath)
         saveLocationFolder.mkdirs()
 
-        logger.log("Dumping ${playerdata.information.username} (${playerdata.uuid})", LoggingInitless.LogLevel.HIGH)
+        logger.log("Dumping ${playerdata.information?.username} (${playerdata.uuid})", LoggingInitless.LogLevel.HIGH)
 
         // e.g. EmergencyDump\srleg_3988d2e9-60c4-4d81-bed0-a6b6c2d13080
-        val playerdataFile = "${saveLocationFolder.absolutePath}\\${playerdata.information.username}_${playerdata.uuid}.json"
+        val playerdataFile = "/${saveLocationFolder.absolutePath}/${playerdata.information?.username}_${playerdata.uuid}.json"
 
         val bufferedWriter: BufferedWriter
         try {

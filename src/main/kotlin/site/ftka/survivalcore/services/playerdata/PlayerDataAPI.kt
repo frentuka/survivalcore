@@ -7,10 +7,10 @@ import java.util.UUID
 class PlayerDataAPI(private val svc: PlayerDataService) {
 
     fun exists(uuid: UUID)
-        = svc.playerDataMap.containsKey(uuid)
+        = svc.getPlayerDataMap().containsKey(uuid)
 
     fun get(uuid: UUID)
-        = svc.playerDataMap[uuid]
+        = svc.getPlayerData(uuid)
 
     /**
      *  Must be used inside main thread
@@ -28,7 +28,7 @@ class PlayerDataAPI(private val svc: PlayerDataService) {
             return
         }
 
-        svc.playerDataMap[uuid] = newPlayerData
+        svc.putPlayerDataMap(uuid, newPlayerData)
     }
 
 }

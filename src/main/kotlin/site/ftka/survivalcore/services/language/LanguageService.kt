@@ -38,8 +38,8 @@ class LanguageService(private val plugin: MClass, private val services: Services
         // initialize listeners
         plugin.propEventsInitless.registerListener(langListener)
 
-        for (playerdata in services.playerData.playerDataMap.values)
-            playerLangMap[playerdata.uuid] = playerdata.settings.language
+        for (playerdata in services.playerData.getPlayerDataMap().values)
+            playerdata.settings?.let { playerLangMap[playerdata.uuid] = it.language }
     }
 
     fun restart() {

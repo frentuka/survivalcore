@@ -12,6 +12,4 @@ class ServerAdministration_CommandLang {
                 "<white>\n" +
                 "/server <click:run_command:'/{cmd} app '><app</click>/<click:run_command:'/{cmd} service'>service></click> <name>\n" +
                 " ")
-
-
 }
