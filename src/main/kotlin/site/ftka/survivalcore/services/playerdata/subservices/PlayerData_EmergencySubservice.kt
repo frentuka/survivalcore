@@ -35,7 +35,7 @@ class PlayerData_EmergencySubservice(private val service: PlayerDataService, pri
                 else dump.updateTimestamp > result.updateTimestamp
 
                 if (shouldUpload)
-                    service.output_ss.set(dump, async)
+                    service.inout_ss.set(dump, async)
             }
         }
     }
