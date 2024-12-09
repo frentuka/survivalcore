@@ -27,7 +27,7 @@ class PlayerData_EmergencySubservice(private val service: PlayerDataService, pri
         }
 
         for (dump in dumps) {
-            val futureGet = service.input_ss.get(dump.uuid, async)
+            val futureGet = service.inout_ss.get(dump.uuid, async)
 
             futureGet?.whenComplete{ result, _ ->
                 var shouldUpload = false // ONLY SHOULD UPLOAD IF EMERGENCY DUMP IS NEWER THAN DATABASE DATA

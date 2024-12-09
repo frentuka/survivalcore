@@ -27,7 +27,7 @@ class PlayerData_RegistrationSubservice(private val service: PlayerDataService, 
         logger.log("Starting registration for uuid ($uuid)", LoggingInitless.LogLevel.DEBUG)
 
         // 1.
-        val exists = service.input_ss.exists(uuid, async) ?: return
+        val exists = service.inout_ss.exists(uuid, async) ?: return
 
         exists.whenComplete { existsResult, exc ->
             if (exc != null) {
@@ -57,7 +57,7 @@ class PlayerData_RegistrationSubservice(private val service: PlayerDataService, 
     }
 
     private fun gatherPlayerData(uuid: UUID, async: Boolean, player: Player?) {
-        val get = service.input_ss.get(uuid, async)
+        val get = service.inout_ss.get(uuid, async)
         get?.whenComplete { getResult, exc ->
 
             if (exc != null) {
@@ -84,21 +84,17 @@ class PlayerData_RegistrationSubservice(private val service: PlayerDataService, 
         player?.let {
             // PlayerData's modules could be null because of wrong json parsing.
             // In this case, missing modules are replaced and a copy of database's response is backed up.
-            if (playerdata.information == null
-                || playerdata.state == null
-                || playerdata.settings == null
-                || playerdata.permissions == null) {
-                logger.log("PlayerInformation is null. Creating new one. Backup will be saved.", LogLevel.LOW, NamedTextColor.RED)
+            if (!service.integrity_ss.checkIntegrity(playerdata)) {
+                logger.log("PlayerData integrity check failed. Creating new one. Backup will be saved.", LogLevel.LOW, NamedTextColor.RED)
                 service.backup_ss.backupFromRequestBuffer(player.uniqueId)
 
                 player.sendMessage(plugin.servicesFwk.language.defaultLanguagePack.playerdata_error_corruptedPlayerData)
+
+                if (playerdata.information == null) playerdata.information = PlayerInformation()
+                if (playerdata.state == null) playerdata.state = PlayerState()
+                if (playerdata.settings == null) playerdata.settings = PlayerSettings()
+                if (playerdata.permissions == null) playerdata.permissions = PlayerPermissions()
             }
-
-            if (playerdata.information == null) playerdata.information = PlayerInformation()
-            if (playerdata.state == null) playerdata.state = PlayerState()
-            if (playerdata.settings == null) playerdata.settings = PlayerSettings()
-            if (playerdata.permissions == null) playerdata.permissions = PlayerPermissions()
-
 
             // Update some modules that need to be updated
             // PlayerInformation
@@ -117,31 +113,25 @@ class PlayerData_RegistrationSubservice(private val service: PlayerDataService, 
     }
 
 
-
-
-
     // 1. Gather PlayerState
     // 2. Save player's information in database (in finishUnregistration())
     // 3. Remove from cache (in finishUnregistration())
     // 4. Report PlayerDataUnregistrationEvent (in finishUnregistration())
     fun unregister(uuid: UUID, player: Player? = null, async: Boolean = true) {
-        // debug
-
-        for (key in service.getPlayerDataMap())
-            println(key.key.toString())
-
         // debug end
         if (service.getPlayerData(uuid) == null) {
             logger.log("Tried to unregister ($uuid) but no playerdata was found", LogLevel.LOW, NamedTextColor.RED)
             return
         }
+
         val playerdata = service.getPlayerData(uuid)!!
+        val safePlayer = player ?: plugin.server.getPlayer(uuid)
 
         // 1.
-        player?.let {
+        safePlayer?.let {
             logger.log("Player found. Gathering playerstate for ($uuid)", LogLevel.DEBUG)
-            playerdata.state?.gatherValuesFromPlayer(player)
-            playerdata.information?.updateValuesFromPlayer(player)
+            playerdata.state?.gatherValuesFromPlayer(safePlayer)
+            playerdata.information?.updateValuesFromPlayer(safePlayer)
         }
 
         logger.log("Unregistering playerdata: ($uuid)", LogLevel.DEBUG)
@@ -153,7 +143,8 @@ class PlayerData_RegistrationSubservice(private val service: PlayerDataService, 
         val uuid = playerdata.uuid
 
         // 1.
-        service.output_ss.set(playerdata, async) // IF SET FAILS, EMERGENCY DUMP IS DONE IN OUTPUT SUBSERVICE
+        // If set happens to fail, EmergencyDump will be triggered inside output_ss
+        service.inout_ss.set(playerdata, async)
 
         logger.log("Set in database: ($uuid)", LogLevel.DEBUG)
 

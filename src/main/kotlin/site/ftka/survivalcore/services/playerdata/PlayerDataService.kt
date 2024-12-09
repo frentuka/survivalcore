@@ -35,9 +35,9 @@ class PlayerDataService(private val plugin: MClass, private val services: Servic
     var isRestarting = false
 
     // subservices
-    val input_ss        = PlayerData_InputSubservice(this, plugin)
-    val output_ss       = PlayerData_OutputSubservice(this, plugin)
+    val inout_ss        = PlayerData_InputOutputSubservice(this, plugin)
     val backup_ss       = PlayerData_BackupSubservice(this, plugin)
+    val integrity_ss    = PlayerData_IntegritySubservice(this, plugin)
     val registration_ss = PlayerData_RegistrationSubservice(this, plugin)
     val emergency_ss    = PlayerData_EmergencySubservice(this, plugin)
     val caching_ss      = PlayerData_CachingSubservice(this, plugin)
@@ -113,8 +113,26 @@ class PlayerDataService(private val plugin: MClass, private val services: Servic
         plugin.propEventsInitless.fireEvent(PlayerDataRestartEvent())
     }
 
+    fun stop() {
+        logger.log("Stopping...", LogLevel.LOW)
+        isRestarting = true
+
+        // unregister everyone
+        for (playerdata in playerDataMap.values) {
+            // this step MUST NOT be async.
+            // IF DATABASE HEALTH FAILS,
+            // EMERGENCY DUMP IS AUTOMATICALLY CREATED IN OUTPUT_SS
+            val player = plugin.server.getPlayer(playerdata.uuid)
+            registration_ss.unregister(playerdata.uuid, player, false)
+        }
+    }
+
     fun getPlayerDataMap(): MutableMap<UUID, PlayerData> {
         return playerDataMap
+    }
+
+    fun exists(uuid: UUID): Boolean {
+        return playerDataMap.containsKey(uuid)
     }
 
     fun getPlayerData(uuid: UUID): PlayerData? {

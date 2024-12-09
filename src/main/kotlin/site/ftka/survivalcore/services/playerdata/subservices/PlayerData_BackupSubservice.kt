@@ -26,12 +26,12 @@ class PlayerData_BackupSubservice(private val service: PlayerDataService, privat
 
     fun backupFromRequestBuffer(uuid: UUID) {
         logger.log("Starting backup for uuid ($uuid)")
-        if (!service.input_ss.getRequestBuffer().containsKey(uuid)) {
+        if (!service.inout_ss.getRequestBuffer().containsKey(uuid)) {
             logger.log("Request buffer does not contain uuid ($uuid). Aborting backup.", LogLevel.LOW, NamedTextColor.RED)
             return
         }
 
-        val requestBuffer = service.input_ss.getRequestBuffer().get(uuid)
+        val requestBuffer = service.inout_ss.getRequestBuffer().get(uuid)
 
         // Create backups folder
         val backupFolder = File(absoluteBackupsFolderPath)
