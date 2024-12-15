@@ -2,15 +2,14 @@ package site.ftka.survivalcore.services.permissions
 
 import com.google.gson.Gson
 import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.TextColor
 import site.ftka.survivalcore.MClass
 import site.ftka.survivalcore.initless.logging.LoggingInitless.*
 import site.ftka.survivalcore.services.ServicesFramework
 import site.ftka.survivalcore.services.permissions.objects.PermissionGroup
 import site.ftka.survivalcore.services.permissions.subservices.PermissionsService_InputOutputSubservice
-import site.ftka.survivalcore.services.permissions.subservices.PermissionsService_ModificationsSubservice
 import site.ftka.survivalcore.services.permissions.subservices.PermissionsService_PermissionsSubservice
+import site.ftka.survivalcore.services.permissions.subservices.PermissionsService_PlayersSubservice
 import java.util.UUID
 
 class PermissionsService(val plugin: MClass, private val services: ServicesFramework) {
@@ -18,15 +17,18 @@ class PermissionsService(val plugin: MClass, private val services: ServicesFrame
     val api = PermissionsAPI(this)
 
     val permissions_ss      = PermissionsService_PermissionsSubservice(this, plugin)
-    val modifications_ss    = PermissionsService_ModificationsSubservice(this, plugin)
     val inout_ss            = PermissionsService_InputOutputSubservice(this, plugin)
+    val players_ss          = PermissionsService_PlayersSubservice(this, plugin)
+    //val groups_ss           = PermissionsService_GroupsSubservice(this, plugin)
 
-    val groupsMap = mutableMapOf<UUID, PermissionGroup>()
-    val groupsNameIDMap = mutableMapOf<String, UUID>()
+
+
+    private val groupsMap = mutableMapOf<UUID, PermissionGroup>()
+    private val groupsNameIDMap = mutableMapOf<String, UUID>()
 
     fun init() {
         logger.log("Initializing...", LogLevel.LOW)
-        loadGroupsFromStorage()
+        inout_ss.storeGroupsIntoMemory(true)
 
         // create example group
         if (inout_ss.readGroupsFromStorage().isEmpty()) {
@@ -35,20 +37,42 @@ class PermissionsService(val plugin: MClass, private val services: ServicesFrame
             val asd = setOf("asd.asd1.asd2")
             group.perms = asd
 
-            inout_ss.saveGroupToStorage(group)
+            inout_ss.saveGroupIntoStorage(group)
         }
     }
 
     fun restart() {
-        loadGroupsFromStorage()
+        inout_ss.storeGroupsIntoMemory(true)
     }
 
-    private fun loadGroupsFromStorage(clearGroupsMap: Boolean = true) {
-        if (clearGroupsMap) { groupsMap.clear(); groupsNameIDMap.clear() }
-        for (storedGroup in inout_ss.readGroupsFromStorage()) {
-            groupsMap[storedGroup.uuid] = storedGroup
-            groupsNameIDMap[storedGroup.name] = storedGroup.uuid
-        }
+    fun stop() {
+        logger.log("Stopping...", LogLevel.LOW)
+
+        // save groups
+        inout_ss.storeGroupsIntoStorage()
+    }
+
+    fun getGroup(name: String): PermissionGroup? {
+        val groupUUID = groupsNameIDMap[name]
+        return groupsMap[groupUUID]
+    }
+
+    fun getGroup(uuid: UUID): PermissionGroup? {
+        return groupsMap[uuid]
+    }
+
+    fun getGroups(): Set<PermissionGroup> {
+        return groupsMap.values.toSet()
+    }
+
+    fun setupGroup(group: PermissionGroup) {
+        groupsMap[group.uuid] = group
+        groupsNameIDMap[group.name] = group.uuid
+    }
+
+    fun clearGroupsMap() {
+        groupsMap.clear()
+        groupsNameIDMap.clear()
     }
 
     fun materializeGroup(group: PermissionGroup) {

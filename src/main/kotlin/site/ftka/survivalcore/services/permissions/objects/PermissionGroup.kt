@@ -4,8 +4,9 @@ import com.google.gson.GsonBuilder
 import net.kyori.adventure.text.format.NamedTextColor
 import java.util.UUID
 
-data class PermissionGroup(val uuid: UUID = UUID.randomUUID()) {
+class PermissionGroup {
 
+    val uuid: UUID = UUID.randomUUID()
     var name = "NONE"
     var tag = "NONE"
     var category = GroupCategory.normal

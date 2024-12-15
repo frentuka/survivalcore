@@ -1,5 +1,6 @@
 package site.ftka.survivalcore.services.permissions.subservices
 
+import net.kyori.adventure.text.format.NamedTextColor
 import site.ftka.survivalcore.MClass
 import site.ftka.survivalcore.initless.logging.LoggingInitless.*
 import site.ftka.survivalcore.services.permissions.PermissionsService
@@ -10,6 +11,19 @@ class PermissionsService_InputOutputSubservice(private val service: PermissionsS
     private val logger = service.logger.sub("InOut")
 
     private val groupsFolderAbsolutePath = "/${plugin.dataFolder.absolutePath}/groups"
+
+    fun storeGroupsIntoMemory(clearGroupsMap: Boolean = true) {
+        if (clearGroupsMap) { service.clearGroupsMap() }
+        for (storedGroup in service.inout_ss.readGroupsFromStorage()) {
+            service.setupGroup(storedGroup)
+        }
+    }
+
+    fun storeGroupsIntoStorage() {
+        for (group in service.getGroups()) {
+            service.inout_ss.saveGroupIntoStorage(group)
+        }
+    }
 
     fun readGroupsFromStorage(): List<PermissionGroup> {
         logger.log("Attempting to read groups from storage", LogLevel.HIGH)
@@ -36,7 +50,7 @@ class PermissionsService_InputOutputSubservice(private val service: PermissionsS
                 val groupNameLowercase = group.name.lowercase()
 
                 if (groupNameLowercase != possibleGroupFile.nameWithoutExtension) {
-                    logger.log("Group file discrepancy detected: File name is ${possibleGroupFile.name} when it should be $groupNameLowercase. Renaming.")
+                    logger.log("Group file discrepancy detected: File name is ${possibleGroupFile.name} when it should be $groupNameLowercase. Renaming.", LogLevel.LOW, NamedTextColor.RED)
                     renameGroupFile(possibleGroupFile.nameWithoutExtension, groupNameLowercase)
                 }
 
@@ -59,7 +73,8 @@ class PermissionsService_InputOutputSubservice(private val service: PermissionsS
         return groups
     }
 
-    fun saveGroupToStorage(group: PermissionGroup, overwriteIfExists: Boolean = true): Boolean {
+
+    fun saveGroupIntoStorage(group: PermissionGroup, overwriteIfExists: Boolean = true): Boolean {
         val groupsFolderFile = File(groupsFolderAbsolutePath)
         if (!groupsFolderFile.exists()) groupsFolderFile.mkdirs()
         if (!groupsFolderFile.isDirectory) return false // something weird
@@ -76,6 +91,7 @@ class PermissionsService_InputOutputSubservice(private val service: PermissionsS
 
         return true
     }
+
 
     fun renameGroupFile(groupFileName: String, newGroupFileName: String): Boolean {
         val groupsFolderFile = File(groupsFolderAbsolutePath)
