@@ -4,7 +4,7 @@ import java.util.UUID
 
 class PlayerPermissions {
 
-    var groups = listOf<UUID>()
+    var groups: Set<UUID> = setOf()
 
     var permissions: Set<String> = setOf()
 
