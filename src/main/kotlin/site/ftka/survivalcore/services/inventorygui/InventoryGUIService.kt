@@ -45,6 +45,10 @@ class InventoryGUIService(private val plugin: MClass, private val services: Serv
         plugin.propEventsInitless.fireEvent(event)
     }
 
+    fun stop() {
+        logger.log("Stopping...", LogLevel.LOW)
+    }
+
     fun createInventory(owner: InventoryGUIOwner, type: InventoryType, title: Component): Inventory {
         inventoryOwnersMap[owner.ownerName] = owner
         val inv = Bukkit.createInventory(owner, type, title)

@@ -44,6 +44,10 @@ class ConfigsEssential(private val plugin: MClass) {
         loadConfigs()
     }
 
+    fun stop() {
+        logger.log("Stopping...", LogLevel.LOW)
+    }
+
     private fun loadConfigs() {
         // for some reason IDE says version check is always false but I think it's failing
 

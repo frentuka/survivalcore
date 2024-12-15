@@ -51,7 +51,9 @@ class MClass: JavaPlugin(), CommandExecutor {
     override fun onDisable() {
         stopping = true
 
-        essentialsFwk.database.disconnect()
+        appsFwk.stopAll()
+        servicesFwk.stopAll()
+        essentialsFwk.stopAll()
     }
 
     private val listenerList = mutableListOf<Listener>()

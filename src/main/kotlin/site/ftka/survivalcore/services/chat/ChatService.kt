@@ -4,11 +4,12 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import site.ftka.survivalcore.MClass
 import site.ftka.survivalcore.initless.logging.LoggingInitless.*
+import site.ftka.survivalcore.services.ServicesFramework
 import site.ftka.survivalcore.services.chat.subservices.ChatService_ChannelsSubservice
 import site.ftka.survivalcore.services.chat.subservices.ChatService_ScreensSubservice
 import java.util.UUID
 
-class ChatService(var plugin: MClass) {
+class ChatService(var plugin: MClass, var servicesFwk: ServicesFramework) {
     val logger = plugin.loggingInitless.getLog("Chat", Component.text("Chat").color(NamedTextColor.DARK_RED))
     val api = ChatAPI(this)
 
@@ -47,6 +48,10 @@ class ChatService(var plugin: MClass) {
             channels_ss.registerChannel(player.uniqueId.toString(), true, player.uniqueId)
     }
 
+    fun stop() {
+        logger.log("Stopping...", LogLevel.LOW)
+    }
+
     /**
      * This method is ONLY FOR INTERNAL USAGE.
      *
@@ -63,6 +68,6 @@ class ChatService(var plugin: MClass) {
         if (screens_ss.playersInsideActiveScreens.keys.contains(uuid))
             screens_ss.sendMessageAfterScreen(uuid, message)
         else
-            player.sendMessage(message)
+            channels_ss.getPlayerChannel(uuid, true)?.sendMessage(message) // won´t ever be null
     }
 }

@@ -52,6 +52,11 @@ class DatabaseEssential(private val plugin: MClass) {
         }
     }
 
+    fun stop() {
+        logger.log("Stopping...")
+        disconnect()
+    }
+
     // connects, adds listener and returns result
     private fun attemptConnectionInitialization(): Boolean {
         val connected = connect()

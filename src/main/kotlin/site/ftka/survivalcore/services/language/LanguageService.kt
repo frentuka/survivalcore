@@ -47,6 +47,10 @@ class LanguageService(private val plugin: MClass, private val services: Services
         loadLanguagePacksIntoMap()
     }
 
+    fun stop() {
+        logger.log("Stopping...", LogLevel.LOW)
+    }
+
     fun loadLanguagePacksIntoMap(clearMap: Boolean = true) {
         if (clearMap) langMap.clear()
         input_ss.gatherAllLanguagePacks().forEach{ langMap[it.name] = it }
