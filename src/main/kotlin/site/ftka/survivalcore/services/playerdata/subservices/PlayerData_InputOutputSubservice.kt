@@ -57,7 +57,7 @@ class PlayerData_InputOutputSubservice(private val service: PlayerDataService, p
         val futureString = essFwk.database.get(uuid.toString(), async)
         return futureString?.thenApply{
             saveRequest(uuid, it)
-            logger.log("Got playerdata from database. Request buffer: ${getRequestBuffer().values}", LogLevel.DEBUG)
+            logger.log("Got playerdata from database.", LogLevel.DEBUG)
             service.fromJson(it)
         }
     }
@@ -84,7 +84,7 @@ class PlayerData_InputOutputSubservice(private val service: PlayerDataService, p
     To prevent this, queuedPlayerData stores the most recent, pending to be saved playerdata
     and will be accessed if "get" methods are executed for this playerdata in milliseconds 1-199
     */
-    val queuedPlayerData = mutableMapOf<UUID, PlayerData>()
+    private val queuedPlayerData = mutableMapOf<UUID, PlayerData>()
 
     // Sólo guarda/reescribe la información de la base de datos.
     fun set(playerdata: PlayerData, async: Boolean = true): CompletableFuture<Boolean> {
@@ -136,11 +136,13 @@ class PlayerData_InputOutputSubservice(private val service: PlayerDataService, p
     // 1. take playerdata (locally or from database)
     // 2. modify it
     // 3. put it back
-    suspend fun makeModification(uuid: UUID, modification: (PlayerData) -> Unit): PlayerDataModificationResult {
+    suspend fun makeModification(uuid: UUID, modification: (PlayerData) -> Boolean): PlayerDataModificationResult {
         // get player's mutex
         val playerMutex = modificationsMapMutex.withLock {
             activeModificationsMutex.getOrPut(uuid) { Mutex() }
         }
+
+        logger.log("Triggered PlayerData modification for $uuid", LogLevel.DEBUG)
 
         playerMutex.withLock {
             // take playerdata
@@ -151,20 +153,24 @@ class PlayerData_InputOutputSubservice(private val service: PlayerDataService, p
 
             // modify it
             if (pdata is PlayerData) {
-                modification(pdata)
-                // put it back
-                if (service.getPlayerDataMap().containsKey(uuid))
-                    service.putPlayerDataMap(uuid, pdata)
-                set(pdata)
-                return PlayerDataModificationResult.SUCCESS
-            } else {
-                (pdata as CompletableFuture<*>).thenApply {
-                    modification(it as PlayerData)
+                if (modification(pdata)) {
                     // put it back
                     if (service.getPlayerDataMap().containsKey(uuid))
-                        service.putPlayerDataMap(uuid, it)
-                    set(it)
-                    return@thenApply PlayerDataModificationResult.SUCCESS
+                        service.putPlayerDataMap(uuid, pdata)
+                    set(pdata)
+                    return PlayerDataModificationResult.SUCCESS
+                } else
+                    return PlayerDataModificationResult.FAILURE_UNKNOWN
+            } else {
+                (pdata as CompletableFuture<*>).thenApply {
+                    if (modification(it as PlayerData)) {
+                        // put it back
+                        if (service.getPlayerDataMap().containsKey(uuid))
+                            service.putPlayerDataMap(uuid, it)
+                        set(it)
+                        return@thenApply PlayerDataModificationResult.SUCCESS
+                    } else
+                        return@thenApply PlayerDataModificationResult.FAILURE_UNKNOWN
                 }
             }
 
