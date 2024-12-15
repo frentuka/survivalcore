@@ -1,7 +1,3 @@
-package site.ftka.survivalcore.apps.ServerAdministration.commands
-
-import net.kyori.adventure.text.minimessage.MiniMessage
-import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
 import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
@@ -11,7 +7,6 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.server.TabCompleteEvent
 import site.ftka.survivalcore.MClass
-import site.ftka.survivalcore.apps.ServerAdministration.ServerAdministrationApp
 
 class ServerAdministration_serverCommand(private val src: ServerAdministrationApp, private val plugin: MClass): CommandExecutor, Listener {
 
@@ -45,7 +40,7 @@ class ServerAdministration_serverCommand(private val src: ServerAdministrationAp
             if (!servFwk.permissions.permissions_ss.playerHasPerm(sender.uniqueId, SERVER_ADMINISTRATION_PLAYER_PERMISSION)) {
                 val noPermissionMessage = plugin.servicesFwk.language.api.playerLanguagePack(sender.uniqueId).command_error_player_noPermission
                 sender.sendMessage(noPermissionMessage) // player doesn't have permission
-                return false
+                // return false (testing with no return. shouldn't be commented)
             }
         }
 
