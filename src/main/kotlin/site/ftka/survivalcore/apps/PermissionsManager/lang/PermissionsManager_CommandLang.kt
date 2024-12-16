@@ -9,9 +9,11 @@ class PermissionsManager_CommandLang {
                 "\n" +
                 "<red><click:run_command:'/exitPanel'>exit</click>"
 
-    // placeholders:
-    // {groupList} -> groups list
-    // to be replaced with group_panel_groupElement for each group
+    /**
+     | placeholders:
+     | {groupList} -> groups list
+     | to be replaced with group_panel_groupElement for each group
+     */
     val group_panel = "<gold><b>          Permissions Manager Panel</b></gold>\n" +
             "<gray>                 <green>Group<gray>     |     <click:run_command:'/permissions player'>Player</click>\n" +
             "\n" +
@@ -19,17 +21,21 @@ class PermissionsManager_CommandLang {
             "\n" +
             "<red><click:run_command:'/exitPanel'>exit</click>"
 
-    // placeholders:
-    // {prefix} -> group's prefix
-    // {primaryColor} -> group's primary color
-    // {name} -> group's name
+    /**
+     placeholders:
+     | {prefix} -> group's prefix
+     | {primaryColor} -> group's primary color
+     | {name} -> group's name
+     */
     val group_panel_groupElement = "  ->  {prefix} <{primaryColor}>{name}"
 
-    // placeholders:
-    // {prefix} -> group's prefix
-    // {primaryColor} -> group's primary color
-    // {name} -> group's name
-    // {permissionsList} -> permissionElement list
+    /**
+     | placeholders:
+     | {prefix} -> group's prefix
+     | {primaryColor} -> group's primary color
+     | {name} -> group's name
+     | {permissionsList} -> permissionElement list
+     */
     val group_panel_specificGroup = "<gold><b>          Permissions Manager Panel</b></gold>\n" +
             "<gray>                 <green>Group<gray>     |     <click:run_command:'/permissions player'>Player</click>\n" +
             "\n" +
@@ -40,9 +46,11 @@ class PermissionsManager_CommandLang {
             "\n" +
             "<red><click:run_command:'/exitPanel'>exit</click>"
 
-    // placeholders:
-    // {permission} -> permission
-    // {name} -> group's name
+    /**
+     | placeholders:
+     | {permission} -> permission
+     | {name} -> group's name
+     */
     val group_panel_specificGroup_permissionElement = "  <yellow>{permission} " +
             "<red> <click:run_command:'/permissions group {name} remove {permission}'>" +
             "<hover:show_text:'<red>remove'><b>[-]</b></hover></click>"
