@@ -7,6 +7,7 @@ import site.ftka.survivalcore.MClass
 import site.ftka.survivalcore.initless.logging.LoggingInitless.*
 import site.ftka.survivalcore.services.ServicesFramework
 import site.ftka.survivalcore.services.permissions.objects.PermissionGroup
+import site.ftka.survivalcore.services.permissions.subservices.PermissionsService_GroupsSubservice
 import site.ftka.survivalcore.services.permissions.subservices.PermissionsService_InputOutputSubservice
 import site.ftka.survivalcore.services.permissions.subservices.PermissionsService_PermissionsSubservice
 import site.ftka.survivalcore.services.permissions.subservices.PermissionsService_PlayersSubservice
@@ -19,7 +20,7 @@ class PermissionsService(val plugin: MClass, private val services: ServicesFrame
     val permissions_ss      = PermissionsService_PermissionsSubservice(this, plugin)
     val inout_ss            = PermissionsService_InputOutputSubservice(this, plugin)
     val players_ss          = PermissionsService_PlayersSubservice(this, plugin)
-    //val groups_ss           = PermissionsService_GroupsSubservice(this, plugin)
+    val groups_ss           = PermissionsService_GroupsSubservice(this, plugin)
 
 
 
@@ -37,7 +38,7 @@ class PermissionsService(val plugin: MClass, private val services: ServicesFrame
             val asd = setOf("asd.asd1.asd2")
             group.perms = asd
 
-            inout_ss.saveGroupIntoStorage(group)
+            inout_ss.storeGroupIntoStorage(group)
         }
     }
 
@@ -75,12 +76,28 @@ class PermissionsService(val plugin: MClass, private val services: ServicesFrame
         groupsNameIDMap.clear()
     }
 
+    // todo: fix this, it's the same as setupGroup()
     fun materializeGroup(group: PermissionGroup) {
         // add to cache
         groupsMap[group.uuid] = group
         groupsNameIDMap[group.name] = group.uuid
 
         // clear caches
+        permissions_ss.clearCache()
+    }
+
+    fun deMaterializeGroup(uuid: UUID) {
+        // remove from cache
+        groupsMap.remove(uuid)
+
+        val TBR = mutableSetOf<String>()
+        groupsNameIDMap.forEach { name, uid ->
+            if (uid == uuid)
+                TBR.add(name)
+        }
+
+        TBR.forEach{ groupsNameIDMap.remove(it) }
+
         permissions_ss.clearCache()
     }
 

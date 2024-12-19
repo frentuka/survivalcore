@@ -21,7 +21,7 @@ class PermissionsService_InputOutputSubservice(private val service: PermissionsS
 
     fun storeGroupsIntoStorage() {
         for (group in service.getGroups()) {
-            service.inout_ss.saveGroupIntoStorage(group)
+            service.inout_ss.storeGroupIntoStorage(group)
         }
     }
 
@@ -74,7 +74,7 @@ class PermissionsService_InputOutputSubservice(private val service: PermissionsS
     }
 
 
-    fun saveGroupIntoStorage(group: PermissionGroup, overwriteIfExists: Boolean = true): Boolean {
+    fun storeGroupIntoStorage(group: PermissionGroup, overwriteIfExists: Boolean = true): Boolean {
         val groupsFolderFile = File(groupsFolderAbsolutePath)
         if (!groupsFolderFile.exists()) groupsFolderFile.mkdirs()
         if (!groupsFolderFile.isDirectory) return false // something weird
@@ -107,6 +107,20 @@ class PermissionsService_InputOutputSubservice(private val service: PermissionsS
         val newGroupFile = File(newGroupFileAbsolutePath)
 
         return groupFile.renameTo(newGroupFile)
+    }
+
+    fun deleteGroupFile(groupName: String): Boolean {
+        val groupsFolderFile = File(groupsFolderAbsolutePath)
+        if (!groupsFolderFile.exists()) return false
+        if (!groupsFolderFile.isDirectory) return false
+
+        val groupFileAbsolutePath = "/$groupsFolderAbsolutePath/$groupName.json"
+        val groupFile = File(groupFileAbsolutePath)
+
+        if (!groupFile.exists()) return false
+
+        service.getGroup(groupName)?.let { service.deMaterializeGroup(it.uuid) }
+        return groupFile.delete()
     }
 
 }
