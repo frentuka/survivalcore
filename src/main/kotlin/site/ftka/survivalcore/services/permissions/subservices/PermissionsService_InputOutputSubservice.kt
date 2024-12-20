@@ -92,21 +92,37 @@ class PermissionsService_InputOutputSubservice(private val service: PermissionsS
         return true
     }
 
-
-    fun renameGroupFile(groupFileName: String, newGroupFileName: String): Boolean {
+    /**
+     * Will rename not only group's file but also the 'name' variable
+     */
+    fun renameGroupFile(groupName: String, newGroupName: String): Boolean {
         val groupsFolderFile = File(groupsFolderAbsolutePath)
         if (!groupsFolderFile.exists()) return false
         if (!groupsFolderFile.isDirectory) return false
 
-        val groupFileAbsolutePath = "/$groupsFolderAbsolutePath/$groupFileName.json"
+        val groupFileAbsolutePath = "/$groupsFolderAbsolutePath/$groupName.json"
         val groupFile = File(groupFileAbsolutePath)
 
         if (!groupFile.exists()) return false
 
-        val newGroupFileAbsolutePath = "/$groupsFolderAbsolutePath/$newGroupFileName.json"
+        val newGroupFileAbsolutePath = "/$groupsFolderAbsolutePath/$newGroupName.json"
         val newGroupFile = File(newGroupFileAbsolutePath)
 
-        return groupFile.renameTo(newGroupFile)
+        val result = groupFile.renameTo(newGroupFile)
+
+        // change name variable
+        if (result) {
+            // convert file text into PermissionGroup
+            val group = service.fromJson(newGroupFile.readText())
+            // prevent old group from staying in memory
+            service.deMaterializeGroup(group.uuid)
+            // replace name
+            group.name = newGroupName
+            // save it back
+            newGroupFile.writeText(group.toJson())
+        }
+
+        return result
     }
 
     fun deleteGroupFile(groupName: String): Boolean {

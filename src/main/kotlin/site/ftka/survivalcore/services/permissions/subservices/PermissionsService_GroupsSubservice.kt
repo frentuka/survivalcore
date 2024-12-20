@@ -20,8 +20,8 @@ class PermissionsService_GroupsSubservice(private val service: PermissionsServic
      */
 
     /**
-     *  Success -> Returns group
-     *  Group already exists -> Returns null
+     *  | Success -> Returns group
+     *  | Group already exists -> Returns null
      */
     fun createGroup(name: String): PermissionGroup? {
         if (service.getGroup(name) != null) return null
@@ -57,6 +57,14 @@ class PermissionsService_GroupsSubservice(private val service: PermissionsServic
         modify group
      */
 
+    fun renameGroup(name: String, newName: String) {
+        service.getGroup(name) ?: return
+
+        // rename file
+        service.inout_ss.renameGroupFile(name, newName)
+        service.inout_ss.storeGroupsIntoMemory(true)
+    }
+
     enum class PermissionGroup_modificationResult {
         SUCCESS,
         GROUP_DOES_NOT_EXIST,
@@ -66,7 +74,7 @@ class PermissionsService_GroupsSubservice(private val service: PermissionsServic
 
     /**
      * Do NOT modify Group's UUID or NAME.
-     * Use inout_ss.renameGroup() instead.
+     * Use renameGroup() instead.
      */
     fun makeModification(uuid: UUID, modification: (PermissionGroup) -> Unit): PermissionGroup_modificationResult {
         val group = service.getGroup(uuid) ?: return PermissionGroup_modificationResult.GROUP_DOES_NOT_EXIST
@@ -95,6 +103,11 @@ class PermissionsService_GroupsSubservice(private val service: PermissionsServic
         FAILURE_UNKNOWN,
         FAILURE_GROUP_DOES_NOT_EXIST,
         FAILURE_PERMISSION_ALREADY_EXISTS
+    }
+
+    fun addPermissionToGroup(name: String, permission: String): PermissionGroup_addPermissionResult {
+        service.getGroup(name)?.let{ return addPermissionToGroup(it.uuid, permission) }
+        return PermissionGroup_addPermissionResult.FAILURE_GROUP_DOES_NOT_EXIST
     }
 
     fun addPermissionToGroup(uuid: UUID, permission: String): PermissionGroup_addPermissionResult {
@@ -134,6 +147,11 @@ class PermissionsService_GroupsSubservice(private val service: PermissionsServic
         FAILURE_PERMISSION_DOES_NOT_EXIST
     }
 
+    fun removePermissionToGroup(name: String, permission: String): PermissionGroup_removePermissionResult {
+        service.getGroup(name)?.let{ return removePermissionToGroup(it.uuid, permission) }
+        return PermissionGroup_removePermissionResult.FAILURE_GROUP_DOES_NOT_EXIST
+    }
+
     fun removePermissionToGroup(uuid: UUID, permission: String): PermissionGroup_removePermissionResult {
         var result = PermissionGroup_removePermissionResult.SUCCESS
 
@@ -169,6 +187,12 @@ class PermissionsService_GroupsSubservice(private val service: PermissionsServic
         FAILURE_GROUP_DOES_NOT_EXIST,
         FAILURE_INHERITANCE_ALREADY_SET,
         FAILURE_INHERITANCE_GROUP_DOES_NOT_EXIST
+    }
+
+    fun addInheritanceToGroup(name: String, inheritance: String): PermissionGroup_addInheritanceResult {
+        val group = service.getGroup(name) ?: return PermissionGroup_addInheritanceResult.FAILURE_GROUP_DOES_NOT_EXIST
+        val inhGroup = service.getGroup(inheritance) ?: return PermissionGroup_addInheritanceResult.FAILURE_INHERITANCE_GROUP_DOES_NOT_EXIST
+        return addInheritanceToGroup(group.uuid, inhGroup.uuid)
     }
 
     fun addInheritanceToGroup(uuid: UUID, inheritance: UUID): PermissionGroup_addInheritanceResult {
@@ -207,7 +231,14 @@ class PermissionsService_GroupsSubservice(private val service: PermissionsServic
         SUCCESS,
         FAILURE_UNKNOWN,
         FAILURE_GROUP_DOES_NOT_EXIST,
-        FAILURE_INHERITANCE_NOT_IN_GROUP
+        FAILURE_INHERITANCE_NOT_IN_GROUP,
+        FAILURE_INHERITANCE_GROUP_DOES_NOT_EXIST
+    }
+
+    fun removeInheritanceToGroup(name: String, inheritance: String): PermissionGroup_removeInheritanceResult {
+        val group = service.getGroup(name) ?: return PermissionGroup_removeInheritanceResult.FAILURE_GROUP_DOES_NOT_EXIST
+        val inhGroup = service.getGroup(inheritance) ?: return PermissionGroup_removeInheritanceResult.FAILURE_INHERITANCE_GROUP_DOES_NOT_EXIST
+        return removeInheritanceToGroup(group.uuid, inhGroup.uuid)
     }
 
     fun removeInheritanceToGroup(uuid: UUID, inheritance: UUID): PermissionGroup_removeInheritanceResult {
