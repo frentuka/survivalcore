@@ -76,7 +76,7 @@ class PermissionsService_PermissionsSubservice(private val service: PermissionsS
     }
 
     fun groupPerms(groupName: String, includeInheritances: Boolean = true): Set<String> {
-        val groupUUID = service.getGroup(groupName)?.uuid ?: return setOf()
+        val groupUUID = service.maps_ss.getGroup(groupName)?.uuid ?: return setOf()
         return groupPerms(groupUUID, includeInheritances)
     }
 
@@ -84,12 +84,12 @@ class PermissionsService_PermissionsSubservice(private val service: PermissionsS
         groupPermissionsMap[groupUUID]?.let { return it }
 
         val perms = mutableSetOf<String>()
-        val group = service.getGroup(groupUUID) ?: return perms
+        val group = service.maps_ss.getGroup(groupUUID) ?: return perms
         perms.addAll(group.perms)
 
         if (!includeInheritances) return perms
         for (inh in group.inheritances) {
-            val inhGroup = service.getGroup(inh)
+            val inhGroup = service.maps_ss.getGroup(inh)
             inhGroup?.let { perms.addAll(it.perms) }
         }
 

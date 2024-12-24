@@ -1,8 +1,5 @@
 package site.ftka.survivalcore.services.permissions.subservices
 
-import com.sun.net.httpserver.Authenticator.Success
-import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.format.NamedTextColor
 import site.ftka.survivalcore.MClass
 import site.ftka.survivalcore.services.permissions.PermissionsService
 import site.ftka.survivalcore.services.permissions.objects.PermissionGroup
@@ -24,7 +21,7 @@ class PermissionsService_GroupsSubservice(private val service: PermissionsServic
      *  | Group already exists -> Returns null
      */
     fun createGroup(name: String): PermissionGroup? {
-        if (service.getGroup(name) != null) return null
+        if (service.maps_ss.getGroup(name) != null) return null
 
         // create group object
         val group = PermissionGroup()
@@ -33,7 +30,7 @@ class PermissionsService_GroupsSubservice(private val service: PermissionsServic
         service.inout_ss.storeGroupIntoStorage(group)
 
         // make group available for usage
-        service.materializeGroup(group)
+        service.maps_ss.materializeGroup(group)
 
         // return new group
         return group
@@ -48,8 +45,8 @@ class PermissionsService_GroupsSubservice(private val service: PermissionsServic
      *  | False -> Group does not exist
      */
     fun deleteGroup(groupName: String): Boolean {
-        service.getGroup(groupName) ?: return false // group does not exist
-        service.deMaterializeGroup(service.getGroup(groupName)!!.uuid)
+        service.maps_ss.getGroup(groupName) ?: return false // group does not exist
+        service.maps_ss.deMaterializeGroup(service.maps_ss.getGroup(groupName)!!.uuid)
         return service.inout_ss.deleteGroupFile(groupName)
     }
 
@@ -58,7 +55,7 @@ class PermissionsService_GroupsSubservice(private val service: PermissionsServic
      */
 
     fun renameGroup(name: String, newName: String) {
-        service.getGroup(name) ?: return
+        service.maps_ss.getGroup(name) ?: return
 
         // rename file
         service.inout_ss.renameGroupFile(name, newName)
@@ -77,7 +74,7 @@ class PermissionsService_GroupsSubservice(private val service: PermissionsServic
      * Use renameGroup() instead.
      */
     fun makeModification(uuid: UUID, modification: (PermissionGroup) -> Unit): PermissionGroup_modificationResult {
-        val group = service.getGroup(uuid) ?: return PermissionGroup_modificationResult.GROUP_DOES_NOT_EXIST
+        val group = service.maps_ss.getGroup(uuid) ?: return PermissionGroup_modificationResult.GROUP_DOES_NOT_EXIST
 
         val groupsOriginalName = group.name
         modification(group)
@@ -106,7 +103,7 @@ class PermissionsService_GroupsSubservice(private val service: PermissionsServic
     }
 
     fun addPermissionToGroup(name: String, permission: String): PermissionGroup_addPermissionResult {
-        service.getGroup(name)?.let{ return addPermissionToGroup(it.uuid, permission) }
+        service.maps_ss.getGroup(name)?.let{ return addPermissionToGroup(it.uuid, permission) }
         return PermissionGroup_addPermissionResult.FAILURE_GROUP_DOES_NOT_EXIST
     }
 
@@ -148,7 +145,7 @@ class PermissionsService_GroupsSubservice(private val service: PermissionsServic
     }
 
     fun removePermissionToGroup(name: String, permission: String): PermissionGroup_removePermissionResult {
-        service.getGroup(name)?.let{ return removePermissionToGroup(it.uuid, permission) }
+        service.maps_ss.getGroup(name)?.let{ return removePermissionToGroup(it.uuid, permission) }
         return PermissionGroup_removePermissionResult.FAILURE_GROUP_DOES_NOT_EXIST
     }
 
@@ -190,13 +187,13 @@ class PermissionsService_GroupsSubservice(private val service: PermissionsServic
     }
 
     fun addInheritanceToGroup(name: String, inheritance: String): PermissionGroup_addInheritanceResult {
-        val group = service.getGroup(name) ?: return PermissionGroup_addInheritanceResult.FAILURE_GROUP_DOES_NOT_EXIST
-        val inhGroup = service.getGroup(inheritance) ?: return PermissionGroup_addInheritanceResult.FAILURE_INHERITANCE_GROUP_DOES_NOT_EXIST
+        val group = service.maps_ss.getGroup(name) ?: return PermissionGroup_addInheritanceResult.FAILURE_GROUP_DOES_NOT_EXIST
+        val inhGroup = service.maps_ss.getGroup(inheritance) ?: return PermissionGroup_addInheritanceResult.FAILURE_INHERITANCE_GROUP_DOES_NOT_EXIST
         return addInheritanceToGroup(group.uuid, inhGroup.uuid)
     }
 
     fun addInheritanceToGroup(uuid: UUID, inheritance: UUID): PermissionGroup_addInheritanceResult {
-        service.getGroup(inheritance) ?: return PermissionGroup_addInheritanceResult.FAILURE_INHERITANCE_GROUP_DOES_NOT_EXIST
+        service.maps_ss.getGroup(inheritance) ?: return PermissionGroup_addInheritanceResult.FAILURE_INHERITANCE_GROUP_DOES_NOT_EXIST
 
         var result = PermissionGroup_addInheritanceResult.SUCCESS
         val mod = makeModification(uuid, {
@@ -236,8 +233,8 @@ class PermissionsService_GroupsSubservice(private val service: PermissionsServic
     }
 
     fun removeInheritanceToGroup(name: String, inheritance: String): PermissionGroup_removeInheritanceResult {
-        val group = service.getGroup(name) ?: return PermissionGroup_removeInheritanceResult.FAILURE_GROUP_DOES_NOT_EXIST
-        val inhGroup = service.getGroup(inheritance) ?: return PermissionGroup_removeInheritanceResult.FAILURE_INHERITANCE_GROUP_DOES_NOT_EXIST
+        val group = service.maps_ss.getGroup(name) ?: return PermissionGroup_removeInheritanceResult.FAILURE_GROUP_DOES_NOT_EXIST
+        val inhGroup = service.maps_ss.getGroup(inheritance) ?: return PermissionGroup_removeInheritanceResult.FAILURE_INHERITANCE_GROUP_DOES_NOT_EXIST
         return removeInheritanceToGroup(group.uuid, inhGroup.uuid)
     }
 

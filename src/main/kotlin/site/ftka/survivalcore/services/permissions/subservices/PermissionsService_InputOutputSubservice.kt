@@ -13,14 +13,14 @@ class PermissionsService_InputOutputSubservice(private val service: PermissionsS
     private val groupsFolderAbsolutePath = "/${plugin.dataFolder.absolutePath}/groups"
 
     fun storeGroupsIntoMemory(clearGroupsMap: Boolean = true) {
-        if (clearGroupsMap) { service.clearGroupsMap() }
+        if (clearGroupsMap) { service.maps_ss.clearGroupsMap() }
         for (storedGroup in service.inout_ss.readGroupsFromStorage()) {
-            service.setupGroup(storedGroup)
+            service.maps_ss.setupGroup(storedGroup)
         }
     }
 
     fun storeGroupsIntoStorage() {
-        for (group in service.getGroups()) {
+        for (group in service.maps_ss.getGroups()) {
             service.inout_ss.storeGroupIntoStorage(group)
         }
     }
@@ -115,7 +115,7 @@ class PermissionsService_InputOutputSubservice(private val service: PermissionsS
             // convert file text into PermissionGroup
             val group = service.fromJson(newGroupFile.readText())
             // prevent old group from staying in memory
-            service.deMaterializeGroup(group.uuid)
+            service.maps_ss.deMaterializeGroup(group.uuid)
             // replace name
             group.name = newGroupName
             // save it back
@@ -135,7 +135,7 @@ class PermissionsService_InputOutputSubservice(private val service: PermissionsS
 
         if (!groupFile.exists()) return false
 
-        service.getGroup(groupName)?.let { service.deMaterializeGroup(it.uuid) }
+        service.maps_ss.getGroup(groupName)?.let { service.maps_ss.deMaterializeGroup(it.uuid) }
         return groupFile.delete()
     }
 

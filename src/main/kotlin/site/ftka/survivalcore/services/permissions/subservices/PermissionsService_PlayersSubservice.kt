@@ -31,8 +31,8 @@ class PermissionsService_PlayersSubservice(private val service: PermissionsServi
     }
 
     suspend fun addGroupToPlayer(player: UUID, group: String): Permissions_addGroupResult {
-        service.getGroup(group) ?: return Permissions_addGroupResult.FAILURE_GROUP_UNAVAILABLE
-        return addGroupToPlayer(player, service.getGroup(group)!!.uuid)
+        service.maps_ss.getGroup(group) ?: return Permissions_addGroupResult.FAILURE_GROUP_UNAVAILABLE
+        return addGroupToPlayer(player, service.maps_ss.getGroup(group)!!.uuid)
     }
 
     suspend fun addGroupToPlayer(player: UUID, group: UUID): Permissions_addGroupResult {
@@ -89,8 +89,8 @@ class PermissionsService_PlayersSubservice(private val service: PermissionsServi
     }
 
     suspend fun removeGroupToPlayer(player: UUID, group: String): Permissions_removeGroupResult {
-        service.getGroup(group) ?: return Permissions_removeGroupResult.FAILURE_GROUP_UNAVAILABLE
-        return removeGroupToPlayer(player, service.getGroup(group)!!.uuid)
+        service.maps_ss.getGroup(group) ?: return Permissions_removeGroupResult.FAILURE_GROUP_UNAVAILABLE
+        return removeGroupToPlayer(player, service.maps_ss.getGroup(group)!!.uuid)
     }
 
     suspend fun removeGroupToPlayer(player: UUID, group: UUID): Permissions_removeGroupResult {
