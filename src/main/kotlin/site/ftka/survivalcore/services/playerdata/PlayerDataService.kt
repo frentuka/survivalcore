@@ -18,14 +18,13 @@ import site.ftka.survivalcore.services.playerdata.listeners.PlayerDataListener
 import site.ftka.survivalcore.services.playerdata.listeners.WorldPlayerDataDeleter
 import site.ftka.survivalcore.services.playerdata.objects.PlayerData
 import site.ftka.survivalcore.services.playerdata.subservices.*
-import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 class PlayerDataService(private val plugin: MClass, private val services: ServicesFramework) {
     val logger: ServiceLogger = plugin.loggingInitless.getLog("PlayerData", Component.text("PlayerData").color(NamedTextColor.DARK_AQUA))
 
     val api             = PlayerDataAPI(this)
-    val data            = PlayerDataData(this, plugin)
+    val data            = PlayerDataServiceData(this, plugin)
 
     // subservices
     val inout_ss        = PlayerData_InputOutputSubservice(this, plugin)
