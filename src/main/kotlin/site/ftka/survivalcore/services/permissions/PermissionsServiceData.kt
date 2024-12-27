@@ -1,11 +1,10 @@
-package site.ftka.survivalcore.services.permissions.subservices
+package site.ftka.survivalcore.services.permissions
 
 import site.ftka.survivalcore.MClass
-import site.ftka.survivalcore.services.permissions.PermissionsService
 import site.ftka.survivalcore.services.permissions.objects.PermissionGroup
 import java.util.*
 
-class PermissionsService_MapsSubservice (private val service: PermissionsService, private val plugin: MClass) {
+class PermissionsServiceData (private val service: PermissionsService, private val plugin: MClass) {
 
     private val groupsMap = mutableMapOf<UUID, PermissionGroup>()
     private val groupsNameIDMap = mutableMapOf<String, UUID>()

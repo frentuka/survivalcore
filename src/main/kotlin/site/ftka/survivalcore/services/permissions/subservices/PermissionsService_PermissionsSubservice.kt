@@ -14,7 +14,7 @@ class PermissionsService_PermissionsSubservice(private val service: PermissionsS
         hasPerm(groupPerms(groupID), permission)
 
     fun playerHasPerm(uuid: UUID, permission: String): Boolean {
-        val playerdata = plugin.servicesFwk.playerData.getPlayerData(uuid) ?: run {
+        val playerdata = plugin.servicesFwk.playerData.data.getPlayerData(uuid) ?: run {
             playerPermissionsCache.remove(uuid)
             return false
         }
@@ -62,7 +62,7 @@ class PermissionsService_PermissionsSubservice(private val service: PermissionsS
 
     // returns all permissions of a player
     fun playerPerms(playerUUID: UUID): Set<String> {
-        val playerdata = plugin.servicesFwk.playerData.getPlayerData(playerUUID) ?: return setOf()
+        val playerdata = plugin.servicesFwk.playerData.data.getPlayerData(playerUUID) ?: return setOf()
         val groupsUUIDs = playerdata.permissions?.groups ?: setOf()
 
         val perms = mutableSetOf<String>()
@@ -76,7 +76,7 @@ class PermissionsService_PermissionsSubservice(private val service: PermissionsS
     }
 
     fun groupPerms(groupName: String, includeInheritances: Boolean = true): Set<String> {
-        val groupUUID = service.maps_ss.getGroup(groupName)?.uuid ?: return setOf()
+        val groupUUID = service.data.getGroup(groupName)?.uuid ?: return setOf()
         return groupPerms(groupUUID, includeInheritances)
     }
 
@@ -84,12 +84,12 @@ class PermissionsService_PermissionsSubservice(private val service: PermissionsS
         groupPermissionsMap[groupUUID]?.let { return it }
 
         val perms = mutableSetOf<String>()
-        val group = service.maps_ss.getGroup(groupUUID) ?: return perms
+        val group = service.data.getGroup(groupUUID) ?: return perms
         perms.addAll(group.perms)
 
         if (!includeInheritances) return perms
         for (inh in group.inheritances) {
-            val inhGroup = service.maps_ss.getGroup(inh)
+            val inhGroup = service.data.getGroup(inh)
             inhGroup?.let { perms.addAll(it.perms) }
         }
 

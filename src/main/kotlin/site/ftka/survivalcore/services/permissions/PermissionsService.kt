@@ -11,13 +11,14 @@ import site.ftka.survivalcore.services.permissions.subservices.*
 
 class PermissionsService(val plugin: MClass, private val services: ServicesFramework) {
     val logger = plugin.loggingInitless.getLog("PermissionsService", Component.text("Perms").color(TextColor.fromHexString("#8298d9")))
-    val api = PermissionsAPI(this)
+
+    val api                 = PermissionsAPI(this)
+    val data                = PermissionsServiceData(this, plugin)
 
     val permissions_ss      = PermissionsService_PermissionsSubservice(this, plugin)
     val players_ss          = PermissionsService_PlayersSubservice(this, plugin)
     val groups_ss           = PermissionsService_GroupsSubservice(this, plugin)
     val inout_ss            = PermissionsService_InputOutputSubservice(this, plugin)
-    val maps_ss              = PermissionsService_MapsSubservice(this, plugin)
 
     fun init() {
         logger.log("Initializing...", LogLevel.LOW)
