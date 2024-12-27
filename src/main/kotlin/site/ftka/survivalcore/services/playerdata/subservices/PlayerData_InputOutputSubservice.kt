@@ -146,7 +146,7 @@ class PlayerData_InputOutputSubservice(private val service: PlayerDataService, p
 
         playerMutex.withLock {
             // take playerdata
-            val pdata = service.getPlayerData(uuid) ?: kotlin.run {
+            val pdata = service.data.getPlayerData(uuid) ?: kotlin.run {
                 exists(uuid) ?: return PlayerDataModificationResult.FAILURE_PLAYERDATA_UNAVAILABLE
                 get(uuid) ?: return PlayerDataModificationResult.FAILURE_CORRUPT_PLAYERDATA
             }
@@ -155,8 +155,8 @@ class PlayerData_InputOutputSubservice(private val service: PlayerDataService, p
             if (pdata is PlayerData) {
                 if (modification(pdata)) {
                     // put it back
-                    if (service.getPlayerDataMap().containsKey(uuid))
-                        service.putPlayerDataMap(uuid, pdata)
+                    if (service.data.getPlayerDataMap().containsKey(uuid))
+                        service.data.putPlayerData(uuid, pdata)
                     set(pdata)
                     return PlayerDataModificationResult.SUCCESS
                 } else
@@ -165,8 +165,8 @@ class PlayerData_InputOutputSubservice(private val service: PlayerDataService, p
                 (pdata as CompletableFuture<*>).thenApply {
                     if (modification(it as PlayerData)) {
                         // put it back
-                        if (service.getPlayerDataMap().containsKey(uuid))
-                            service.putPlayerDataMap(uuid, it)
+                        if (service.data.getPlayerDataMap().containsKey(uuid))
+                            service.data.putPlayerData(uuid, it)
                         set(it)
                         return@thenApply PlayerDataModificationResult.SUCCESS
                     } else

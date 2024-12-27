@@ -105,7 +105,7 @@ class PlayerData_RegistrationSubservice(private val service: PlayerDataService, 
         }
 
         // 3.
-        service.putPlayerDataMap(playerdata.uuid, playerdata)
+        service.data.putPlayerData(playerdata.uuid, playerdata)
         logger.log("Stored playerdata in memory for ${playerdata.information?.username} (${playerdata.uuid})", LogLevel.DEBUG)
 
         // 4.
@@ -119,12 +119,12 @@ class PlayerData_RegistrationSubservice(private val service: PlayerDataService, 
     // 4. Report PlayerDataUnregistrationEvent (in finishUnregistration())
     fun unregister(uuid: UUID, player: Player? = null, async: Boolean = true) {
         // debug end
-        if (service.getPlayerData(uuid) == null) {
+        if (service.data.getPlayerData(uuid) == null) {
             logger.log("Tried to unregister ($uuid) but no playerdata was found", LogLevel.LOW, NamedTextColor.RED)
             return
         }
 
-        val playerdata = service.getPlayerData(uuid)!!
+        val playerdata = service.data.getPlayerData(uuid)!!
         val safePlayer = player ?: plugin.server.getPlayer(uuid)
 
         // 1.
@@ -149,7 +149,7 @@ class PlayerData_RegistrationSubservice(private val service: PlayerDataService, 
         logger.log("Set in database: ($uuid)", LogLevel.DEBUG)
 
         // 2.
-        service.removePlayerData(uuid)
+        service.data.removePlayerData(uuid)
 
         logger.log("Calling unregister event: ($uuid)", LogLevel.DEBUG)
 

@@ -36,7 +36,7 @@ class PlayerDataListener(private val service: PlayerDataService, private val plu
         }
 
         // Add to online players
-        service.setOnlinePlayer(player_uuid, event.player.name)
+        service.data.putOnlinePlayer(player_uuid, event.player.name)
 
         // Register
         service.registration_ss.register(event.player.uniqueId, event.player)
@@ -52,7 +52,7 @@ class PlayerDataListener(private val service: PlayerDataService, private val plu
         service.logger.log("Player quit event", LogLevel.DEBUG)
 
         // Remove from online players
-        service.removeOnlinePlayer(player.uniqueId)
+        service.data.removeOnlinePlayer(player.uniqueId)
 
         service.logger.log("Removed ${event.player.name} from online players", LoggingInitless.LogLevel.DEBUG)
 
@@ -65,7 +65,7 @@ class PlayerDataListener(private val service: PlayerDataService, private val plu
     fun onDatabaseHealthCheckFail(event: DatabaseDisconnectEvent) {
         service.logger.log("Database health check failed. Dumping all playerdata into storage.", LogLevel.LOW, NamedTextColor.RED)
 
-        for (playerdata in service.getPlayerDataMap().values) {
+        for (playerdata in service.data.getPlayerDataMap().values) {
             service.emergency_ss.emergencyDump(playerdata)
             plugin.server.getPlayer(playerdata.uuid)?.kick(Component.text("Database connection failed unexpectedly."))
         }

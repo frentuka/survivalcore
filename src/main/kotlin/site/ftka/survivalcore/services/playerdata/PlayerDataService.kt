@@ -23,16 +23,9 @@ import java.util.concurrent.TimeUnit
 
 class PlayerDataService(private val plugin: MClass, private val services: ServicesFramework) {
     val logger: ServiceLogger = plugin.loggingInitless.getLog("PlayerData", Component.text("PlayerData").color(NamedTextColor.DARK_AQUA))
-    val api = PlayerDataAPI(this)
 
-    val baseFolderPath = "/${plugin.dataFolder.absolutePath}/PlayerData"
-
-    // fast access vals
-    private val essFwk = plugin.essentialsFwk
-
-    // Some things must not be done while service is restarting
-    // like playerdata modifications or unregister
-    var isRestarting = false
+    val api             = PlayerDataAPI(this)
+    val data            = PlayerDataData(this, plugin)
 
     // subservices
     val inout_ss        = PlayerData_InputOutputSubservice(this, plugin)
@@ -45,10 +38,13 @@ class PlayerDataService(private val plugin: MClass, private val services: Servic
     // listeners
     val playerDataListener = PlayerDataListener(this, plugin)
 
-    // playerDataMap saves player's playerdata
-    // onlinePlayers (UUIDs -> Usernames) is controlled by PlayerDataListener
-    private val playerDataMap: MutableMap<UUID, PlayerData> = mutableMapOf()
-    private val onlinePlayers: MutableMap<UUID, String> = mutableMapOf()
+    // fast access vals
+    private val essFwk = plugin.essentialsFwk
+    val baseFolderPath = "/${plugin.dataFolder.absolutePath}/PlayerData"
+
+    // Some things must not be done while service is restarting
+    // like playerdata modifications or regs/unregs
+    var isRestarting = false
 
     @OptIn(DelicateCoroutinesApi::class)
     fun init() {
@@ -77,7 +73,7 @@ class PlayerDataService(private val plugin: MClass, private val services: Servic
         isRestarting = true
 
         // unregister everyone
-        for (playerdata in playerDataMap.values) {
+        for (playerdata in data.getPlayerDataMap().values) {
             // if player is online, including it will save it's playerstate before unregistering
             // this step MUST NOT be async.
             // IF DATABASE HEALTH FAILS,
@@ -93,8 +89,7 @@ class PlayerDataService(private val plugin: MClass, private val services: Servic
             return
         }
 
-        playerDataMap.clear()
-        onlinePlayers.clear()
+        data.clearData()
 
         // upload everyone (health check was done before)
         // if emergency dump is older than database dump, it will NOT be uploaded
@@ -103,7 +98,7 @@ class PlayerDataService(private val plugin: MClass, private val services: Servic
 
         // 3.
         for (player in plugin.server.onlinePlayers) {
-            onlinePlayers[player.uniqueId] = player.name
+            data.getOnlinePlayers()[player.uniqueId] = player.name
             registration_ss.register(player.uniqueId, player)
         }
 
@@ -118,45 +113,13 @@ class PlayerDataService(private val plugin: MClass, private val services: Servic
         isRestarting = true
 
         // unregister everyone
-        for (playerdata in playerDataMap.values) {
+        for (playerdata in data.getPlayerDataMap().values) {
             // this step MUST NOT be async.
             // IF DATABASE HEALTH FAILS,
             // EMERGENCY DUMP IS AUTOMATICALLY CREATED IN OUTPUT_SS
             val player = plugin.server.getPlayer(playerdata.uuid)
             registration_ss.unregister(playerdata.uuid, player, false)
         }
-    }
-
-    fun getPlayerDataMap(): MutableMap<UUID, PlayerData> {
-        return playerDataMap
-    }
-
-    fun exists(uuid: UUID): Boolean {
-        return playerDataMap.containsKey(uuid)
-    }
-
-    fun getPlayerData(uuid: UUID): PlayerData? {
-        return playerDataMap[uuid]
-    }
-
-    fun putPlayerDataMap(uuid: UUID, playerData: PlayerData) {
-        playerDataMap[uuid] = playerData
-    }
-
-    fun removePlayerData(uuid: UUID) {
-        playerDataMap.remove(uuid)
-    }
-
-    fun getOnlinePlayers(): MutableMap<UUID, String> {
-        return onlinePlayers
-    }
-
-    fun setOnlinePlayer(uuid: UUID, username: String) {
-        onlinePlayers[uuid] = username
-    }
-
-    fun removeOnlinePlayer(uuid: UUID) {
-        onlinePlayers.remove(uuid)
     }
 
     fun fromJson(json: String?): PlayerData? = Gson().fromJson(json, PlayerData::class.java)
