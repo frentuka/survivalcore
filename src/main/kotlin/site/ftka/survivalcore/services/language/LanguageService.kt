@@ -14,6 +14,7 @@ import java.util.*
 class LanguageService(private val plugin: MClass, private val services: ServicesFramework) {
     val logger = plugin.loggingInitless.getLog("Language", Component.text("Lang").color(NamedTextColor.WHITE))
     val api = LanguageAPI(this)
+    val data = LanguageServiceData(this, plugin)
 
     /*
         LanguageService
@@ -27,33 +28,23 @@ class LanguageService(private val plugin: MClass, private val services: Services
 
     val defaultLanguagePack = LanguagePack()
 
-    val langMap = mutableMapOf<String, LanguagePack>()
-    val playerLangMap = mutableMapOf<UUID, String>()
-
     fun init() {
         logger.log("Initializing...")
 
-        loadLanguagePacksIntoMap()
+        data.loadLanguagePacksIntoMap()
 
         // initialize listeners
         plugin.propEventsInitless.registerListener(langListener)
-
-        for (playerdata in services.playerData.getPlayerDataMap().values)
-            playerdata.settings?.let { playerLangMap[playerdata.uuid] = it.language }
     }
 
     fun restart() {
         logger.log("Restarting...", LogLevel.LOW)
-        loadLanguagePacksIntoMap()
+        data.loadLanguagePacksIntoMap(true)
+        data.loadPlayersLanguage(true)
     }
 
     fun stop() {
         logger.log("Stopping...", LogLevel.LOW)
-    }
-
-    fun loadLanguagePacksIntoMap(clearMap: Boolean = true) {
-        if (clearMap) langMap.clear()
-        input_ss.gatherAllLanguagePacks().forEach{ langMap[it.name] = it }
     }
 
     fun fromJson(json: String): LanguagePack {
