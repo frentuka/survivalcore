@@ -23,7 +23,7 @@ class ChatService(var plugin: MClass, var servicesFwk: ServicesFramework) {
         Ask for a channel. Let's say, "Staff" using
      */
 
-    val channels_ss = ChatService_ChannelsSubservice(this, plugin)
+    val channels_ss =  ChatService_ChannelsSubservice(this, plugin)
     val screens_ss  = ChatService_ScreensSubservice(this, plugin)
 
     fun init() {
@@ -65,9 +65,9 @@ class ChatService(var plugin: MClass, var servicesFwk: ServicesFramework) {
         val player = plugin.server.getPlayer(uuid) ?: return
 
         // taking screens in count
-        if (screens_ss.playersInsideActiveScreens.keys.contains(uuid))
-            screens_ss.sendMessageAfterScreen(uuid, message)
-        else
-            channels_ss.getPlayerChannel(uuid, true)?.sendMessage(message) // won´t ever be null
+//        if (screens_ss.playersInsideActiveScreens.keys.contains(uuid))
+//            screens_ss.sendMessageAfterScreen(uuid, message)
+//        else
+//            channels_ss.getPlayerChannel(uuid, true)?.sendMessage(message) // won´t ever be null
     }
 }

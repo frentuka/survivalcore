@@ -9,44 +9,33 @@ import java.util.concurrent.TimeUnit
 
 class ChatService_ScreensSubservice(private val service: ChatService, private val plugin: MClass) {
 
-    val activeScreens = mutableMapOf<String, ChatScreen>()
-    val playersInsideActiveScreens = mutableMapOf<UUID, String>()
+    //                                                   <Player's UUID, Screen>
+    private val playersInsideActiveScreens = mutableMapOf<UUID, ChatScreen>()
 
-    /* todo
-        rething the whole Screens subservice...
-        unusable until then. this is a mess.
-     */
+    fun showScreen(uuid: UUID, screen: ChatScreen): Boolean {
+        // is player inside another screen?
+        if (playersInsideActiveScreens.containsKey(uuid))
+            return false
 
-    private val delayedPlayerMessages = mutableMapOf<UUID, MutableList<Component>>()
-    fun sendMessageAfterScreen(uuid: UUID, message: Component) {
-        if (delayedPlayerMessages.containsKey(uuid)) delayedPlayerMessages[uuid]?.add(message)
-        else delayedPlayerMessages[uuid] = mutableListOf(message)
-        delayMessageAfterScreen_scheduler()
+        // set screen to player
+        playersInsideActiveScreens[uuid] = screen
+
+
+
+        return false
     }
 
-    fun showScreen(uuid: UUID, screen: ChatScreen) {
-        activeScreens[screen.name] = screen
-        playersInsideActiveScreens[uuid] = screen.name
+    // stop showing screen
+    // name is not needed but I prefer to know that I'm stopping the right screen
+    fun stopScreen(uuid: UUID, name: String) {
+        if (!playersInsideActiveScreens.containsKey(uuid))
+            return
+
+        if (playersInsideActiveScreens[uuid]!!.name != name)
+            return
+
+        //playersInsideActiveScreens[uuid]?.terminate
+
+        playersInsideActiveScreens.remove(uuid)
     }
-
-    private var dMASscheduler_isStarted = false
-    private fun delayMessageAfterScreen_scheduler() {
-        if (dMASscheduler_isStarted) return else dMASscheduler_isStarted = true
-        plugin.globalScheduler.scheduleAtFixedRate(
-            {
-
-                for (keyval in delayedPlayerMessages) {
-                    if (!playersInsideActiveScreens.containsKey(keyval.key)) {
-                        for (message in delayedPlayerMessages[keyval.key]!!) {
-                            service.sendRawMessageToPlayer(keyval.key, message)
-                        }
-
-                        delayedPlayerMessages.remove(keyval.key)
-                    }
-                }
-
-            }
-            , 0, 1, TimeUnit.SECONDS)
-    }
-
 }

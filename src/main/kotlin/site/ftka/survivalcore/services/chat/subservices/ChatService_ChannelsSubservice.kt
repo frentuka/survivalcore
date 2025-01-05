@@ -14,10 +14,10 @@ class ChatService_ChannelsSubservice(private val service: ChatService, private v
     // can be called "global", "staff" or "faction_{factionName}"
     private val playerChannelMap = mutableMapOf<UUID, String>()
 
-    // $ to prevent collision with playernames
+    // "$" to prevent collision with playernames
     private val GLOBAL_CHANNEL_NAME: String = "\$global"
     private val STAFF_CHANNEL_NAME: String = "\$staff"
-    private val CLAN_CHANNEL_NAME_PREFIX = "\$clanchannel_$"
+    private val CLAN_CHANNEL_NAME_PREFIX = "\$clan_$"
 
     fun clearMaps() {
         channelsMap.clear()
@@ -27,7 +27,7 @@ class ChatService_ChannelsSubservice(private val service: ChatService, private v
     // create elemental channels:
     // Global, Staff
     fun createElementalChannels() {
-        var elementalChannelSettings = ChatChannel.ChatChannelSettings()
+        val elementalChannelSettings = ChatChannel.ChatChannelSettings()
         elementalChannelSettings.maxStoredChatEntries = 100
 
         val globalChannel = ChatChannel(service, GLOBAL_CHANNEL_NAME, elementalChannelSettings)
