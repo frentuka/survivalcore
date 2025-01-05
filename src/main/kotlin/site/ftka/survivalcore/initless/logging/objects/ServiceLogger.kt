@@ -30,7 +30,7 @@ class ServiceLogger(private val service: LoggingInitless, val serviceName: Strin
 
     // If logs list get too heavy, removes some.
     // Set size cap
-    private var logsMaxSize = 1024*128 // 1/8th of a megabyte. Measurement is made in kilobytes.
+    private var logsMaxSize = 1024*64 // 1/16th of a megabyte. Measurement is made in kilobytes.
     private var logsSize = 0L
 
     // Sets next dump's timestamp. Refreshes after every dump.
@@ -62,8 +62,8 @@ class ServiceLogger(private val service: LoggingInitless, val serviceName: Strin
     }
 
     /*
-        ----------------------------------------------------------------------------------
-     */
+      ----------------------------------------------------------------------------------
+    */
 
     fun log(text: String, level: LogLevel = LogLevel.NORMAL, color: NamedTextColor = service.defaultTextColor) = log(Component.text(text), level, serviceTag, color)
 
