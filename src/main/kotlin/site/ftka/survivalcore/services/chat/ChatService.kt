@@ -51,23 +51,4 @@ class ChatService(var plugin: MClass, var servicesFwk: ServicesFramework) {
     fun stop() {
         logger.log("Stopping...", LogLevel.LOW)
     }
-
-    /**
-     * This method is ONLY FOR INTERNAL USAGE.
-     *
-     * The correct way to communicate with a player,
-     * is through the player's channel.
-     *
-     * Get the player's channel using the getPlayerChannel method
-     */
-    fun sendRawMessageToPlayer(uuid: UUID, message: Component) {
-        // get online player
-        val player = plugin.server.getPlayer(uuid) ?: return
-
-        // taking screens in count
-//        if (screens_ss.playersInsideActiveScreens.keys.contains(uuid))
-//            screens_ss.sendMessageAfterScreen(uuid, message)
-//        else
-//            channels_ss.getPlayerChannel(uuid, true)?.sendMessage(message) // won´t ever be null
-    }
 }
