@@ -4,31 +4,29 @@ import site.ftka.survivalcore.MClass
 import site.ftka.survivalcore.services.chat.ChatService
 import site.ftka.survivalcore.services.chat.objects.ChatChannel
 import java.util.*
+import java.util.concurrent.ScheduledFuture
+import java.util.concurrent.TimeUnit
 
 class ChatService_ChannelsSubservice(private val service: ChatService, private val plugin: MClass) {
 
     private val channelsMap = mutableMapOf<String, ChatChannel>()
-
-    // being UUID, String = player's UUID, channel name (usually named by player's UUID)
-    // done this way so that other channels like global, staff, faction
-    // can be called "global", "staff" or "faction_{factionName}"
-    private val playerChannelMap = mutableMapOf<UUID, String>()
+    private val playersActiveChannels = mutableMapOf<UUID, Set<String>>()
 
     // "$" to prevent collision with playernames
     private val GLOBAL_CHANNEL_NAME: String = "\$global"
     private val STAFF_CHANNEL_NAME: String = "\$staff"
-    private val CLAN_CHANNEL_NAME_PREFIX = "\$clan_$"
+    private val CLAN_CHANNEL_NAME_PREFIX = "\$clan_"
 
     fun clearMaps() {
         channelsMap.clear()
-        playerChannelMap.clear()
     }
 
     // create elemental channels:
     // Global, Staff
     fun createElementalChannels() {
         val elementalChannelSettings = ChatChannel.ChatChannelSettings()
-        elementalChannelSettings.maxStoredChatEntries = 100
+        elementalChannelSettings.maxStoredChatEntries = 100 // full chat page
+        elementalChannelSettings.timeoutAfterSeconds = -1   // no timeout
 
         val globalChannel = ChatChannel(service, GLOBAL_CHANNEL_NAME, elementalChannelSettings)
         val staffChannel = ChatChannel(service, STAFF_CHANNEL_NAME, elementalChannelSettings)
@@ -40,11 +38,19 @@ class ChatService_ChannelsSubservice(private val service: ChatService, private v
     fun registerChannel(name: String, isPlayerChannel: Boolean = true, playerUUID: UUID? = null): ChatChannel {
         val channel = ChatChannel(service, name)
 
+        startPurgeDataTimer()
+
         channelsMap.put(name, channel)
         if (isPlayerChannel && playerUUID != null)
-            playerChannelMap[playerUUID] = channel.name
+            channelsMap[playerUUID.toString()] = channel
 
         return channel
+    }
+
+    fun modifyChannel(channelName: String, modification: (ChatChannel) -> Unit) {
+        val channel = channelsMap[channelName] ?: return
+        modification(channel)
+        channelsMap[channelName] = channel
     }
 
     // gets
@@ -56,7 +62,7 @@ class ChatService_ChannelsSubservice(private val service: ChatService, private v
     fun getStaffChannel() = getChannel(STAFF_CHANNEL_NAME)
 
     fun getPlayerChannel(uuid: UUID, createIfNotExists: Boolean = true): ChatChannel? {
-        if (playerChannelMap.containsKey(uuid) && channelsMap.containsKey(uuid.toString()))
+        if (channelsMap.containsKey(uuid.toString()))
             return channelsMap[uuid.toString()]
 
         // Apparently, it does not exist
@@ -64,6 +70,79 @@ class ChatService_ChannelsSubservice(private val service: ChatService, private v
             return registerChannel(uuid.toString(), true, uuid)
 
         return null
+    }
+
+    /*
+        active channels
+     */
+
+    fun getActiveChannels(uuid: UUID): Set<String> {
+        return playersActiveChannels[uuid] ?: setOf()
+    }
+
+    fun setActiveChannels(uuid: UUID, channels: Set<String>) {
+        playersActiveChannels[uuid] = channels
+    }
+
+    fun addActiveChannel(uuid: UUID, channel: String) {
+        if (!playersActiveChannels.containsKey(uuid))
+            playersActiveChannels[uuid] = mutableSetOf()
+
+        playersActiveChannels[uuid] = playersActiveChannels[uuid]!!.plus(channel)
+    }
+
+    fun removeActiveChannel(uuid: UUID, channel: String) {
+        if (!playersActiveChannels.containsKey(uuid))
+            return
+
+        playersActiveChannels[uuid] = playersActiveChannels[uuid]!!.minus(channel)
+    }
+
+    fun removeActiveChannels(uuid: UUID) {
+        playersActiveChannels.remove(uuid)
+    }
+
+    /*
+        data purge timeout
+     */
+
+    // clock that will do purgeDataCheck every 10 seconds
+    private var purgeScheduledFuture: ScheduledFuture<*>? = null
+    private var playersActiveChannelsTimeoutMap = mutableMapOf<UUID, Int>()
+
+    fun startPurgeDataTimer() {
+        if (purgeScheduledFuture != null)
+            return
+
+        purgeScheduledFuture = plugin.globalScheduler.scheduleAtFixedRate({
+            purgeDataCheck()
+        }, 10, 10, TimeUnit.SECONDS)
+    }
+
+    // will remove data from channels if they dont update in certain amount of time
+    fun purgeDataCheck() {
+        // check all channels
+        for (channelName in channelsMap.keys) {
+            val channel = getChannel(channelName) ?: continue
+
+            if (channel.settings.timeoutAfterSeconds < 0)
+                continue
+
+            // if enough time elapsed, delete channel
+            if (System.currentTimeMillis() - channel.lastMessage > channel.settings.timeoutAfterSeconds * 1000)
+                channelsMap.remove(channelName)
+        }
+
+        // check player's active channels timeout
+        for (player in playersActiveChannels.keys) {
+            if (plugin.server.getPlayer(player) == null && playersActiveChannelsTimeoutMap[player]?.let { it < 0 } == true) {
+                removeActiveChannels(player)
+                playersActiveChannelsTimeoutMap.remove(player)
+                continue
+            } else {
+                playersActiveChannelsTimeoutMap[player] = playersActiveChannelsTimeoutMap[player]?.minus(1) ?: 0
+            }
+        }
     }
 
 }

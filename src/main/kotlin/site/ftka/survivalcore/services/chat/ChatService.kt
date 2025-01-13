@@ -5,7 +5,9 @@ import net.kyori.adventure.text.format.NamedTextColor
 import site.ftka.survivalcore.MClass
 import site.ftka.survivalcore.initless.logging.LoggingInitless.*
 import site.ftka.survivalcore.services.ServicesFramework
+import site.ftka.survivalcore.services.chat.listeners.ChatListener
 import site.ftka.survivalcore.services.chat.subservices.ChatService_ChannelsSubservice
+import site.ftka.survivalcore.services.chat.subservices.ChatService_MessagingSubservice
 import site.ftka.survivalcore.services.chat.subservices.ChatService_ScreensSubservice
 import java.util.UUID
 
@@ -25,10 +27,16 @@ class ChatService(var plugin: MClass, var servicesFwk: ServicesFramework) {
 
     val channels_ss =  ChatService_ChannelsSubservice(this, plugin)
     val screens_ss  = ChatService_ScreensSubservice(this, plugin)
+    val messaging_ss = ChatService_MessagingSubservice(this, plugin)
+
+    private val chatListener = ChatListener(this, plugin)
 
     fun init() {
         logger.log("Initializing...", LogLevel.LOW)
+
         channels_ss.createElementalChannels()
+
+        plugin.initListener(chatListener)
     }
 
     // 1. reset all chat data

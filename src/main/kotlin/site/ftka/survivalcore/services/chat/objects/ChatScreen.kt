@@ -6,10 +6,17 @@ import java.util.UUID
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
-data class ChatScreen(val service: ChatService, val name: String, val updateRateMillis: Long) {
+data class ChatScreen(val service: ChatService, val player: UUID, val name: String) {
 
     var isActive = true
 
-    var screenContent: Component? = null
-    val members = mutableSetOf<UUID>()
+    // 30 seconds
+    var timeoutMillis: Long = 1000 * 30
+
+    // <Name, Page>
+    var screenContent = mutableMapOf<String, ChatScreenPage>()
+
+    var currentPage: String? = null
+
+    fun getFrame(): Component? = screenContent[currentPage]?.getMessage()
 }

@@ -4,16 +4,12 @@ import net.kyori.adventure.text.Component
 
 data class ChatData(val chatMap: MutableMap<Long, Component> = mutableMapOf()) {
 
-    fun add(timestamp: Long, data: Component) {
+    fun add(data: Component, timestamp: Long = System.currentTimeMillis()) {
         chatMap[timestamp] = data
     }
 
-    fun getLatest(amount: Int): List<Component> {
-        return chatMap
-            .entries
-            .sortedByDescending { it.key }
-            .take(amount)
-            .map { it.value }
-    }
+    // Returns chatMap with only {amount} elements sorted by key from higher
+    fun getLatest(amount: Int): Map<Long, Component> =
+        chatMap.toSortedMap().entries.take(amount).associate { it.key to it.value }
 
 }
