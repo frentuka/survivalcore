@@ -1,6 +1,5 @@
 package site.ftka.survivalcore.services.chat.subservices
 
-import jdk.internal.org.jline.utils.AttributedStringBuilder
 import net.kyori.adventure.text.Component
 import site.ftka.survivalcore.MClass
 import site.ftka.survivalcore.services.chat.ChatService
@@ -37,10 +36,19 @@ class ChatService_MessagingSubservice(private val svc: ChatService, private val 
     // sends a 100-lines-long blank text message
     fun clearChat(uuid: UUID) {
         // create text before sending
-        val blankText = String.apply { repeat(100) { AttributedStringBuilder.append(" \n ") } }.toString()
+        var blankText = " \n "
+        repeat (90) {
+            blankText = "$blankText \n "
+        }
 
         // send
         sendChannellessMessage(uuid, Component.text(blankText), true)
+    }
+
+    fun sendGlobalMessage(message: Component) {
+        svc.channels_ss.getGlobalChannel()?.addMessage(message)
+        for (player in plugin.server.onlinePlayers)
+            sendChannellessMessage(player.uniqueId, message, true)
     }
 
     // send message to player

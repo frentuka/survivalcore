@@ -37,6 +37,7 @@ class ChatService(var plugin: MClass, var servicesFwk: ServicesFramework) {
         channels_ss.createElementalChannels()
 
         plugin.initListener(chatListener)
+        plugin.propEventsInitless.registerListener(chatListener)
     }
 
     // 1. reset all chat data

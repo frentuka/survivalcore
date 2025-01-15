@@ -55,6 +55,9 @@ class ChatService_ChannelsSubservice(private val service: ChatService, private v
 
     // gets
 
+    fun existsChannel(channelName: String): Boolean =
+        channelsMap.containsKey(channelName)
+
     fun getChannel(name: String): ChatChannel? = channelsMap[name]
 
     fun getGlobalChannel() = getChannel(GLOBAL_CHANNEL_NAME)

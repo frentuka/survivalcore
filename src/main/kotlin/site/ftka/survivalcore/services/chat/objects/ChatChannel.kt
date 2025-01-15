@@ -22,7 +22,12 @@ data class ChatChannel(private val service: ChatService, val name: String, var s
      * Message won't be sent
      */
     fun addMessage(message: Component) {
-        val timeMillis = System.currentTimeMillis()
+        var timeMillis = System.currentTimeMillis()
+
+        // another message could have the exact same timeMillis
+        while (data.chatMap.containsKey(timeMillis))
+            timeMillis+= 1
+
         data.add(message, timeMillis)
         lastMessage = timeMillis
 
@@ -35,5 +40,6 @@ data class ChatChannel(private val service: ChatService, val name: String, var s
     /**
      *  Shortcut to data.getLatest
      */
-    fun getLatestMessages(amount: Int) = data.getLatest(amount)
+    fun getLatestMessages(amount: Int) =
+        data.getLatest(amount)
 }

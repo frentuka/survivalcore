@@ -17,7 +17,11 @@ java {
 
 repositories {
     mavenCentral()
-    maven("https://papermc.io/repo/repository/maven-public/")
+
+    maven {
+        name = "papermc"
+        url = uri("https://repo.papermc.io/repository/maven-public/")
+    }
 }
 
 dependencies {
@@ -35,22 +39,19 @@ dependencies {
     implementation("net.kyori:adventure-text-serializer-plain:4.14.0")
     implementation("net.kyori:adventure-text-serializer-legacy:4.14.0")
 
-    compileOnly("io.papermc.paper:paper-api:1.21.3-R0.1-SNAPSHOT") // Paper API
+    // paper
+    compileOnly("io.papermc.paper:paper-api:1.21.4-R0.1-SNAPSHOT")
 
     compileOnly("io.lettuce:lettuce-core:6.5.0.RELEASE") // redis
     implementation("org.apache.commons:commons-pool2:2.4.3") // connection pooling
 }
 
-
+java {
+    toolchain.languageVersion.set(JavaLanguageVersion.of(21))
+}
 
 tasks.test {
     useJUnitPlatform()
-}
-
-tasks.withType<KotlinCompile> {
-    kotlinOptions {
-        jvmTarget = "21"
-    }
 }
 
 tasks.wrapper<Wrapper> {
@@ -65,7 +66,7 @@ tasks.withType<Jar> {
         attributes["Main-Class"] = "site.ftka.proxycore.MClass"
     }
 
-    destinationDirectory = layout.buildDirectory.dir("/home/srleg/Desktop/server/plugins/")
+    destinationDirectory = layout.buildDirectory.dir("C:/Users/srleg/Desktop/server/plugins/")
 
     from(sourceSets.main.get().output)
     dependsOn(configurations.runtimeClasspath)
