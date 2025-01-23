@@ -49,7 +49,11 @@ class PlayerState {
         this.experience = player.exp
 
         // location stuff
-        this.bedLocation = player.bedSpawnLocation?.let { SerializedLocation().setFrom(it) }
+
+        // could fail, player.bedLocation throws IllegalStateExc if player has never slept
+        try { this.bedLocation = SerializedLocation().setFrom(player.bedLocation) }
+        catch (_: Exception) {}
+
         this.serializedLocation = SerializedLocation().setFrom(player.location)
         val vel = player.velocity
         this.momentum = Triple(vel.x, vel.y, vel.z)
