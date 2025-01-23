@@ -12,7 +12,8 @@ import site.ftka.survivalcore.services.chat.subservices.ChatService_ScreensSubse
 import java.util.UUID
 
 class ChatService(var plugin: MClass, var servicesFwk: ServicesFramework) {
-    val logger = plugin.loggingInitless.getLog("Chat", Component.text("Chat").color(NamedTextColor.DARK_RED))
+    val logger = plugin.loggingInitless.getLog("Chat", Component.text("Chat").color(NamedTextColor.DARK_GRAY))
+    val config = plugin.essentialsFwk.configs.chatConfig()
     val api = ChatAPI(this)
 
     /*

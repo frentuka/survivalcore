@@ -4,6 +4,7 @@ import com.google.gson.Gson
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import site.ftka.survivalcore.MClass
+import site.ftka.survivalcore.essentials.configs.configurations.ChatConfig
 import site.ftka.survivalcore.essentials.configs.configurations.GeneralConfig
 import site.ftka.survivalcore.essentials.configs.configurations.PlayerDataConfig
 import site.ftka.survivalcore.essentials.configs.subservices.ConfigsEssential_InOutSubservice
@@ -21,18 +22,21 @@ class ConfigsEssential(private val plugin: MClass) {
 
     enum class defaultConfigFilesEnum(val filename: String, val defaultJson: String) {
         GENERAL("general_config", GeneralConfig().toJson()),
-        PLAYERDATA("playerdata_config", PlayerDataConfig().toJson())
+        PLAYERDATA("playerdata_config", PlayerDataConfig().toJson()),
+        CHAT("chat_config", ChatConfig().toJson())
     }
 
     // Where configs are stored
     private var generalConfig: GeneralConfig = GeneralConfig()
     private var playerdataConfig: PlayerDataConfig = PlayerDataConfig()
+    private var chatConfig: ChatConfig = ChatConfig()
 
     /*
         Where to effectively get ready-to-use configs
      */
     fun generalCfg(): GeneralConfig = generalConfig
     fun playerdataCfg(): PlayerDataConfig = playerdataConfig
+    fun chatConfig(): ChatConfig = chatConfig
 
     fun init() {
         logger.log("Initializing...", LogLevel.LOW)
@@ -64,6 +68,13 @@ class ConfigsEssential(private val plugin: MClass) {
         playerdataConfig = Gson().fromJson(playerdataConfigJson, PlayerDataConfig::class.java) as PlayerDataConfig
         // update file if outdated
         if (playerdataConfig.version < PlayerDataConfig().version) { playerdataConfig.version = PlayerDataConfig().version; inout_ss.createConfig(playerdataEnum.filename, playerdataConfig.toJson()) }
+
+        // chat
+        val chatEnum = defaultConfigFilesEnum.CHAT
+        val chatConfigJson = inout_ss.gatherConfigJson(chatEnum.filename, chatEnum.defaultJson)
+        chatConfig = Gson().fromJson(chatConfigJson, ChatConfig::class.java) as ChatConfig
+        // update file if outdated
+        if (chatConfig.version < ChatConfig().version) { chatConfig.version = ChatConfig().version; inout_ss.createConfig(chatEnum.filename, chatConfig.toJson()) }
     }
 
     fun fromJson(json: String?): String? = Gson().fromJson(json, String::class.java)

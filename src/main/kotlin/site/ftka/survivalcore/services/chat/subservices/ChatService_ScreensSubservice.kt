@@ -1,6 +1,7 @@
 package site.ftka.survivalcore.services.chat.subservices
 
 import site.ftka.survivalcore.MClass
+import site.ftka.survivalcore.initless.logging.LoggingInitless
 import site.ftka.survivalcore.services.chat.ChatService
 import site.ftka.survivalcore.services.chat.objects.ChatScreen
 import java.util.*
@@ -8,6 +9,7 @@ import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
 
 class ChatService_ScreensSubservice(private val svc: ChatService, private val plugin: MClass) {
+    private val logger = svc.logger.sub("Screens")
 
     // <Player's UUID, Screen>
     private val playersInsideScreens = mutableMapOf<UUID, ChatScreen>()
@@ -17,7 +19,7 @@ class ChatService_ScreensSubservice(private val svc: ChatService, private val pl
         if (playersInsideScreens.containsKey(uuid))
             return false
 
-        updateScreenTimeout(uuid)
+        logger.log("Starting screen for $uuid", LoggingInitless.LogLevel.HIGH)
 
         // clear player's screen
         svc.messaging_ss.clearChat(uuid)
@@ -26,7 +28,12 @@ class ChatService_ScreensSubservice(private val svc: ChatService, private val pl
         playersInsideScreens[uuid] = screen
 
         // show screen's first frame
-        showActiveFrame(uuid)
+        sendActiveFrame(uuid)
+
+        updateScreenTimeout(uuid)
+
+        // activate service's timer
+        serviceTimer()
 
         return true
     }
@@ -37,19 +44,24 @@ class ChatService_ScreensSubservice(private val svc: ChatService, private val pl
         if (!playersInsideScreens.containsKey(uuid))
             return
 
-        // other screen is active
+        // is this the right screen?
         if (playersInsideScreens[uuid]?.name != name)
             return
 
+        stopAnyScreen(uuid)
+    }
+
+    fun stopAnyScreen(uuid: UUID) {
         playersInsideScreens.remove(uuid)
         screenTimeoutLastUpdateMap.remove(uuid)
 
         // send player's corresponding chat
+        svc.messaging_ss.clearChat(uuid)
         svc.messaging_ss.restorePlayerChat(uuid, 50)
     }
 
     // refresh frame for player's active screen
-    private fun showActiveFrame(uuid: UUID) {
+    private fun sendActiveFrame(uuid: UUID) {
         if (!playersInsideScreens.containsKey(uuid))
             return
 
@@ -67,6 +79,9 @@ class ChatService_ScreensSubservice(private val svc: ChatService, private val pl
     fun isPlayerInsideScreen(uuid: UUID) =
         playersInsideScreens.containsKey(uuid)
 
+    fun getActiveScreen(uuid: UUID): ChatScreen? =
+        playersInsideScreens[uuid]
+
     /*
         screen page refresh & timeout check
      */
@@ -82,28 +97,34 @@ class ChatService_ScreensSubservice(private val svc: ChatService, private val pl
         if (screensScheduledFuture != null)
             return
 
+        logger.log("ChatScreen users: ${playersInsideScreens.keys}")
+
         screensScheduledFuture = plugin.globalScheduler.scheduleAtFixedRate(
             {
                 for (player in playersInsideScreens.keys) {
                     val screen = playersInsideScreens[player] ?: continue
-                    var stopped = false
+                    var stopped = !screen.isActive
 
                     // if screen is not active, remove it
-                    if (!screen.isActive) {
+                    if (stopped)
                         stopScreen(player, screen.name)
-                        stopped = true
-                    }
 
-                    val currentTimeMillis = System.currentTimeMillis()
                     // if screen has timed out, remove it
-                    if (!stopped && screenTimeoutLastUpdateMap[player]?.let { currentTimeMillis - it > screen.timeoutMillis } == true) {
+                    val currentTimeMillis = System.currentTimeMillis()
+                    val elapsedTimeMillis = currentTimeMillis - (screenTimeoutLastUpdateMap[player] ?: 0)
+                    if (!stopped && screenTimeoutLastUpdateMap[player]?.let { elapsedTimeMillis > screen.timeoutMillis } == true) {
+                        logger.log("Screen stopped because of timeout. Elapsed: ${elapsedTimeMillis/1000} Timeout: ${screen.timeoutMillis/1000}")
+
                         stopScreen(player, screen.name)
                         stopped = true
                     }
 
                     // refresh screen
                     if (!stopped)
-                        showActiveFrame(player)
+                        sendActiveFrame(player)
+
+                    if (stopped)
+                        logger.log("Screen was stopped o.o")
                 }
             }, 1, 1, TimeUnit.SECONDS
         )

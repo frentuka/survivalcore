@@ -6,7 +6,7 @@ import java.util.UUID
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
-data class ChatScreen(val service: ChatService, val player: UUID, val name: String) {
+data class ChatScreen(val name: String) {
 
     var isActive = true
 
@@ -17,6 +17,9 @@ data class ChatScreen(val service: ChatService, val player: UUID, val name: Stri
     var screenContent = mutableMapOf<String, ChatScreenPage>()
 
     var currentPage: String? = null
+
+    fun getCurrentChatScreenPageObject(): ChatScreenPage? =
+        screenContent[currentPage]
 
     fun getFrame(): Component? = screenContent[currentPage]?.getMessage()
 }

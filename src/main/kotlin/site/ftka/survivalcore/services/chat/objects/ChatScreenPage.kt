@@ -2,7 +2,7 @@ package site.ftka.survivalcore.services.chat.objects
 
 import net.kyori.adventure.text.Component
 
-class ChatScreenPage(private val message: Component, private val process: (Component) -> Component?, chatListener: ((String) -> Unit)? = null) {
+class ChatScreenPage(private val message: Component, private val process: (Component) -> Component?, val onChat: ((Component) -> Unit)? = null) {
 
     /*
         A screens-pages system can be kinda powerful. It's just a prototype.

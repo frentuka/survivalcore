@@ -37,12 +37,12 @@ class ChatService_MessagingSubservice(private val svc: ChatService, private val 
     fun clearChat(uuid: UUID) {
         // create text before sending
         var blankText = " \n "
-        repeat (90) {
-            blankText = "$blankText \n "
-        }
+        // repeat the same text 50 times
+        for (i in 0..50)
+            blankText += " \n "
 
         // send
-        sendChannellessMessage(uuid, Component.text(blankText), true)
+        sendChannellessMessage(uuid, Component.text(blankText), false)
     }
 
     fun sendGlobalMessage(message: Component) {
