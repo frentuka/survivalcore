@@ -52,7 +52,11 @@ class PlayerData_InputOutputSubservice(private val service: PlayerDataService, p
             return CompletableFuture.completedFuture(service.caching_ss.getCachedPlayerData(uuid))
         }
 
-        // Case 3: Playerdata is found in the database
+        // Case 3: Playerdata has already been loaded
+        if (service.data.exists(uuid))
+            return CompletableFuture.completedFuture(service.data.getPlayerData(uuid))
+
+        // Case 4: Playerdata is found in the database
         logger.log("Getting playerdata from database", LogLevel.DEBUG)
         val futureString = essFwk.database.get(uuid.toString(), async)
         return futureString?.thenApply{
