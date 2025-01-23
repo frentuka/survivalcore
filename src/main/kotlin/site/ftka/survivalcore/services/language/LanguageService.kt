@@ -13,7 +13,7 @@ import java.util.*
 
 class LanguageService(private val plugin: MClass, private val services: ServicesFramework) {
     val logger = plugin.loggingInitless.getLog("Language", Component.text("Lang").color(NamedTextColor.WHITE))
-    val api = LanguageAPI(this)
+    val api = LanguageAPI(this, plugin)
     val data = LanguageServiceData(this, plugin)
 
     /*
