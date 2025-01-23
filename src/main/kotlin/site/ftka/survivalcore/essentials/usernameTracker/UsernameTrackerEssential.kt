@@ -41,7 +41,7 @@ class UsernameTrackerEssential (private val essFwk: EssentialsFramework, private
     private val folderAbsolutePath = "${plugin.dataFolder.absolutePath}/usernameTracker"
     private val filename = "usernameDatabase.json"
 
-    private val listener = UsernameTrackerEssential_Listener(this)
+    private val listener = UsernameTrackerEssential_Listener(this, plugin)
     private val nameFetcher = UsernameTrackerEssential_NameFetcher(this)
 
     private var uuidsNamesMap = UsernameTrackerMap()

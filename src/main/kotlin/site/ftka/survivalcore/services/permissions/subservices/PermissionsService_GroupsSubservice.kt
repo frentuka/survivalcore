@@ -13,7 +13,7 @@ class PermissionsService_GroupsSubservice(private val service: PermissionsServic
      */
 
     /*
-        add group
+        create group
      */
 
     /**

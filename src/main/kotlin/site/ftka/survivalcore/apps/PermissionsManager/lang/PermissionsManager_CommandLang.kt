@@ -1,6 +1,8 @@
 package site.ftka.survivalcore.apps.PermissionsManager.lang
 
+import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.MiniMessage
+import site.ftka.survivalcore.services.chat.objects.ChatScreenPage
 
 class PermissionsManager_CommandLang {
 
@@ -8,6 +10,21 @@ class PermissionsManager_CommandLang {
                 "<gray>                 <click:run_command:'/permissions group'>Group</click>     |     <click:run_command:'/permissions player'>Player</click>\n" +
                 "\n" +
                 "<red><click:run_command:'/exitPanel'>exit</click>"
+
+    val list = listOf("xd1", "xd2", "xd3")
+
+    fun ScreenPage_home_panel(): ChatScreenPage {
+        return ChatScreenPage(
+            Component.text(home_panel),
+            {
+                return@ChatScreenPage MiniMessage.miniMessage().deserialize(home_panel)
+            },
+
+            { msg ->
+                println("ASDASDASDASDA $msg")
+            }
+        )
+    }
 
     /**
      | placeholders:

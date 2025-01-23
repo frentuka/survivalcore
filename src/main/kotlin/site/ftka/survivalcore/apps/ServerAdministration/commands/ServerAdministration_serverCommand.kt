@@ -28,15 +28,15 @@ class ServerAdministration_serverCommand(private val src: ServerAdministrationAp
         NOTHING, HERE, YET
     }
 
-    override fun onCommand(sender: CommandSender, cmd: Command, label: String, args: Array<out String>?): Boolean {
+    override fun onCommand(sender: CommandSender, cmd: Command, label: String, args: Array<out String>): Boolean {
         if (sender is Player) {
-            sender.sendMessage(servFwk.playerData.getPlayerDataMap().keys.toString())
+            sender.sendMessage(servFwk.playerData.data.getPlayerDataMap().keys.toString())
             sender.sendMessage(sender.uniqueId.toString())
         }
 
         if (sender !is ConsoleCommandSender) { // check authorization
             if (sender !is Player) return false // can't happen
-            else if (!servFwk.playerData.getPlayerDataMap().containsKey(sender.uniqueId)) return false // if not exists in pdata
+            else if (!servFwk.playerData.data.getPlayerDataMap().containsKey(sender.uniqueId)) return false // if not exists in pdata
             if (!servFwk.permissions.permissions_ss.playerHasPerm(sender.uniqueId, SERVER_ADMINISTRATION_PLAYER_PERMISSION)) {
                 val noPermissionMessage = plugin.servicesFwk.language.api.playerLanguagePack(sender.uniqueId).command_error_player_noPermission
                 sender.sendMessage(noPermissionMessage) // player doesn't have permission
