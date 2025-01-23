@@ -2,6 +2,7 @@ package site.ftka.survivalcore.services.permissions
 
 import site.ftka.survivalcore.services.permissions.objects.PermissionGroup
 import java.util.UUID
+import java.util.concurrent.CompletableFuture
 
 class PermissionsAPI(private val svc: PermissionsService) {
 
@@ -15,33 +16,86 @@ class PermissionsAPI(private val svc: PermissionsService) {
         player's permissions
      */
 
+    fun player_getPerms(player: String, localOnly: Boolean = false)
+        = svc.players_ss.getPermissions(player, localOnly)
+
+    fun player_getPerms(uuid: UUID, localOnly: Boolean = false)
+        = svc.players_ss.getPermissions(uuid, localOnly)
+
+    //
+
     suspend fun player_addPerm(uuid: UUID, permission: String)
-        = svc.players_ss.addPermissionToPlayer(uuid, permission)
+        = svc.players_ss.addPermission(uuid, permission)
 
     suspend fun player_addPerm(name: String, permission: String)
-        = svc.players_ss.addPermissionToPlayer(name, permission)
+        = svc.players_ss.addPermission(name, permission)
+
+    //
 
     suspend fun player_removePerm(uuid: UUID, permission: String)
-        = svc.players_ss.removePermissionToPlayer(uuid, permission)
+        = svc.players_ss.removePermission(uuid, permission)
 
     suspend fun player_removePerm(name: String, permission: String)
-        = svc.players_ss.removePermissionToPlayer(name, permission)
+        = svc.players_ss.removePermission(name, permission)
 
     /*
         player's groups
      */
 
+    fun player_getGroups(player: String, localOnly: Boolean = false)
+        = svc.players_ss.getGroups(player, localOnly)
+
+    fun player_getGroups(uuid: UUID, localOnly: Boolean = false)
+        = svc.players_ss.getGroups(uuid, localOnly)
+
+    //
+
+    suspend fun player_addGroup(uuid: UUID, group: UUID)
+        = svc.players_ss.addGroup(uuid, group)
+
     suspend fun player_addGroup(uuid: UUID, group: String)
-        = svc.players_ss.addGroupToPlayer(uuid, group)
+        = svc.players_ss.addGroup(uuid, group)
 
     suspend fun player_addGroup(name: String, group: String)
-        = svc.players_ss.addGroupToPlayer(name, group)
+        = svc.players_ss.addGroup(name, group)
+
+    //
+
+    suspend fun player_removeGroup(uuid: UUID, group: UUID)
+        = svc.players_ss.removeGroup(uuid, group)
 
     suspend fun player_removeGroup(uuid: UUID, group: String)
-        = svc.players_ss.removeGroupToPlayer(uuid, group)
+        = svc.players_ss.removeGroup(uuid, group)
 
     suspend fun player_removeGroup(name: String, group: String)
-        = svc.players_ss.removeGroupToPlayer(name, group)
+        = svc.players_ss.removeGroup(name, group)
+
+    //
+
+    fun player_getDisplayGroup(player: String, localOnly: Boolean = false)
+        = svc.players_ss.getDisplayGroup(player, localOnly)
+
+    fun player_getDisplayGroup(uuid: UUID, localOnly: Boolean = false)
+        = svc.players_ss.getDisplayGroup(uuid, localOnly)
+
+    suspend fun player_setDisplayGroup(name: String, group: String)
+        = svc.players_ss.setDisplayGroup(name, group)
+
+    suspend fun player_setDisplayGroup(uuid: UUID, group: String)
+        = svc.players_ss.setDisplayGroup(uuid, group)
+
+    suspend fun player_setDisplayGroup(uuid: UUID, group: UUID)
+        = svc.players_ss.setDisplayGroup(uuid, group)
+
+    /*
+        groups
+     */
+
+    fun getGroup(group: String)
+        = svc.data.getGroup(group)
+
+    fun getGroup(uuid: UUID)
+        = svc.data.getGroup(uuid)
 
     /*
         group administration
@@ -66,6 +120,8 @@ class PermissionsAPI(private val svc: PermissionsService) {
     fun group_addPerm(name: String, permission: String)
         = svc.groups_ss.addPermissionToGroup(name, permission)
 
+    //
+
     fun group_removePerm(uuid: UUID, permission: String)
         = svc.groups_ss.removePermissionToGroup(uuid, permission)
 
@@ -81,6 +137,8 @@ class PermissionsAPI(private val svc: PermissionsService) {
 
     fun group_addInheritance(name: String, inheritance: String)
         = svc.groups_ss.addInheritanceToGroup(name, inheritance)
+
+    //
 
     fun group_removeInheritance(uuid: UUID, inheritance: UUID)
         = svc.groups_ss.removeInheritanceToGroup(uuid, inheritance)

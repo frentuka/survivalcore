@@ -8,6 +8,7 @@ class PermissionGroup {
 
     val uuid: UUID = UUID.randomUUID()
     var name = "NONE"
+    var displayName = "NONE"
     var tag = "NONE"
     var category = GroupCategory.normal
     var primaryColor = NamedTextColor.GRAY.toString() //         to get: NamedTextColor.NAMES.value(primaryColor)

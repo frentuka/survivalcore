@@ -4,13 +4,36 @@ import site.ftka.survivalcore.MClass
 import site.ftka.survivalcore.services.permissions.PermissionsService
 import site.ftka.survivalcore.services.playerdata.subservices.PlayerData_InputOutputSubservice
 import java.util.UUID
+import java.util.concurrent.CompletableFuture
 
 class PermissionsService_PlayersSubservice(private val service: PermissionsService, private val plugin: MClass) {
+
+    private fun pdAPI() = plugin.servicesFwk.playerData.api
 
     /*
         This subservice will be responsible for modifying
         player's groups and permissions.
      */
+
+    /*
+        get groups
+     */
+
+    fun getGroups(player: String, localOnly: Boolean = false): CompletableFuture<Set<UUID>?> {
+        val uuid = plugin.essentialsFwk.usernameTracker.getUUID(player) ?: return CompletableFuture.completedFuture(null)
+        return getGroups(uuid)
+    }
+
+    fun getGroups(uuid: UUID, localOnly: Boolean = false): CompletableFuture<Set<UUID>?> {
+        if (localOnly)
+            return CompletableFuture.completedFuture(pdAPI().getPlayerData_locally(uuid)?.permissions?.groups)
+
+        return CompletableFuture<Set<UUID>>().thenApply{
+            plugin.servicesFwk.playerData.api.getPlayerData(uuid)?.thenApply {
+                it?.permissions?.groups
+            }?.get()
+        }
+    }
 
     /*
         add group
@@ -25,17 +48,17 @@ class PermissionsService_PlayersSubservice(private val service: PermissionsServi
         FAILURE_PLAYER_ALREADY_IN_GROUP
     }
 
-    suspend fun addGroupToPlayer(player: String, group: String): Permissions_addGroupResult {
+    suspend fun addGroup(player: String, group: String): Permissions_addGroupResult {
         val uuid = plugin.essentialsFwk.usernameTracker.getUUID(player) ?: return Permissions_addGroupResult.FAILURE_PLAYER_UNAVAILABLE
-        return addGroupToPlayer(uuid, group)
+        return addGroup(uuid, group)
     }
 
-    suspend fun addGroupToPlayer(player: UUID, group: String): Permissions_addGroupResult {
+    suspend fun addGroup(player: UUID, group: String): Permissions_addGroupResult {
         service.data.getGroup(group) ?: return Permissions_addGroupResult.FAILURE_GROUP_UNAVAILABLE
-        return addGroupToPlayer(player, service.data.getGroup(group)!!.uuid)
+        return addGroup(player, service.data.getGroup(group)!!.uuid)
     }
 
-    suspend fun addGroupToPlayer(player: UUID, group: UUID): Permissions_addGroupResult {
+    suspend fun addGroup(player: UUID, group: UUID): Permissions_addGroupResult {
         var result: Permissions_addGroupResult
         val modification = plugin.servicesFwk.playerData.inout_ss.makeModification(player) { pdata ->
             // are permissions corrupted?
@@ -83,17 +106,17 @@ class PermissionsService_PlayersSubservice(private val service: PermissionsServi
         FAILURE_PLAYER_NOT_IN_GROUP
     }
 
-    suspend fun removeGroupToPlayer(player: String, group: String): Permissions_removeGroupResult {
+    suspend fun removeGroup(player: String, group: String): Permissions_removeGroupResult {
         val uuid = plugin.essentialsFwk.usernameTracker.getUUID(player) ?: return Permissions_removeGroupResult.FAILURE_PLAYER_UNAVAILABLE
-        return removeGroupToPlayer(uuid, group)
+        return removeGroup(uuid, group)
     }
 
-    suspend fun removeGroupToPlayer(player: UUID, group: String): Permissions_removeGroupResult {
+    suspend fun removeGroup(player: UUID, group: String): Permissions_removeGroupResult {
         service.data.getGroup(group) ?: return Permissions_removeGroupResult.FAILURE_GROUP_UNAVAILABLE
-        return removeGroupToPlayer(player, service.data.getGroup(group)!!.uuid)
+        return removeGroup(player, service.data.getGroup(group)!!.uuid)
     }
 
-    suspend fun removeGroupToPlayer(player: UUID, group: UUID): Permissions_removeGroupResult {
+    suspend fun removeGroup(player: UUID, group: UUID): Permissions_removeGroupResult {
         var result: Permissions_removeGroupResult
         val modification = plugin.servicesFwk.playerData.inout_ss.makeModification(player) { pdata ->
             // are permissions corrupted?
@@ -129,6 +152,26 @@ class PermissionsService_PlayersSubservice(private val service: PermissionsServi
     }
 
     /*
+        get permissions
+     */
+
+    fun getPermissions(player: String, localOnly: Boolean = false): CompletableFuture<Set<String>?> {
+        val uuid = plugin.essentialsFwk.usernameTracker.getUUID(player) ?: return CompletableFuture.completedFuture(null)
+        return getPermissions(uuid, localOnly)
+    }
+
+    fun getPermissions(uuid: UUID, localOnly: Boolean = false): CompletableFuture<Set<String>?> {
+        if (localOnly)
+            return CompletableFuture.completedFuture(pdAPI().getPlayerData_locally(uuid)?.permissions?.permissions)
+
+        return CompletableFuture<Set<String>>().thenApply{
+            plugin.servicesFwk.playerData.api.getPlayerData(uuid)?.thenApply {
+                it?.permissions?.permissions
+            }?.get()
+        }
+    }
+
+    /*
         add permission
      */
 
@@ -140,12 +183,12 @@ class PermissionsService_PlayersSubservice(private val service: PermissionsServi
         FAILURE_PLAYER_ALREADY_HAS_PERMISSION
     }
 
-    suspend fun addPermissionToPlayer(player: String, permission: String): Permissions_addPermissionResult {
+    suspend fun addPermission(player: String, permission: String): Permissions_addPermissionResult {
         val uuid = plugin.essentialsFwk.usernameTracker.getUUID(player) ?: return Permissions_addPermissionResult.FAILURE_PLAYER_UNAVAILABLE
-        return addPermissionToPlayer(uuid, permission)
+        return addPermission(uuid, permission)
     }
 
-    suspend fun addPermissionToPlayer(player: UUID, permission: String): Permissions_addPermissionResult {
+    suspend fun addPermission(player: UUID, permission: String): Permissions_addPermissionResult {
         var result: Permissions_addPermissionResult
         val modification = plugin.servicesFwk.playerData.inout_ss.makeModification(player) { pdata ->
             pdata.permissions ?:  run {
@@ -194,12 +237,12 @@ class PermissionsService_PlayersSubservice(private val service: PermissionsServi
         FAILURE_PLAYER_DOESNT_HAVE_PERMISSION
     }
 
-    suspend fun removePermissionToPlayer(player: String, permission: String): Permissions_removePermissionResult {
+    suspend fun removePermission(player: String, permission: String): Permissions_removePermissionResult {
         val uuid = plugin.essentialsFwk.usernameTracker.getUUID(player) ?: return Permissions_removePermissionResult.FAILURE_PLAYER_UNAVAILABLE
-        return removePermissionToPlayer(uuid, permission)
+        return removePermission(uuid, permission)
     }
 
-    suspend fun removePermissionToPlayer(player: UUID, permission: String): Permissions_removePermissionResult {
+    suspend fun removePermission(player: UUID, permission: String): Permissions_removePermissionResult {
         var result: Permissions_removePermissionResult
         val modification = plugin.servicesFwk.playerData.inout_ss.makeModification(player) { pdata ->
             pdata.permissions ?:  run {
@@ -236,9 +279,79 @@ class PermissionsService_PlayersSubservice(private val service: PermissionsServi
         return result
     }
 
+    /*
+        get display group
+     */
 
+    fun getDisplayGroup(player: String, localOnly: Boolean = false): CompletableFuture<UUID?> {
+        val uuid = plugin.essentialsFwk.usernameTracker.getUUID(player) ?: return CompletableFuture.completedFuture(null)
+        return getDisplayGroup(uuid, localOnly)
+    }
 
+    fun getDisplayGroup(uuid: UUID, localOnly: Boolean = false): CompletableFuture<UUID?> {
+        if (localOnly)
+            return CompletableFuture.completedFuture(pdAPI().getPlayerData_locally(uuid)?.permissions?.displayGroup)
 
+        return plugin.servicesFwk.playerData.api.getPlayerData(uuid)?.thenApply {
+            it?.permissions?.displayGroup
+        } ?: CompletableFuture.completedFuture(null)
+    }
 
+    /*
+        set display group
+     */
+
+    enum class Permissions_setDisplayGroupResult {
+        SUCCESS,
+        FAILURE_UNKNOWN,
+        FAILURE_CORRUPT_PLAYERDATA,
+        FAILURE_PLAYER_UNAVAILABLE,
+        FAILURE_PLAYER_NOT_IN_GROUP
+    }
+
+    suspend fun setDisplayGroup(player: String, group: String): Permissions_setDisplayGroupResult {
+        val uuid = plugin.essentialsFwk.usernameTracker.getUUID(player) ?: return Permissions_setDisplayGroupResult.FAILURE_PLAYER_UNAVAILABLE
+        return setDisplayGroup(uuid, service.data.getGroup(group)?.uuid ?: return Permissions_setDisplayGroupResult.FAILURE_UNKNOWN)
+    }
+
+    suspend fun setDisplayGroup(uuid: UUID, group: String): Permissions_setDisplayGroupResult {
+        return setDisplayGroup(uuid, service.data.getGroup(group)?.uuid ?: return Permissions_setDisplayGroupResult.FAILURE_UNKNOWN)
+    }
+
+    suspend fun setDisplayGroup(uuid: UUID, group: UUID): Permissions_setDisplayGroupResult {
+        var result: Permissions_setDisplayGroupResult
+
+        val modification = plugin.servicesFwk.playerData.inout_ss.makeModification(uuid) { pdata ->
+            // corrupt pdata
+            pdata.permissions ?:  run {
+                result = Permissions_setDisplayGroupResult.FAILURE_CORRUPT_PLAYERDATA
+                return@makeModification false
+            }
+
+            // player not in group to display
+            if (pdata.permissions?.groups?.contains(group) ?: false) {
+                result = Permissions_setDisplayGroupResult.FAILURE_PLAYER_NOT_IN_GROUP
+                return@makeModification false
+            }
+
+            // do not commit unnecessary changes
+            if (pdata.permissions?.displayGroup == group) {
+                return@makeModification false
+            }
+
+            // commit changes
+            pdata.permissions?.displayGroup = group
+            return@makeModification true
+        }
+
+        result = when(modification) {
+            PlayerData_InputOutputSubservice.PlayerDataModificationResult.SUCCESS -> Permissions_setDisplayGroupResult.SUCCESS
+            PlayerData_InputOutputSubservice.PlayerDataModificationResult.FAILURE_PLAYERDATA_UNAVAILABLE -> Permissions_setDisplayGroupResult.FAILURE_PLAYER_UNAVAILABLE
+            PlayerData_InputOutputSubservice.PlayerDataModificationResult.FAILURE_CORRUPT_PLAYERDATA -> Permissions_setDisplayGroupResult.FAILURE_CORRUPT_PLAYERDATA
+            PlayerData_InputOutputSubservice.PlayerDataModificationResult.FAILURE_UNKNOWN -> Permissions_setDisplayGroupResult.FAILURE_UNKNOWN
+        }
+
+        return result
+    }
 
 }
