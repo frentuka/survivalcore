@@ -22,6 +22,9 @@ class PermissionsServiceData (private val service: PermissionsService, private v
         return groupsMap.values.toSet()
     }
 
+    fun getGroupsMap()
+        = groupsMap
+
     fun setupGroup(group: PermissionGroup) {
         groupsMap[group.uuid] = group
         groupsNameIDMap[group.name] = group.uuid

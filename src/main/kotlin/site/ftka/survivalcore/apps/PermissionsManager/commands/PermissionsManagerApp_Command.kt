@@ -1,8 +1,5 @@
 package site.ftka.survivalcore.apps.PermissionsManager.commands
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
@@ -26,22 +23,35 @@ class PermissionsManagerApp_Command(private val app: PermissionsManagerApp, priv
         REMOVE
     }
 
+    private val chatScreen = ChatScreen("PermissionsManager")
+        get() {
+            field.screenContent["main"] = PermissionsManager_CommandLang(plugin).screenPage_home_panel()
+            field.screenContent["group"] = PermissionsManager_CommandLang(plugin).screenPage_group_panel()
+            return field
+        }
+
     override fun onCommand(sender: CommandSender, cmd: Command, label: String, args: Array<out String>): Boolean {
+        // no args presented
         if (args.isEmpty() && sender is Player) {
-            sendCommandScreen(sender.uniqueId)
+            sendCommandScreen(sender.uniqueId, "main")
             return false
+        }
+
+        // args presented
+
+        // group
+        if ((args.size == 1) and args[0].equals("group", true) and (sender is Player)) {
+            sendCommandScreen((sender as Player).uniqueId, "group")
+            return true
         }
 
         return true
     }
 
 
-    private fun sendCommandScreen(sender: UUID) {
-        val screen = ChatScreen("perms")
-        screen.screenContent["main"] = PermissionsManager_CommandLang().ScreenPage_home_panel()
-        screen.currentPage = "main"
-
-        plugin.servicesFwk.chat.screens_ss.showScreen(sender, screen)
+    private fun sendCommandScreen(sender: UUID, page: String) {
+        chatScreen.currentPage = page
+        plugin.servicesFwk.chat.screens_ss.showScreen(sender, chatScreen)
     }
 
 

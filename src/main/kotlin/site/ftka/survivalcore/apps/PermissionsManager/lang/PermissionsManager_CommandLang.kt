@@ -2,27 +2,27 @@ package site.ftka.survivalcore.apps.PermissionsManager.lang
 
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.MiniMessage
+import site.ftka.survivalcore.MClass
 import site.ftka.survivalcore.services.chat.objects.ChatScreenPage
 
-class PermissionsManager_CommandLang {
+class PermissionsManager_CommandLang(private val plugin: MClass) {
 
     val home_panel = "<gold><b>          Permissions Manager Panel</b></gold>\n" +
                 "<gray>                 <click:run_command:'/permissions group'>Group</click>     |     <click:run_command:'/permissions player'>Player</click>\n" +
                 "\n" +
-                "<red><click:run_command:'/exitPanel'>exit</click>"
+                "\n" +
+                "\n" +
+                "<red><click:run_command:'/exitScreen'>exit</click>"
 
-    val list = listOf("xd1", "xd2", "xd3")
-
-    fun ScreenPage_home_panel(): ChatScreenPage {
+    fun screenPage_home_panel(): ChatScreenPage {
         return ChatScreenPage(
             Component.text(home_panel),
             {
                 return@ChatScreenPage MiniMessage.miniMessage().deserialize(home_panel)
             },
 
-            { msg ->
-                println("ASDASDASDASDA $msg")
-            }
+            { }
+
         )
     }
 
@@ -37,6 +37,35 @@ class PermissionsManager_CommandLang {
             "{groupList}\n" +
             "\n" +
             "<red><click:run_command:'/exitPanel'>exit</click>"
+
+    fun screenPage_group_panel(): ChatScreenPage {
+        return ChatScreenPage(
+            Component.text(group_panel),
+            {
+                /*
+                    {groupList} has to be replaced with a list of all groups.
+                    Each group must use the group_panel_groupElement template.
+                 */
+
+                val groupList = StringBuilder()
+                for (group in plugin.servicesFwk.permissions.data.getGroups()) {
+                    groupList.append(group_panel_groupElement
+                        .replace("{prefix}", group.tag)
+                        .replace("{primaryColor}", group.primaryColor)
+                        .replace("{name}", group.name)
+                    )
+                    groupList.append("\n")
+                }
+
+                group_panel.replace("{groupList}", groupList.toString())
+
+                return@ChatScreenPage MiniMessage.miniMessage().deserialize(group_panel)
+            },
+
+            { }
+
+        )
+    }
 
     /**
      placeholders:
