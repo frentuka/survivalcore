@@ -34,9 +34,17 @@ class PermissionsManager_CommandLang(private val plugin: MClass) {
     val group_panel = "<gold><b>          Permissions Manager Panel</b></gold>\n" +
             "<gray>                 <green>Group<gray>     |     <click:run_command:'/permissions player'>Player</click>\n" +
             "\n" +
-            "{groupList}\n" +
+            "{groupList}" +
             "\n" +
             "<red><click:run_command:'/exitPanel'>exit</click>"
+
+    /**
+    placeholders:
+    | {prefix} -> group's prefix
+    | {primaryColor} -> group's primary color
+    | {name} -> group's name
+     */
+    val group_panel_groupElement = "  ->  <click:run_command:'/permissions group {name}'>{prefix} <{primaryColor}>{name}</click>"
 
     fun screenPage_group_panel(): ChatScreenPage {
         return ChatScreenPage(
@@ -57,9 +65,8 @@ class PermissionsManager_CommandLang(private val plugin: MClass) {
                     groupList.append("\n")
                 }
 
-                group_panel.replace("{groupList}", groupList.toString())
-
-                return@ChatScreenPage MiniMessage.miniMessage().deserialize(group_panel)
+                return@ChatScreenPage MiniMessage.miniMessage().deserialize(
+                    group_panel.replace("{groupList}", groupList.toString()))
             },
 
             { }
@@ -68,21 +75,13 @@ class PermissionsManager_CommandLang(private val plugin: MClass) {
     }
 
     /**
-     placeholders:
-     | {prefix} -> group's prefix
-     | {primaryColor} -> group's primary color
-     | {name} -> group's name
-     */
-    val group_panel_groupElement = "  ->  {prefix} <{primaryColor}>{name}"
-
-    /**
      | placeholders:
      | {prefix} -> group's prefix
      | {primaryColor} -> group's primary color
      | {name} -> group's name
-     | {permissionsList} -> permissionElement list
+     | {permissionsList} -> {permissionElement} list
      */
-    val group_panel_specificGroup = "<gold><b>          Permissions Manager Panel</b></gold>\n" +
+    var group_panel_specificGroup = "<gold><b>          Permissions Manager Panel</b></gold>\n" +
             "<gray>                 <green>Group<gray>     |     <click:run_command:'/permissions player'>Player</click>\n" +
             "\n" +
             "  {prefix} <{primaryColor}>{name}\n" +

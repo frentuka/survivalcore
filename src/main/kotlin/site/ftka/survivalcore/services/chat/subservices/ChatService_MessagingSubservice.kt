@@ -1,3 +1,4 @@
+
 package site.ftka.survivalcore.services.chat.subservices
 
 import net.kyori.adventure.text.Component
@@ -15,7 +16,7 @@ class ChatService_MessagingSubservice(private val svc: ChatService, private val 
         // add all active channels messages into a map
         for (channelName in activeChannels)
             messagesMap.putAll(svc.channels_ss.getChannel(channelName)?.getLatestMessages(entries)
-                ?: run {
+                ?: run { // if null, remove "active" map
                     svc.channels_ss.removeActiveChannel(uuid, channelName)
                     emptyMap()
                 })

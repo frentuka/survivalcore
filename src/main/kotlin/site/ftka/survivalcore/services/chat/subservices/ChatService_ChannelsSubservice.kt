@@ -35,8 +35,9 @@ class ChatService_ChannelsSubservice(private val service: ChatService, private v
         channelsMap[staffChannel.name] = staffChannel
     }
 
-    fun registerChannel(name: String, isPlayerChannel: Boolean = true, playerUUID: UUID? = null): ChatChannel {
+    fun registerChannel(name: String, isPlayerChannel: Boolean = true, playerUUID: UUID? = null, channelSettings: ChatChannel.ChatChannelSettings = ChatChannel.ChatChannelSettings()): ChatChannel {
         val channel = ChatChannel(service, name)
+        channel.settings = channelSettings
 
         startPurgeDataTimer()
 
@@ -55,14 +56,29 @@ class ChatService_ChannelsSubservice(private val service: ChatService, private v
 
     // gets
 
+    private fun getElementalChannelSettings(): ChatChannel.ChatChannelSettings {
+        val elementalChannelSettings = ChatChannel.ChatChannelSettings()
+        elementalChannelSettings.maxStoredChatEntries = 100 // full chat page
+        elementalChannelSettings.timeoutAfterSeconds = -1   // no timeout
+        return elementalChannelSettings
+    }
+
     fun existsChannel(channelName: String): Boolean =
         channelsMap.containsKey(channelName)
 
     fun getChannel(name: String): ChatChannel? = channelsMap[name]
 
-    fun getGlobalChannel() = getChannel(GLOBAL_CHANNEL_NAME)
+    // get or create
+    fun getGlobalChannel(): ChatChannel {
+        return getChannel(GLOBAL_CHANNEL_NAME) ?:
+            registerChannel(GLOBAL_CHANNEL_NAME, false, null, getElementalChannelSettings())
+    }
 
-    fun getStaffChannel() = getChannel(STAFF_CHANNEL_NAME)
+    // get or create
+    fun getStaffChannel(): ChatChannel {
+        return getChannel(STAFF_CHANNEL_NAME) ?:
+            registerChannel(STAFF_CHANNEL_NAME, false, null, getElementalChannelSettings())
+    }
 
     fun getPlayerChannel(uuid: UUID, createIfNotExists: Boolean = true): ChatChannel? {
         if (channelsMap.containsKey(uuid.toString()))
@@ -89,7 +105,7 @@ class ChatService_ChannelsSubservice(private val service: ChatService, private v
 
     fun addActiveChannel(uuid: UUID, channel: String) {
         if (!playersActiveChannels.containsKey(uuid))
-            playersActiveChannels[uuid] = mutableSetOf()
+            playersActiveChannels[uuid] = setOf()
 
         playersActiveChannels[uuid] = playersActiveChannels[uuid]!!.plus(channel)
     }

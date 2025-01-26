@@ -122,9 +122,6 @@ class ChatService_ScreensSubservice(private val svc: ChatService, private val pl
                     // refresh screen
                     if (!stopped)
                         sendActiveFrame(player)
-
-                    if (stopped)
-                        logger.log("Screen was stopped o.o")
                 }
             }, 1, 1, TimeUnit.SECONDS
         )
