@@ -51,17 +51,15 @@ class ChatListener(private val svc: ChatService, private val plugin: MClass): Li
     fun onPDJoin(ev: PlayerDataRegisterEvent) {
         logger.log("Adding default active channels for ${ev.uuid}")
 
-        // don't add global channel if player have chosen not to be in
-        if (svc.channels_ss.getActiveChannels(ev.uuid).isNotEmpty())
-            // add player to global channel
-            svc.channels_ss.getGlobalChannel()?.name?.let { svc.channels_ss.addActiveChannel(ev.uuid, it) }
+        // add player to global channel
+        svc.channels_ss.addActiveChannel(ev.uuid, svc.channels_ss.getGlobalChannel().name)
 
         // add player to it's personal channel
         svc.channels_ss.addActiveChannel(ev.uuid, svc.channels_ss.getPlayerChannel(ev.uuid, true)!!.name)
 
         // add player to staff channel if they have staff permissions
         if (plugin.servicesFwk.permissions.api.playerHasPerm(ev.uuid, "staff.*"))
-            svc.channels_ss.getStaffChannel()?.name?.let { svc.channels_ss.addActiveChannel(ev.uuid, it) }
+            svc.channels_ss.addActiveChannel(ev.uuid, svc.channels_ss.getStaffChannel().name)
 
         // restore corresponding chat to player
         svc.messaging_ss.restorePlayerChat(ev.uuid, 100)
