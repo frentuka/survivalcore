@@ -42,7 +42,7 @@ class PermissionsService(val plugin: MClass, private val services: ServicesFrame
     fun stop() {
         logger.log("Stopping...", LogLevel.LOW)
 
-        // save groupsz
+        // save groups
         inout_ss.storeGroupsIntoStorage()
     }
 
