@@ -37,10 +37,10 @@ class ServiceLogger(private val service: LoggingInitless, val serviceName: Strin
     private var dumpTimestamp = System.currentTimeMillis()
 
     // Sets which log levels will be stored
-    var dumpableLogLevels: Set<LogLevel> =
+    internal var dumpableLogLevels: Set<LogLevel> =
         setOf(LogLevel.DEBUG, LogLevel.HIGH, LogLevel.NORMAL, LogLevel.LOW)
 
-    var printableLogLevels: Set<LogLevel> =
+    internal var printableLogLevels: Set<LogLevel> =
         setOf(LogLevel.DEBUG, LogLevel.HIGH, LogLevel.NORMAL, LogLevel.LOW)
 
     /*

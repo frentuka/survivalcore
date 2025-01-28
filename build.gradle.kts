@@ -29,7 +29,7 @@ dependencies {
     implementation(kotlin("stdlib"))
     implementation(kotlin("reflect")) // Needed for proprietary events
     implementation("com.google.code.gson:gson:2.8.9")
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.5.21")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:2.1.20-Beta1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
 
     // Adventure dependencies
@@ -66,7 +66,7 @@ tasks.withType<Jar> {
         attributes["Main-Class"] = "site.ftka.proxycore.MClass"
     }
 
-    destinationDirectory = layout.buildDirectory.dir("C:/Users/srleg/Desktop/server/plugins/")
+    destinationDirectory = layout.buildDirectory.dir("C:/Network/Server - copia/plugins")
 
     from(sourceSets.main.get().output)
     dependsOn(configurations.runtimeClasspath)

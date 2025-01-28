@@ -1,3 +1,6 @@
+package site.ftka.survivalcore.apps.ServerAdministration.commands
+
+import site.ftka.survivalcore.apps.ServerAdministration.ServerAdministrationApp
 import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
@@ -47,7 +50,7 @@ class ServerAdministration_serverCommand(private val src: ServerAdministrationAp
         //val msg = ServerAdminCommandMessages()
 
         // get help
-        if (args == null || args.isEmpty()) {
+        if (args.isEmpty()) {
             sender.sendMessage(src.lang.help_message)
             return false
         }

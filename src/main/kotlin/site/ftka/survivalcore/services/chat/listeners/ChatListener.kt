@@ -13,7 +13,7 @@ import site.ftka.survivalcore.services.chat.events.ChatService_ChatEvent
 import site.ftka.survivalcore.services.playerdata.events.PlayerDataRegisterEvent
 import site.ftka.survivalcore.services.playerdata.events.PlayerDataUnregisterEvent
 
-class ChatListener(private val svc: ChatService, private val plugin: MClass): Listener, PropListener {
+class ChatListener(private val svc: ChatService, private val plugin: MClass) : Listener, PropListener {
     private val logger = svc.logger.sub("Listener")
 
     @EventHandler

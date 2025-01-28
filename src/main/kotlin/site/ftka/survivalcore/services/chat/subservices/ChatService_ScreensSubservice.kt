@@ -40,7 +40,7 @@ class ChatService_ScreensSubservice(private val svc: ChatService, private val pl
 
     // stop showing screen
     // name is not needed but I prefer to know that I'm stopping the right screen
-    fun stopScreen(uuid: UUID, name: String) {
+    private fun stopScreen(uuid: UUID, name: String) {
         if (!playersInsideScreens.containsKey(uuid))
             return
 
@@ -76,10 +76,10 @@ class ChatService_ScreensSubservice(private val svc: ChatService, private val pl
         get
      */
 
-    fun isPlayerInsideScreen(uuid: UUID) =
+    internal fun isPlayerInsideScreen(uuid: UUID) =
         playersInsideScreens.containsKey(uuid)
 
-    fun getActiveScreen(uuid: UUID): ChatScreen? =
+    internal fun getActiveScreen(uuid: UUID): ChatScreen? =
         playersInsideScreens[uuid]
 
     /*

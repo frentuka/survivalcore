@@ -1,7 +1,6 @@
 package site.ftka.survivalcore.services.playerdata
 
 
-
 import com.google.gson.Gson
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
@@ -21,18 +20,19 @@ import site.ftka.survivalcore.services.playerdata.subservices.*
 import java.util.concurrent.TimeUnit
 
 class PlayerDataService(private val plugin: MClass, private val services: ServicesFramework) {
-    val logger: ServiceLogger = plugin.loggingInitless.getLog("PlayerData", Component.text("PlayerData").color(NamedTextColor.DARK_AQUA))
+    val logger: ServiceLogger =
+        plugin.loggingInitless.getLog("PlayerData", Component.text("PlayerData").color(NamedTextColor.DARK_AQUA))
 
-    val api             = PlayerDataAPI(this)
-    val data            = PlayerDataServiceData(this, plugin)
+    val api = PlayerDataAPI(this)
+    val data = PlayerDataServiceData(this, plugin)
 
     // subservices
-    val inout_ss        = PlayerData_InputOutputSubservice(this, plugin)
-    val backup_ss       = PlayerData_BackupSubservice(this, plugin)
-    val integrity_ss    = PlayerData_IntegritySubservice(this, plugin)
+    val inout_ss = PlayerData_InputOutputSubservice(this, plugin)
+    val backup_ss = PlayerData_BackupSubservice(this, plugin)
+    val integrity_ss = PlayerData_IntegritySubservice(this, plugin)
     val registration_ss = PlayerData_RegistrationSubservice(this, plugin)
-    val emergency_ss    = PlayerData_EmergencySubservice(this, plugin)
-    val caching_ss      = PlayerData_CachingSubservice(this, plugin)
+    val emergency_ss = PlayerData_EmergencySubservice(this, plugin)
+    val caching_ss = PlayerData_CachingSubservice(this, plugin)
 
     // listeners
     val playerDataListener = PlayerDataListener(this, plugin)
@@ -116,7 +116,14 @@ class PlayerDataService(private val plugin: MClass, private val services: Servic
             // this step MUST NOT be async.
             // IF DATABASE HEALTH FAILS,
             // EMERGENCY DUMP IS AUTOMATICALLY CREATED IN OUTPUT_SS
-            val player = plugin.server.getPlayer(playerdata.uuid)
+
+            val player = runCatching {
+                plugin.server.getPlayer(playerdata.uuid)
+            }.getOrElse {
+                logger.log("Player $playerdata.uuid not found", LogLevel.HIGH)
+                return
+            }
+
             registration_ss.unregister(playerdata.uuid, player, false)
         }
     }

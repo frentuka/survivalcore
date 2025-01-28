@@ -1,6 +1,6 @@
 package site.ftka.survivalcore.apps
 
-import ServerAdministrationApp
+import site.ftka.survivalcore.apps.ServerAdministration.ServerAdministrationApp
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import site.ftka.survivalcore.MClass

@@ -13,23 +13,23 @@ import java.util.concurrent.Executors
 class MClass: JavaPlugin(), CommandExecutor {
 
     // basics
-    val globalScheduler = Executors.newSingleThreadScheduledExecutor()
+    internal val globalScheduler = Executors.newSingleThreadScheduledExecutor()
 
     // Instantiate initless-es
     val loggingInitless = LoggingInitless(this)
     val propEventsInitless = ProprietaryEventsInitless(this)
 
     // Instantiate essentials
-    val essentialsFwk = EssentialsFramework(this)
+    internal val essentialsFwk = EssentialsFramework(this)
 
     // Instantiate services
-    val servicesFwk = ServicesFramework(this)
+    internal val servicesFwk = ServicesFramework(this)
 
     // Instantiate apps
-    val appsFwk = AppsFramework(this)
+    private val appsFwk = AppsFramework(this)
 
-    var starting: Boolean = true
-    var stopping: Boolean = false
+    internal var starting: Boolean = true
+    internal var stopping: Boolean = false
 
     override fun onEnable() {
         // initialize all essentials

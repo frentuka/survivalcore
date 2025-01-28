@@ -41,7 +41,7 @@ class ChatService_ChannelsSubservice(private val service: ChatService, private v
 
         startPurgeDataTimer()
 
-        channelsMap.put(name, channel)
+        channelsMap[name] = channel
         if (isPlayerChannel && playerUUID != null)
             channelsMap[playerUUID.toString()] = channel
 
@@ -129,7 +129,7 @@ class ChatService_ChannelsSubservice(private val service: ChatService, private v
     private var purgeScheduledFuture: ScheduledFuture<*>? = null
     private var playersActiveChannelsTimeoutMap = mutableMapOf<UUID, Int>()
 
-    fun startPurgeDataTimer() {
+    private fun startPurgeDataTimer() {
         if (purgeScheduledFuture != null)
             return
 
@@ -139,7 +139,7 @@ class ChatService_ChannelsSubservice(private val service: ChatService, private v
     }
 
     // will remove data from channels if they dont update in certain amount of time
-    fun purgeDataCheck() {
+    private fun purgeDataCheck() {
         // check all channels
         for (channelName in channelsMap.keys) {
             val channel = getChannel(channelName) ?: continue

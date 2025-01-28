@@ -8,7 +8,7 @@ import site.ftka.survivalcore.essentials.database.events.DatabaseDisconnectEvent
 import site.ftka.survivalcore.essentials.database.events.DatabaseReconnectEvent
 import java.net.SocketAddress
 
-class DatabaseHealthCheckSubservice(val essential: DatabaseEssential, val plugin: MClass): RedisConnectionStateListener {
+class DatabaseHealthCheckSubservice(private val essential: DatabaseEssential, val plugin: MClass): RedisConnectionStateListener {
 
     private val checkFailEvent = DatabaseDisconnectEvent()
     private val reconnectEvent = DatabaseReconnectEvent()

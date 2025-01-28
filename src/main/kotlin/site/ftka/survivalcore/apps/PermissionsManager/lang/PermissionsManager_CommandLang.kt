@@ -7,12 +7,11 @@ import site.ftka.survivalcore.services.chat.objects.ChatScreenPage
 
 class PermissionsManager_CommandLang(private val plugin: MClass) {
 
-    val home_panel = "<gold><b>          Permissions Manager Panel</b></gold>\n" +
-                "<gray>                 <click:run_command:'/permissions group'>Group</click>     |     <click:run_command:'/permissions player'>Player</click>\n" +
-                "\n" +
-                "\n" +
-                "\n" +
-                "<red><click:run_command:'/exitScreen'>exit</click>"
+    val home_panel = buildString {
+        appendLine("<gold><b>          Permissions Manager Panel</b></gold>")
+        appendLine("<gray>                 <click:run_command:'/permissions group'>Group</click>     |     <click:run_command:'/permissions player'>Player</click>")
+        appendLine("<red><click:run_command:'/exitScreen'>exit</click>")
+    }
 
     fun screenPage_home_panel(): ChatScreenPage {
         return ChatScreenPage(
@@ -31,12 +30,13 @@ class PermissionsManager_CommandLang(private val plugin: MClass) {
      | {groupList} -> groups list
      | to be replaced with group_panel_groupElement for each group
      */
-    val group_panel = "<gold><b>          Permissions Manager Panel</b></gold>\n" +
-            "<gray>                 <green>Group<gray>     |     <click:run_command:'/permissions player'>Player</click>\n" +
-            "\n" +
-            "{groupList}" +
-            "\n" +
-            "<red><click:run_command:'/exitPanel'>exit</click>"
+    // Vamos a cambiar la forma de group_panel a buildString
+    val group_panel = buildString {
+        appendLine("<gold><b>          Permissions Manager Panel</b></gold>")
+        appendLine("<gray>                 <green>Group<gray>     |     <click:run_command:'/permissions player'>Player</click>")
+        appendLine("{groupList}")
+        appendLine("<red><click:run_command:'/exitPanel'>exit</click>")
+    }
 
     /**
     placeholders:
@@ -81,23 +81,24 @@ class PermissionsManager_CommandLang(private val plugin: MClass) {
      | {name} -> group's name
      | {permissionsList} -> {permissionElement} list
      */
-    var group_panel_specificGroup = "<gold><b>          Permissions Manager Panel</b></gold>\n" +
-            "<gray>                 <green>Group<gray>     |     <click:run_command:'/permissions player'>Player</click>\n" +
-            "\n" +
-            "  {prefix} <{primaryColor}>{name}\n" +
-            "\n" +
-            "{permissionsList}\n" +
-            "<click:run_command:'/permissions group {name} add'><green>+ New permission</click>\n" +
-            "\n" +
-            "<red><click:run_command:'/exitPanel'>exit</click>"
+    var group_panel_specificGroup = buildString {
+        appendLine("<gold><b>          Permissions Manager Panel</b></gold>")
+        appendLine("  ->  <click:run_command:'/permissions group {name}'>{prefix} <{primaryColor}>{name}</click>")
+        appendLine("{prefix} <{primaryColor}>{name}")
+        appendLine("{permissionsList}")
+        appendLine("<click:run_command:'/permissions group {name} add'><green>+ New permission</click>")
+        appendLine("<red><click:run_command:'/exitPanel'>exit</click>")
+    }
 
     /**
      | placeholders:
      | {permission} -> permission
      | {name} -> group's name
      */
-    val group_panel_specificGroup_permissionElement = "  <yellow>{permission} " +
-            "<red> <click:run_command:'/permissions group {name} remove {permission}'>" +
-            "<hover:show_text:'<red>remove'><b>[-]</b></hover></click>"
+    val group_panel_specificGroup_permissionElement = buildString {
+        appendLine("  <yellow>{permission} ")
+        appendLine("<red> <click:run_command:'/permissions group {name} remove {permission}'>")
+        appendLine("<hover:show_text:'<red>remove'><b>[-]</b></hover></click>")
+    }
 
 }
