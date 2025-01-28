@@ -5,6 +5,10 @@ description: Survival Core
 author: srleg
 api-version: '1.21'
 commands:
+  chat:
+    description: run ChatManager app
+  exitscreen:
+    description: exit any screen the player is on
   server:
     description: run ServerAdministration app
     aliases: sv

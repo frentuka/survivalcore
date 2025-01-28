@@ -38,9 +38,17 @@ internal class ChatService_ScreensSubservice(private val svc: ChatService, priva
         return true
     }
 
+    fun refreshScreen(uuid: UUID, page: String) {
+        if (!playersInsideScreens.containsKey(uuid))
+            return
+
+        playersInsideScreens[uuid]?.currentPage = page
+        sendActiveFrame(uuid)
+    }
+
     // stop showing screen
     // name is not needed but I prefer to know that I'm stopping the right screen
-    private fun stopScreen(uuid: UUID, name: String) {
+    fun stopScreen(uuid: UUID, name: String) {
         if (!playersInsideScreens.containsKey(uuid))
             return
 

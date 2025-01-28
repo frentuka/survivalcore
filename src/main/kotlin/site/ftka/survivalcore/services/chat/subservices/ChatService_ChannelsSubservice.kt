@@ -48,6 +48,13 @@ internal class ChatService_ChannelsSubservice(private val service: ChatService, 
         return channel
     }
 
+    fun removeChannel(channelName: String) {
+        channelsMap.remove(channelName)
+
+        for (player in playersActiveChannels.keys)
+            playersActiveChannels[player] = playersActiveChannels[player]!!.minus(channelName)
+    }
+
     fun modifyChannel(channelName: String, modification: (ChatChannel) -> Unit) {
         val channel = channelsMap[channelName] ?: return
         modification(channel)

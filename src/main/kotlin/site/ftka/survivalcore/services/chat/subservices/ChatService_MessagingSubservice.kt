@@ -9,7 +9,7 @@ import java.util.UUID
 internal class ChatService_MessagingSubservice(private val svc: ChatService, private val plugin: MClass) {
 
     // returns last {entries} player's chat log messages
-    private fun getPlayerChatLog(uuid: UUID, entries: Int): Map<Long, Component> {
+    fun getPlayerChatLog(uuid: UUID, entries: Int): Map<Long, Component> {
         val activeChannels = svc.channels_ss.getActiveChannels(uuid)
         val messagesMap = mutableMapOf<Long, Component>()
 
@@ -26,7 +26,7 @@ internal class ChatService_MessagingSubservice(private val svc: ChatService, pri
     }
 
     // sends the chat back to player
-    internal fun restorePlayerChat(uuid: UUID, entries: Int) {
+    fun restorePlayerChat(uuid: UUID, entries: Int) {
         val chatLog = getPlayerChatLog(uuid, entries)
 
         // send messages starting from lowest to highest key
@@ -35,7 +35,7 @@ internal class ChatService_MessagingSubservice(private val svc: ChatService, pri
     }
 
     // sends a 100-lines-long blank text message
-    internal fun clearChat(uuid: UUID) {
+    fun clearChat(uuid: UUID) {
         // create text before sending
         var blankText = " \n "
         // repeat the same text 50 times
@@ -46,27 +46,37 @@ internal class ChatService_MessagingSubservice(private val svc: ChatService, pri
         sendChannellessMessage(uuid, Component.text(blankText), false)
     }
 
-    internal fun sendGlobalMessage(message: Component) {
-        svc.channels_ss.getGlobalChannel()?.addMessage(message)
+    // send message to global channel
+    fun sendGlobalMessage(message: Component) {
+        svc.channels_ss.getGlobalChannel().addMessage(message)
         for (player in plugin.server.onlinePlayers)
             sendChannellessMessage(player.uniqueId, message, true)
     }
 
-    // send message to player
-    internal fun sendMessage(uuid: UUID, message: Component, respectScreens: Boolean = true) {
-        svc.channels_ss.getPlayerChannel(uuid)?.addMessage(message)
-        sendChannellessMessage(uuid, message, true)
+    // send message to staff channel
+    fun sendStaffMessage(message: Component) {
+        svc.channels_ss.getStaffChannel().addMessage(message)
+        for (player in plugin.server.onlinePlayers)
+            if (player.hasPermission("survivalcore.staff"))
+                sendChannellessMessage(player.uniqueId, message, true)
+    }
+
+    // send message to player's personal channel
+    fun sendPersonalMessage(uuid: UUID, message: Component, respectScreens: Boolean = true) {
+        val player = plugin.server.getPlayer(uuid) ?: return
+        svc.channels_ss.getPlayerChannel(uuid, true)?.addMessage(message)
+        sendChannellessMessage(uuid, message, respectScreens)
     }
 
     // send message to channel
-    internal fun sendMessage(channelName: String, message: Component) {
+    fun sendChannelMessage(channelName: String, message: Component) {
         svc.channels_ss.getChannel(channelName)?.let {
             it.addMessage(message)
             for (uuid in it.members) {
                 // check if player has channel active
                 if (svc.channels_ss.getActiveChannels(uuid).contains(channelName))
                     sendChannellessMessage(uuid, message, true) // player is active on channel so message will be sent
-                else // remove player from channel if he's not active
+                else // remove player from channel as it's not active
                     svc.channels_ss.modifyChannel(channelName) { it.members.remove(uuid) }
             }
         }

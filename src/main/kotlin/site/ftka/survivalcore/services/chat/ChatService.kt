@@ -5,14 +5,20 @@ import net.kyori.adventure.text.format.NamedTextColor
 import site.ftka.survivalcore.MClass
 import site.ftka.survivalcore.initless.logging.LoggingInitless.*
 import site.ftka.survivalcore.services.ServicesFramework
+import site.ftka.survivalcore.services.chat.commands.ChatService_ExitScreenCommand
 import site.ftka.survivalcore.services.chat.listeners.ChatListener
 import site.ftka.survivalcore.services.chat.subservices.ChatService_ChannelsSubservice
 import site.ftka.survivalcore.services.chat.subservices.ChatService_MessagingSubservice
 import site.ftka.survivalcore.services.chat.subservices.ChatService_ScreensSubservice
 import java.util.UUID
 
-/*
-    could be used externally
+/**
+ * ChatService is a class that handles the chat system,
+ * like allowing players to exit from screens
+ * or allowing staff to control screens and channels.
+ *
+ * @param plugin The main plugin class.
+ * @param servicesFwk The services' framework.
  */
 class ChatService(var plugin: MClass, var servicesFwk: ServicesFramework) {
     internal val logger = plugin.loggingInitless.getLog("Chat", Component.text("Chat").color(NamedTextColor.DARK_GRAY))
@@ -24,9 +30,6 @@ class ChatService(var plugin: MClass, var servicesFwk: ServicesFramework) {
 
         This service is meant to fully control
         every player's chat.
-
-        HOW TO BE USED:
-        Ask for a channel. Let's say, "Staff" using
      */
 
     internal val channels_ss =  ChatService_ChannelsSubservice(this, plugin)
@@ -34,6 +37,7 @@ class ChatService(var plugin: MClass, var servicesFwk: ServicesFramework) {
     internal val messaging_ss = ChatService_MessagingSubservice(this, plugin)
 
     private val chatListener = ChatListener(this, plugin)
+    private val exitScreenCommand = ChatService_ExitScreenCommand(this)
 
     internal fun init() {
         logger.log("Initializing...", LogLevel.LOW)
@@ -42,6 +46,8 @@ class ChatService(var plugin: MClass, var servicesFwk: ServicesFramework) {
 
         plugin.initListener(chatListener)
         plugin.propEventsInitless.registerListener(chatListener)
+
+        plugin.getCommand("exitscreen")?.setExecutor(exitScreenCommand)
     }
 
     // 1. reset all chat data
