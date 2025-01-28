@@ -1,7 +1,5 @@
 package site.ftka.survivalcore.services.playerdata
-import site.ftka.survivalcore.services.playerdata.objects.PlayerData
 import java.util.UUID
-import java.util.concurrent.CompletableFuture
 
 class PlayerDataAPI(private val svc: PlayerDataService) {
 

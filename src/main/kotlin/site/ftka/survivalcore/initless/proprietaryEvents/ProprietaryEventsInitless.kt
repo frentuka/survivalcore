@@ -12,6 +12,9 @@ import kotlin.reflect.KFunction
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.memberFunctions
 
+/*
+    could be used externally
+ */
 class ProprietaryEventsInitless(private val plugin: MClass) {
     private val logger = plugin.loggingInitless.getLog("Events", Component.text("Events"))
 

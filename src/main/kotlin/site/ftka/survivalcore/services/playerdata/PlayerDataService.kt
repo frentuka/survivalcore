@@ -20,33 +20,33 @@ import site.ftka.survivalcore.services.playerdata.subservices.*
 import java.util.concurrent.TimeUnit
 
 class PlayerDataService(private val plugin: MClass, private val services: ServicesFramework) {
-    val logger: ServiceLogger =
+    internal val logger: ServiceLogger =
         plugin.loggingInitless.getLog("PlayerData", Component.text("PlayerData").color(NamedTextColor.DARK_AQUA))
 
     val api = PlayerDataAPI(this)
-    val data = PlayerDataServiceData(this, plugin)
+    internal val data = PlayerDataServiceData(this, plugin)
 
     // subservices
-    val inout_ss = PlayerData_InputOutputSubservice(this, plugin)
-    val backup_ss = PlayerData_BackupSubservice(this, plugin)
-    val integrity_ss = PlayerData_IntegritySubservice(this, plugin)
-    val registration_ss = PlayerData_RegistrationSubservice(this, plugin)
-    val emergency_ss = PlayerData_EmergencySubservice(this, plugin)
-    val caching_ss = PlayerData_CachingSubservice(this, plugin)
+    internal val inout_ss = PlayerData_InputOutputSubservice(this, plugin)
+    internal val backup_ss = PlayerData_BackupSubservice(this, plugin)
+    internal val integrity_ss = PlayerData_IntegritySubservice(this, plugin)
+    internal val registration_ss = PlayerData_RegistrationSubservice(this, plugin)
+    internal val emergency_ss = PlayerData_EmergencySubservice(this, plugin)
+    internal val caching_ss = PlayerData_CachingSubservice(this, plugin)
 
     // listeners
-    val playerDataListener = PlayerDataListener(this, plugin)
+    internal val playerDataListener = PlayerDataListener(this, plugin)
 
     // fast access vals
     private val essFwk = plugin.essentialsFwk
-    val baseFolderPath = "/${plugin.dataFolder.absolutePath}/PlayerData"
+    internal val baseFolderPath = "/${plugin.dataFolder.absolutePath}/PlayerData"
 
     // Some things must not be done while service is restarting
     // like playerdata modifications or regs/unregs
     var isRestarting = false
 
     @OptIn(DelicateCoroutinesApi::class)
-    fun init() {
+    internal fun init() {
         logger.log("Initializing...", LogLevel.LOW)
 
         // initialize listeners
@@ -67,7 +67,7 @@ class PlayerDataService(private val plugin: MClass, private val services: Servic
     // 2. If exists, send emergency dumps to database
     // 3. Register every online player
     // 4. Call event
-    fun restart() {
+    internal fun restart() {
         logger.log("Restarting...", LogLevel.LOW)
         isRestarting = true
 
@@ -107,7 +107,7 @@ class PlayerDataService(private val plugin: MClass, private val services: Servic
         plugin.propEventsInitless.fireEvent(PlayerDataRestartEvent())
     }
 
-    fun stop() {
+    internal fun stop() {
         logger.log("Stopping...", LogLevel.LOW)
         isRestarting = true
 

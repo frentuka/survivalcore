@@ -10,7 +10,7 @@ import java.io.FileWriter
 import java.io.File
 import java.util.UUID
 
-class PlayerData_EmergencySubservice(private val service: PlayerDataService, private val plugin: MClass) {
+internal class PlayerData_EmergencySubservice(private val service: PlayerDataService, private val plugin: MClass) {
     val logger = service.logger.sub("Emergency")
 
     // fast access vals

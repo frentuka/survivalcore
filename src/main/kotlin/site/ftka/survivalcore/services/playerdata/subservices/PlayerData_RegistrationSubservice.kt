@@ -15,7 +15,7 @@ import site.ftka.survivalcore.services.playerdata.objects.modules.PlayerSettings
 import site.ftka.survivalcore.services.playerdata.objects.modules.PlayerState
 import java.util.*
 
-class PlayerData_RegistrationSubservice(private val service: PlayerDataService, private val plugin: MClass) {
+internal class PlayerData_RegistrationSubservice(private val service: PlayerDataService, private val plugin: MClass) {
     private val logger = service.logger.sub("Registration")
 
     // Register functions

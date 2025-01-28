@@ -15,7 +15,7 @@ import site.ftka.survivalcore.services.inventorygui.interfaces.InventoryGUIOwner
 import site.ftka.survivalcore.services.inventorygui.listeners.InventoryGUIDetectionListener
 
 class InventoryGUIService(private val plugin: MClass, private val services: ServicesFramework) {
-    val logger = plugin.loggingInitless.getLog("InventoryGUI", Component.text("InvGUI").color(TextColor.fromHexString("#cc6600")))
+    internal val logger = plugin.loggingInitless.getLog("InventoryGUI", Component.text("InvGUI").color(TextColor.fromHexString("#cc6600")))
     val api = InventoryGUIAPI(this)
 
     /*
@@ -31,7 +31,7 @@ class InventoryGUIService(private val plugin: MClass, private val services: Serv
 
     private val inventoryOwnersMap = mutableMapOf<String, InventoryGUIOwner>()
 
-    fun init() {
+    internal fun init() {
         logger.log("Initializing...", LogLevel.LOW)
         plugin.initListener(detectionListener)
 
@@ -39,13 +39,13 @@ class InventoryGUIService(private val plugin: MClass, private val services: Serv
         plugin.propEventsInitless.fireEvent(event)
     }
 
-    fun restart() {
+    internal fun restart() {
         logger.log("Restarting...", LogLevel.LOW)
         val event = InventoryGUIRestartEvent()
         plugin.propEventsInitless.fireEvent(event)
     }
 
-    fun stop() {
+    internal fun stop() {
         logger.log("Stopping...", LogLevel.LOW)
     }
 

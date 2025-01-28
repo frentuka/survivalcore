@@ -9,7 +9,7 @@ import site.ftka.survivalcore.initless.logging.LoggingInitless.*
 import java.util.UUID
 import java.util.concurrent.CompletableFuture
 
-class PlayerData_InputOutputSubservice(private val service: PlayerDataService, private val plugin: MClass) {
+internal class PlayerData_InputOutputSubservice(private val service: PlayerDataService, private val plugin: MClass) {
 
     private val logger = service.logger.sub("db_inOut")
     private val essFwk = plugin.essentialsFwk

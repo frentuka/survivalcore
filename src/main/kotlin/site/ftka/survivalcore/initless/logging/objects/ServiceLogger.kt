@@ -15,7 +15,7 @@ import java.io.File
 import java.io.FileWriter
 import java.io.IOException
 
-class ServiceLogger(private val service: LoggingInitless, val serviceName: String, var serviceTag: Component) {
+internal class ServiceLogger(private val service: LoggingInitless, val serviceName: String, var serviceTag: Component) {
 
     /*
         ServiceLogger will manage and allow services to create logs

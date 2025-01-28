@@ -8,7 +8,7 @@ import java.io.File
 import java.io.FileWriter
 import java.io.IOException
 
-class ConfigsEssential_InOutSubservice(private val essential: ConfigsEssential, private val plugin: MClass) {
+internal class ConfigsEssential_InOutSubservice(private val essential: ConfigsEssential, private val plugin: MClass) {
     private val logger = essential.logger.sub("InOut")
 
     private val configsFolderAbsolutePath = "/${plugin.dataFolder.absolutePath}/configs"

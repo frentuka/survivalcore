@@ -10,7 +10,7 @@ import org.bukkit.event.player.PlayerQuitEvent
 import site.ftka.survivalcore.MClass
 import java.io.File
 
-class WorldPlayerDataDeleter(private val plugin: MClass): Listener {
+internal class WorldPlayerDataDeleter(private val plugin: MClass): Listener {
 
     /*
     This class is meant to control (delete)

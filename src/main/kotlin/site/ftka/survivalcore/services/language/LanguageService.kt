@@ -12,9 +12,9 @@ import site.ftka.survivalcore.services.language.subservices.LanguageService_Inpu
 import java.util.*
 
 class LanguageService(private val plugin: MClass, private val services: ServicesFramework) {
-    val logger = plugin.loggingInitless.getLog("Language", Component.text("Lang").color(NamedTextColor.WHITE))
+    internal val logger = plugin.loggingInitless.getLog("Language", Component.text("Lang").color(NamedTextColor.WHITE))
     val api = LanguageAPI(this, plugin)
-    val data = LanguageServiceData(this, plugin)
+    internal val data = LanguageServiceData(this, plugin)
 
     /*
         LanguageService
@@ -28,7 +28,7 @@ class LanguageService(private val plugin: MClass, private val services: Services
 
     val defaultLanguagePack = LanguagePack()
 
-    fun init() {
+    internal fun init() {
         logger.log("Initializing...")
 
         data.loadLanguagePacksIntoMap()
@@ -37,13 +37,13 @@ class LanguageService(private val plugin: MClass, private val services: Services
         plugin.propEventsInitless.registerListener(langListener)
     }
 
-    fun restart() {
+    internal fun restart() {
         logger.log("Restarting...", LogLevel.LOW)
         data.loadLanguagePacksIntoMap(true)
         data.loadPlayersLanguage(true)
     }
 
-    fun stop() {
+    internal fun stop() {
         logger.log("Stopping...", LogLevel.LOW)
     }
 

@@ -1,8 +1,6 @@
 package site.ftka.survivalcore.services.permissions
 
-import site.ftka.survivalcore.services.permissions.objects.PermissionGroup
 import java.util.UUID
-import java.util.concurrent.CompletableFuture
 
 class PermissionsAPI(private val svc: PermissionsService) {
 

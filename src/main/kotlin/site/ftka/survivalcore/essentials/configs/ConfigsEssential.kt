@@ -17,8 +17,10 @@ import site.ftka.survivalcore.initless.logging.LoggingInitless.*
  * and manage configuration files effectively.
  *
  * @param plugin The main plugin instance required for initialization.
+ *
+ * This class should never be public, it's only intended use is internal
  */
-class ConfigsEssential(private val plugin: MClass) {
+internal class ConfigsEssential(private val plugin: MClass) {
 
     /**
      * Logger instance for logging messages related to ConfigsEssential.

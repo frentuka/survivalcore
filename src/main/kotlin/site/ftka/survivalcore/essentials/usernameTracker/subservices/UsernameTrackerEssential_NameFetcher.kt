@@ -8,7 +8,7 @@ import java.net.HttpURLConnection
 import java.net.URI
 import java.util.UUID
 
-class UsernameTrackerEssential_NameFetcher(private val ess: UsernameTrackerEssential) {
+internal class UsernameTrackerEssential_NameFetcher(private val ess: UsernameTrackerEssential) {
 
     private val logger = ess.logger.sub("NameFetcher")
     private val fetchURL = "https://api.minetools.eu/uuid/{uuid}"

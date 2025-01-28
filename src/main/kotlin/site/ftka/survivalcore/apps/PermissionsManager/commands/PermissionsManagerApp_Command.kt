@@ -10,7 +10,7 @@ import site.ftka.survivalcore.apps.PermissionsManager.lang.PermissionsManager_Co
 import site.ftka.survivalcore.services.chat.objects.ChatScreen
 import java.util.UUID
 
-class PermissionsManagerApp_Command(private val app: PermissionsManagerApp, private val plugin: MClass): CommandExecutor {
+internal class PermissionsManagerApp_Command(private val app: PermissionsManagerApp, private val plugin: MClass): CommandExecutor {
 
     private enum class CommandType {
         GROUP,

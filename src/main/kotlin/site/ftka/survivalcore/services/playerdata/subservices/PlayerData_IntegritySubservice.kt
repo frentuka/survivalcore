@@ -6,7 +6,7 @@ import site.ftka.survivalcore.initless.logging.LoggingInitless.*
 import site.ftka.survivalcore.services.playerdata.PlayerDataService
 import site.ftka.survivalcore.services.playerdata.objects.PlayerData
 
-class PlayerData_IntegritySubservice(private val service: PlayerDataService, private val plugin: MClass) {
+internal class PlayerData_IntegritySubservice(private val service: PlayerDataService, private val plugin: MClass) {
 
     private val logger = service.logger.sub("Integrity")
 

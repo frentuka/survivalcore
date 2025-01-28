@@ -7,7 +7,7 @@ class PermissionsManagerApp(val plugin: MClass) {
 
     private val permissionsCommand = PermissionsManagerApp_Command(this, plugin)
 
-    fun init() {
+    internal fun init() {
 
         // init command
         plugin.getCommand("p")?.setExecutor(permissionsCommand)
@@ -15,11 +15,11 @@ class PermissionsManagerApp(val plugin: MClass) {
         plugin.getCommand("permissions")?.setExecutor(permissionsCommand)
     }
 
-    fun restart() {
+    internal fun restart() {
         // nothing to restart
     }
 
-    fun stop() {
+    internal fun stop() {
         // nothing to stop
     }
 

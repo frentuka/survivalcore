@@ -5,7 +5,7 @@ import net.kyori.adventure.text.minimessage.MiniMessage
 import site.ftka.survivalcore.MClass
 import site.ftka.survivalcore.services.chat.objects.ChatScreenPage
 
-class PermissionsManager_CommandLang(private val plugin: MClass) {
+internal class PermissionsManager_CommandLang(private val plugin: MClass) {
 
     val home_panel = buildString {
         appendLine("<gold><b>          Permissions Manager Panel</b></gold>")

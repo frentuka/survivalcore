@@ -6,7 +6,7 @@ import site.ftka.survivalcore.services.playerdata.objects.PlayerData
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-class PlayerData_CachingSubservice(private val service: PlayerDataService, private val plugin: MClass) {
+internal class PlayerData_CachingSubservice(private val service: PlayerDataService, private val plugin: MClass) {
     private val logger = service.logger.sub("Caching")
 
     private val essFwk = plugin.essentialsFwk

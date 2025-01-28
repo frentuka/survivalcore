@@ -1,6 +1,10 @@
 package site.ftka.survivalcore.essentials.database
 
-class DatabaseAPI(private val ess: DatabaseEssential) {
+/*
+    database-related stuff is only meant to happen inside the internal services
+    it should never be public
+ */
+internal class DatabaseAPI(private val ess: DatabaseEssential) {
 
     fun ping(async: Boolean)
         = ess.ping(async)

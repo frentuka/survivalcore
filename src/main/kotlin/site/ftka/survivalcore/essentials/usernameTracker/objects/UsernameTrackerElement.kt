@@ -2,7 +2,7 @@ package site.ftka.survivalcore.essentials.usernameTracker.objects
 
 import java.util.UUID
 
-class UsernameTrackerElement {
+internal class UsernameTrackerElement {
 
     var username: String = "None"
     var uuid: UUID = UUID.randomUUID()

@@ -62,7 +62,7 @@ class PlayerDataListener(private val service: PlayerDataService, private val plu
 
     // Make emergency dump for every player
     @PropEventHandler(priority = PropEventPriority.FIRST)
-    fun onDatabaseHealthCheckFail(event: DatabaseDisconnectEvent) {
+    internal fun onDatabaseHealthCheckFail(event: DatabaseDisconnectEvent) {
         service.logger.log("Database health check failed. Dumping all playerdata into storage.", LogLevel.LOW, NamedTextColor.RED)
 
         for (playerdata in service.data.getPlayerDataMap().values) {
@@ -72,7 +72,7 @@ class PlayerDataListener(private val service: PlayerDataService, private val plu
     }
 
     @PropEventHandler(priority = PropEventPriority.FIRST)
-    fun onDatabaseReconnect(event: DatabaseReconnectEvent) {
+    internal fun onDatabaseReconnect(event: DatabaseReconnectEvent) {
         service.logger.log("Database reconnected. Saving available emergency dumps.", LoggingInitless.LogLevel.LOW)
         service.emergency_ss.uploadAllDumpsToDatabase(false)
     }

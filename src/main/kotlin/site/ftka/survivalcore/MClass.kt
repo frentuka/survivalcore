@@ -16,7 +16,7 @@ class MClass: JavaPlugin(), CommandExecutor {
     internal val globalScheduler = Executors.newSingleThreadScheduledExecutor()
 
     // Instantiate initless-es
-    val loggingInitless = LoggingInitless(this)
+    internal val loggingInitless = LoggingInitless(this)
     val propEventsInitless = ProprietaryEventsInitless(this)
 
     // Instantiate essentials

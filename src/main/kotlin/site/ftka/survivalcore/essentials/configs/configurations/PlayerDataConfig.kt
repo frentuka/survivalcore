@@ -2,7 +2,7 @@ package site.ftka.survivalcore.essentials.configs.configurations
 
 import com.google.gson.GsonBuilder
 
-class PlayerDataConfig {
+internal class PlayerDataConfig {
 
     var version: Int = 1
 

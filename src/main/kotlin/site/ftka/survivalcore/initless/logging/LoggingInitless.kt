@@ -7,7 +7,16 @@ import site.ftka.survivalcore.MClass
 import site.ftka.survivalcore.initless.logging.objects.Log
 import site.ftka.survivalcore.initless.logging.objects.ServiceLogger
 
-class LoggingInitless(private val plugin: MClass) {
+/*
+    LoggingInitless is a class that provides logging functionality
+    for the plugin. It is used to log messages to the console, and
+    to dump logs into files. It also provides a way to get a
+    ServiceLogger object, which is used to log messages for a
+    specific service.
+
+    Should never be used externally.
+ */
+internal class LoggingInitless(private val plugin: MClass) {
 
     val defaultTextColor: NamedTextColor = NamedTextColor.YELLOW;
 

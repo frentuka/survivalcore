@@ -7,7 +7,7 @@ import site.ftka.survivalcore.MClass
 import site.ftka.survivalcore.apps.PermissionsManager.PermissionsManagerApp
 
 class AppsFramework(private val plugin: MClass) {
-    private val logger = plugin.loggingInitless.getLog("AppsFramework", Component.text("Apps").color(NamedTextColor.RED))
+    private val logger = plugin.loggingInitless.getLog("AppsFramework", Component.text("Apps").color(NamedTextColor.BLACK))
 
     val serverAdministration = ServerAdministrationApp(plugin)
     val permissionsManager = PermissionsManagerApp(plugin)

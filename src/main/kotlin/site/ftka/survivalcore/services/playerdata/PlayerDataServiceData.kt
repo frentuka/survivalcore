@@ -6,7 +6,7 @@ import site.ftka.survivalcore.MClass
 import site.ftka.survivalcore.services.playerdata.objects.PlayerData
 import java.util.*
 
-class PlayerDataServiceData(private val service: PlayerDataService, private val plugin: MClass) {
+internal class PlayerDataServiceData(private val service: PlayerDataService, private val plugin: MClass) {
 
     // playerDataMap saves player's playerdata
     // onlinePlayers (UUIDs -> Usernames) is controlled by PlayerDataListener

@@ -4,7 +4,7 @@ import site.ftka.survivalcore.MClass
 import site.ftka.survivalcore.services.language.objects.LanguagePack
 import java.util.*
 
-class LanguageServiceData(private val service: LanguageService, private val plugin: MClass) {
+internal class LanguageServiceData(private val service: LanguageService, private val plugin: MClass) {
 
     val langMap = mutableMapOf<String, LanguagePack>()
     val playerLangMap = mutableMapOf<UUID, String>()

@@ -11,7 +11,7 @@ import org.bukkit.event.Listener
 import org.bukkit.event.server.TabCompleteEvent
 import site.ftka.survivalcore.MClass
 
-class ServerAdministration_serverCommand(private val src: ServerAdministrationApp, private val plugin: MClass): CommandExecutor, Listener {
+internal class ServerAdministration_serverCommand(private val src: ServerAdministrationApp, private val plugin: MClass): CommandExecutor, Listener {
 
     /*
         Command: server / sv

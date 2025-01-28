@@ -7,7 +7,7 @@ import site.ftka.survivalcore.essentials.configs.ConfigsEssential
 import site.ftka.survivalcore.essentials.database.DatabaseEssential
 import site.ftka.survivalcore.essentials.usernameTracker.UsernameTrackerEssential
 
-class EssentialsFramework(private val plugin: MClass) {
+internal class EssentialsFramework(private val plugin: MClass) {
     private val logger = plugin.loggingInitless.getLog("EssentialsFramework", Component.text("Essentials").color(NamedTextColor.RED))
 
     val configs         = ConfigsEssential(plugin)

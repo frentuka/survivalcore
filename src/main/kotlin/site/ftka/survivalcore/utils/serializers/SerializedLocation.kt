@@ -13,10 +13,10 @@ import org.bukkit.Location
  */
 data class SerializedLocation(var worldName: String = "world") {
 
-    private var coordinates: Triple<Double, Double, Double> = Triple(0.5, 63.1, 0.5)
+    var coordinates: Triple<Double, Double, Double> = Triple(0.5, 63.1, 0.5)
 
-    private var pitch: Float = 0.0f
-    private var yaw: Float = 0.0f
+    var pitch: Float = 0.0f
+    var yaw: Float = 0.0f
 
     /**
      * Sets the properties of this SerializedLocation from a given Bukkit Location.

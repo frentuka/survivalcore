@@ -12,19 +12,19 @@ class ServerAdministrationApp(private val plugin: MClass) {
 
      */
     private val serverCommand = ServerAdministration_serverCommand(this, plugin)
-    val lang = ServerAdministration_CommandLang()
+    internal val lang = ServerAdministration_CommandLang()
 
-    fun init() {
+    internal fun init() {
         // init commands
         plugin.getCommand("server")?.setExecutor(serverCommand)
         plugin.server.pluginManager.registerEvents(serverCommand, plugin)
     }
 
-    fun restart() {
+    internal fun restart() {
         // nothing to restart
     }
 
-    fun stop() {
+    internal fun stop() {
         // nothing to stop
     }
 

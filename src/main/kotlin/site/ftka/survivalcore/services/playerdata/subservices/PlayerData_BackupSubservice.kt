@@ -7,7 +7,7 @@ import site.ftka.survivalcore.services.playerdata.PlayerDataService
 import java.io.File
 import java.util.UUID
 
-class PlayerData_BackupSubservice(private val service: PlayerDataService, private val plugin: MClass) {
+internal class PlayerData_BackupSubservice(private val service: PlayerDataService, private val plugin: MClass) {
 
     /*
         This subservice is meant to create String backups of Database information.

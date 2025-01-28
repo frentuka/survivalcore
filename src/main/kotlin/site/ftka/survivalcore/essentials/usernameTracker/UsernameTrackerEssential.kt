@@ -6,13 +6,16 @@ import net.kyori.adventure.text.format.NamedTextColor
 import site.ftka.survivalcore.MClass
 import site.ftka.survivalcore.essentials.EssentialsFramework
 import site.ftka.survivalcore.essentials.usernameTracker.listeners.UsernameTrackerEssential_Listener
-import site.ftka.survivalcore.essentials.usernameTracker.objects.UsernameTrackerMap
 import site.ftka.survivalcore.essentials.usernameTracker.subservices.UsernameTrackerEssential_NameFetcher
 import site.ftka.survivalcore.initless.logging.LoggingInitless.*
 import java.io.File
 import java.util.UUID
 
-class UsernameTrackerEssential (private val essFwk: EssentialsFramework, private val plugin: MClass) {
+/*
+    should only be used internally
+    don't ever make it public
+ */
+internal class UsernameTrackerEssential (private val essFwk: EssentialsFramework, private val plugin: MClass) {
     val logger = plugin.loggingInitless.getLog("UsernameTracker", Component.text("usernameTracker").color(NamedTextColor.GRAY))
 
     /*
@@ -44,9 +47,9 @@ class UsernameTrackerEssential (private val essFwk: EssentialsFramework, private
     private val listener = UsernameTrackerEssential_Listener(this, plugin)
     private val nameFetcher = UsernameTrackerEssential_NameFetcher(this)
 
-    private var uuidsNamesMap = UsernameTrackerMap()
+    private var uuidsNamesMap = UsernameTrackerData()
 
-    fun usernameDatabase (): UsernameTrackerMap {
+    fun usernameDatabase (): UsernameTrackerData {
         return uuidsNamesMap
     }
 
@@ -95,7 +98,7 @@ class UsernameTrackerEssential (private val essFwk: EssentialsFramework, private
         }
 
         val json = file.readText()
-        uuidsNamesMap = fromJson(json) ?: UsernameTrackerMap()
+        uuidsNamesMap = fromJson(json) ?: UsernameTrackerData()
 
         buildInverseUUIDMap()
 
@@ -144,5 +147,5 @@ class UsernameTrackerEssential (private val essFwk: EssentialsFramework, private
     fun getName(uuid: UUID): String? =
         uuidsNamesMap.getUsername(uuid)
 
-    fun fromJson(json: String?): UsernameTrackerMap? = Gson().fromJson(json, UsernameTrackerMap::class.java)
+    fun fromJson(json: String?): UsernameTrackerData? = Gson().fromJson(json, UsernameTrackerData::class.java)
 }

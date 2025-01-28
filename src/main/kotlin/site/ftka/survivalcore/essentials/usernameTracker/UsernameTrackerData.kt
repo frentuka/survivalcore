@@ -1,9 +1,9 @@
-package site.ftka.survivalcore.essentials.usernameTracker.objects
+package site.ftka.survivalcore.essentials.usernameTracker
 
 import com.google.gson.GsonBuilder
 import java.util.UUID
 
-class UsernameTrackerMap {
+internal class UsernameTrackerData {
 
     private val map = mutableMapOf<UUID, String>()
 

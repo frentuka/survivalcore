@@ -3,7 +3,7 @@ package site.ftka.survivalcore.essentials.configs.configurations
 import com.google.gson.GsonBuilder
 import site.ftka.survivalcore.utils.serializers.SerializedLocation
 
-class GeneralConfig {
+internal class GeneralConfig {
 
     var version: Int = 1
 

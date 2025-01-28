@@ -6,7 +6,7 @@ import site.ftka.survivalcore.MClass
 import site.ftka.survivalcore.services.chat.ChatService
 import java.util.UUID
 
-class ChatService_MessagingSubservice(private val svc: ChatService, private val plugin: MClass) {
+internal class ChatService_MessagingSubservice(private val svc: ChatService, private val plugin: MClass) {
 
     // returns last {entries} player's chat log messages
     private fun getPlayerChatLog(uuid: UUID, entries: Int): Map<Long, Component> {

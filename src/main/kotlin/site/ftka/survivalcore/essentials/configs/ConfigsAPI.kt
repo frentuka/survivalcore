@@ -1,6 +1,9 @@
 package site.ftka.survivalcore.essentials.configs
 
-class ConfigsAPI(private val ess: ConfigsEssential) {
+/*
+ this class should be internal, as it's only meant to be used internally
+ */
+internal class ConfigsAPI(private val ess: ConfigsEssential) {
 
     fun generalCfg()
         = ess.generalCfg()

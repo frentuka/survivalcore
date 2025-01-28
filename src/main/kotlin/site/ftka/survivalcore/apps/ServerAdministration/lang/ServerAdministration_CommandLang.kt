@@ -2,7 +2,7 @@ package site.ftka.survivalcore.apps.ServerAdministration.lang
 
 import net.kyori.adventure.text.minimessage.MiniMessage
 
-class ServerAdministration_CommandLang {
+internal class ServerAdministration_CommandLang {
 
     private val mm = MiniMessage.miniMessage()
 

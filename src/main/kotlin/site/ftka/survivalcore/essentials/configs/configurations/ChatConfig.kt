@@ -2,7 +2,7 @@ package site.ftka.survivalcore.essentials.configs.configurations
 
 import com.google.gson.GsonBuilder
 
-class ChatConfig {
+internal class ChatConfig {
 
     var version = 1
 

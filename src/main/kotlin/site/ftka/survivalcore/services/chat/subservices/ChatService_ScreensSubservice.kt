@@ -8,7 +8,7 @@ import java.util.*
 import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
 
-class ChatService_ScreensSubservice(private val svc: ChatService, private val plugin: MClass) {
+internal class ChatService_ScreensSubservice(private val svc: ChatService, private val plugin: MClass) {
     private val logger = svc.logger.sub("Screens")
 
     // <Player's UUID, Screen>

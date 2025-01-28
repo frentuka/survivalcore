@@ -12,8 +12,11 @@ import site.ftka.survivalcore.initless.logging.LoggingInitless.*
 import java.util.concurrent.CompletableFuture
 import kotlin.Exception
 
-
-class DatabaseEssential(private val plugin: MClass) {
+/*
+    database-related stuff is only meant to happen inside the internal services
+    it should never be public
+ */
+internal class DatabaseEssential(private val plugin: MClass) {
     val logger = plugin.loggingInitless.getLog("DatabaseService", Component.text("Database").color(NamedTextColor.LIGHT_PURPLE))
     val api = DatabaseAPI(this)
 

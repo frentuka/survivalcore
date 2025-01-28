@@ -6,7 +6,11 @@ import org.bukkit.event.player.PlayerLoginEvent
 import site.ftka.survivalcore.MClass
 import site.ftka.survivalcore.essentials.usernameTracker.UsernameTrackerEssential
 
-class UsernameTrackerEssential_Listener(private val ess: UsernameTrackerEssential, private val plugin: MClass): Listener {
+/*
+    should never be public
+    it's only intended use is inside this project's modules
+ */
+internal class UsernameTrackerEssential_Listener(private val ess: UsernameTrackerEssential, private val plugin: MClass): Listener {
 
     @EventHandler
     fun onLogin(event: PlayerLoginEvent) {

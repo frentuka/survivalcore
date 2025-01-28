@@ -11,9 +11,12 @@ import site.ftka.survivalcore.services.chat.subservices.ChatService_MessagingSub
 import site.ftka.survivalcore.services.chat.subservices.ChatService_ScreensSubservice
 import java.util.UUID
 
+/*
+    could be used externally
+ */
 class ChatService(var plugin: MClass, var servicesFwk: ServicesFramework) {
-    val logger = plugin.loggingInitless.getLog("Chat", Component.text("Chat").color(NamedTextColor.DARK_GRAY))
-    val config = plugin.essentialsFwk.configs.chatConfig()
+    internal val logger = plugin.loggingInitless.getLog("Chat", Component.text("Chat").color(NamedTextColor.DARK_GRAY))
+    internal val config = plugin.essentialsFwk.configs.chatConfig()
     val api = ChatAPI(this)
 
     /*
@@ -26,13 +29,13 @@ class ChatService(var plugin: MClass, var servicesFwk: ServicesFramework) {
         Ask for a channel. Let's say, "Staff" using
      */
 
-    val channels_ss =  ChatService_ChannelsSubservice(this, plugin)
-    val screens_ss  = ChatService_ScreensSubservice(this, plugin)
-    val messaging_ss = ChatService_MessagingSubservice(this, plugin)
+    internal val channels_ss =  ChatService_ChannelsSubservice(this, plugin)
+    internal val screens_ss  = ChatService_ScreensSubservice(this, plugin)
+    internal val messaging_ss = ChatService_MessagingSubservice(this, plugin)
 
     private val chatListener = ChatListener(this, plugin)
 
-    fun init() {
+    internal fun init() {
         logger.log("Initializing...", LogLevel.LOW)
 
         channels_ss.createElementalChannels()
@@ -44,7 +47,7 @@ class ChatService(var plugin: MClass, var servicesFwk: ServicesFramework) {
     // 1. reset all chat data
     // 2. create elemental channels
     // 3. create all needed channels (player, clan, etc)
-    fun restart() {
+    internal fun restart() {
         logger.log("Restarting...", LogLevel.LOW)
 
         // 1.
@@ -58,7 +61,7 @@ class ChatService(var plugin: MClass, var servicesFwk: ServicesFramework) {
             channels_ss.registerChannel(player.uniqueId.toString(), true, player.uniqueId)
     }
 
-    fun stop() {
+    internal fun stop() {
         logger.log("Stopping...", LogLevel.LOW)
     }
 }
