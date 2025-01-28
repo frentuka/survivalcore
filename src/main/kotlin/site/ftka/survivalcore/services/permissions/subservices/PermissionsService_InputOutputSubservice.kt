@@ -96,14 +96,7 @@ class PermissionsService_InputOutputSubservice(private val service: PermissionsS
      * Will rename not only group's file but also the 'name' variable
      */
     fun renameGroupFile(groupName: String, newGroupName: String): Boolean {
-        val groupsFolderFile = File(groupsFolderAbsolutePath)
-        if (!groupsFolderFile.exists()) return false
-        if (!groupsFolderFile.isDirectory) return false
-
-        val groupFileAbsolutePath = "/$groupsFolderAbsolutePath/$groupName.json"
-        val groupFile = File(groupFileAbsolutePath)
-
-        if (!groupFile.exists()) return false
+        val groupFile = getGroupFile(groupName) ?: return false
 
         val newGroupFileAbsolutePath = "/$groupsFolderAbsolutePath/$newGroupName.json"
         val newGroupFile = File(newGroupFileAbsolutePath)
@@ -126,17 +119,24 @@ class PermissionsService_InputOutputSubservice(private val service: PermissionsS
     }
 
     fun deleteGroupFile(groupName: String): Boolean {
+        val groupFile = getGroupFile(groupName) ?: return false
+
+        service.data.getGroup(groupName)?.let { service.data.deMaterializeGroup(it.uuid) }
+        return groupFile.delete()
+    }
+
+    private fun getGroupFile(groupName: String): File? {
         val groupsFolderFile = File(groupsFolderAbsolutePath)
-        if (!groupsFolderFile.exists()) return false
-        if (!groupsFolderFile.isDirectory) return false
+        if (!groupsFolderFile.exists()) return null
+        if (!groupsFolderFile.isDirectory) return null
 
         val groupFileAbsolutePath = "/$groupsFolderAbsolutePath/$groupName.json"
         val groupFile = File(groupFileAbsolutePath)
 
-        if (!groupFile.exists()) return false
-
-        service.data.getGroup(groupName)?.let { service.data.deMaterializeGroup(it.uuid) }
-        return groupFile.delete()
+        // if file exists, return it, otherwise return null
+        // groupFile is non-null even if it doesn't exist
+        // this way it's just easier for me to understand file's inexistence
+        groupFile.exists().let { return if (it) groupFile else null }
     }
 
 }
