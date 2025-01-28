@@ -66,7 +66,8 @@ tasks.withType<Jar> {
         attributes["Main-Class"] = "site.ftka.proxycore.MClass"
     }
 
-    destinationDirectory = layout.buildDirectory.dir("C:/Network/Server - copia/plugins")
+    val outputDir = findProperty("outputDir") as String? ?: "C:/Users/srleg/Desktop/server/plugins/"
+    destinationDirectory = layout.buildDirectory.dir(outputDir)
 
     from(sourceSets.main.get().output)
     dependsOn(configurations.runtimeClasspath)
