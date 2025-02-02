@@ -11,51 +11,50 @@ group = "site.ftka"
 version = "1.0-SNAPSHOT"
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
+    toolchain.languageVersion.set(JavaLanguageVersion.of(21))
 }
 
 repositories {
     mavenCentral()
-
-    maven {
+    maven("https://repo.papermc.io/repository/maven-public/") {
         name = "papermc"
-        url = uri("https://repo.papermc.io/repository/maven-public/")
     }
 }
 
 dependencies {
-    testImplementation(kotlin("test"))
+    // Kotlin
     implementation(kotlin("stdlib"))
-    implementation(kotlin("reflect")) // Needed for proprietary events
-    implementation("com.google.code.gson:gson:2.8.9")
-    implementation("org.jetbrains.kotlin:kotlin-stdlib:2.1.20-Beta1")
+    implementation(kotlin("reflect"))
+
+    // Core Libraries
+    implementation("com.google.code.gson:gson:2.10.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
 
-    // Adventure dependencies
-    implementation("net.kyori:adventure-api:4.14.0")
+    // Adventure API
+    val adventureVersion = "4.14.0"
+    implementation("net.kyori:adventure-api:$adventureVersion")
     implementation("net.kyori:adventure-platform-bukkit:4.3.0")
-    implementation("net.kyori:adventure-text-serializer-gson:4.14.0")
-    implementation("net.kyori:adventure-text-serializer-plain:4.14.0")
-    implementation("net.kyori:adventure-text-serializer-legacy:4.14.0")
+    implementation("net.kyori:adventure-text-serializer-gson:$adventureVersion")
+    implementation("net.kyori:adventure-text-serializer-plain:$adventureVersion")
+    implementation("net.kyori:adventure-text-serializer-legacy:$adventureVersion")
 
-    // paper
+    // Paper API
     compileOnly("io.papermc.paper:paper-api:1.21.4-R0.1-SNAPSHOT")
 
-    compileOnly("io.lettuce:lettuce-core:6.5.0.RELEASE") // redis
-    implementation("org.apache.commons:commons-pool2:2.4.3") // connection pooling
-}
+    // Redis & Connection Pooling
+    compileOnly("io.lettuce:lettuce-core:6.5.0.RELEASE")
+    implementation("org.apache.commons:commons-pool2:2.4.3")
 
-java {
-    toolchain.languageVersion.set(JavaLanguageVersion.of(21))
+    // Testing
+    testImplementation(kotlin("test"))
 }
 
 tasks.test {
     useJUnitPlatform()
 }
 
-tasks.wrapper<Wrapper> {
-    gradleVersion = "8.5"
+tasks.wrapper {
+    gradleVersion = "8.12.1"
 }
 
 tasks.withType<Jar> {
@@ -73,14 +72,12 @@ tasks.withType<Jar> {
     dependsOn(configurations.runtimeClasspath)
 
     from({
-        configurations.compileClasspath.get().filter {
-            it.name.endsWith("jar")
-        }.map { zipTree(it) }
+        configurations.runtimeClasspath.get().files.map { zipTree(it) }
     }) {
-        exclude("META-INF/*.RSA\", \"META-INF/*.SF\", \"META-INF/*.DSA")
+        exclude("META-INF/*.RSA", "META-INF/*.SF", "META-INF/*.DSA")
     }
 }
 
 application {
-    mainClass.set("MClass")
+    mainClass.set("site.ftka.proxycore.MClass")
 }
