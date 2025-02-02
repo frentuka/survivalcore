@@ -7,11 +7,18 @@ api-version: '1.21'
 commands:
   chat:
     description: run ChatManager app
+  s:
+    description: Current screen's command
   exitscreen:
     description: exit any screen the player is on
+  backscreen:
+    description: go back to the previous screen page
   server:
     description: run ServerAdministration app
     aliases: sv
   permissions:
-    description: run PermissionsManager app
+    description: run PermissionsManager players app
     aliases: p, perms
+  groups:
+    description: run PermissionsManager groups app
+    aliases: g, group
