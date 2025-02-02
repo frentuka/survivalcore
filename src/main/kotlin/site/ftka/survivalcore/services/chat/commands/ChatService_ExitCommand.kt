@@ -6,12 +6,12 @@ import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import site.ftka.survivalcore.services.chat.ChatService
 
-internal class ChatService_ExitScreenCommand(private val svc: ChatService): CommandExecutor {
+internal class ChatService_ExitCommand(private val svc: ChatService): CommandExecutor {
 
     private val logger = svc.logger.sub("ExitScreen")
 
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
-        // /exitScreen
+        // /exitscreen
 
         if (sender !is Player) {
             logger.log("Only players can use this command.")

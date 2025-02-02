@@ -14,12 +14,14 @@ internal class ChatService_MessagingSubservice(private val svc: ChatService, pri
         val messagesMap = mutableMapOf<Long, Component>()
 
         // add all active channels messages into a map
-        for (channelName in activeChannels)
-            messagesMap.putAll(svc.channels_ss.getChannel(channelName)?.getLatestMessages(entries)
-                ?: run { // if null, remove "active" map
-                    svc.channels_ss.removeActiveChannel(uuid, channelName)
-                    emptyMap()
-                })
+        for (channelName in activeChannels) {
+            messagesMap.putAll(
+                svc.channels_ss.getChannel(channelName)?.getLatestMessages(entries)
+                    ?: run { // if null, remove "active" map
+                        svc.channels_ss.removeActiveChannel(uuid, channelName)
+                        emptyMap()
+                    })
+        }
 
         // take only highest {entries} entries
         return messagesMap.toSortedMap().entries.take(entries).associate { it.key to it.value }
@@ -49,8 +51,10 @@ internal class ChatService_MessagingSubservice(private val svc: ChatService, pri
     // send message to global channel
     fun sendGlobalMessage(message: Component) {
         svc.channels_ss.getGlobalChannel().addMessage(message)
+
         for (player in plugin.server.onlinePlayers)
-            sendChannellessMessage(player.uniqueId, message, true)
+            if (svc.channels_ss.getActiveChannels(player.uniqueId).contains(svc.channels_ss.getGlobalChannel().name))
+                sendChannellessMessage(player.uniqueId, message, true)
     }
 
     // send message to staff channel

@@ -41,9 +41,10 @@ internal class ChatService_ChannelsSubservice(private val service: ChatService, 
 
         startPurgeDataTimer()
 
-        channelsMap[name] = channel
         if (isPlayerChannel && playerUUID != null)
             channelsMap[playerUUID.toString()] = channel
+        else
+            channelsMap[name] = channel
 
         return channel
     }
@@ -73,6 +74,33 @@ internal class ChatService_ChannelsSubservice(private val service: ChatService, 
     fun existsChannel(channelName: String): Boolean =
         channelsMap.containsKey(channelName)
 
+    fun getAllChannels(pretty: Boolean = true, uuidToDelete: UUID? = null): Set<String> {
+        if (!pretty)
+            return channelsMap.keys
+
+        /*
+            channels but pretty:
+             - first, global and staff channels
+             - then, clan channels
+             - then, player channels. if specified, remove uuidToDelete
+         */
+
+        val channels = mutableSetOf<String>()
+        channels.add(GLOBAL_CHANNEL_NAME)
+        channels.add(STAFF_CHANNEL_NAME)
+
+        for (channelName in channelsMap.keys) {
+            if (channelName.startsWith(CLAN_CHANNEL_NAME_PREFIX))
+                channels.add(channelName)
+        }
+
+        for (channelName in channelsMap.keys)
+            if (!channelName.startsWith(CLAN_CHANNEL_NAME_PREFIX) && channelName != GLOBAL_CHANNEL_NAME && channelName != STAFF_CHANNEL_NAME && channelName != uuidToDelete?.toString())
+                channels.add(channelName)
+
+        return channels
+    }
+
     fun getChannel(name: String): ChatChannel? = channelsMap[name]
 
     // get or create
@@ -88,12 +116,18 @@ internal class ChatService_ChannelsSubservice(private val service: ChatService, 
     }
 
     fun getPlayerChannel(uuid: UUID, createIfNotExists: Boolean = true): ChatChannel? {
-        if (channelsMap.containsKey(uuid.toString()))
-            return channelsMap[uuid.toString()]
+        val name = plugin.server.getPlayer(uuid)?.uniqueId ?: return null
+            return getPlayerChannel(name, createIfNotExists)
+    }
 
-        // Apparently, it does not exist
+    fun getPlayerChannel(playerName: String, createIfNotExists: Boolean = true): ChatChannel? {
+        if (channelsMap.containsKey(playerName))
+            return channelsMap[playerName]
+
+        val uuid = plugin.server.getPlayer(playerName)?.uniqueId ?: return null
+
         if (createIfNotExists)
-            return registerChannel(uuid.toString(), true, uuid)
+            return registerChannel(playerName, true, uuid)
 
         return null
     }
@@ -104,10 +138,6 @@ internal class ChatService_ChannelsSubservice(private val service: ChatService, 
 
     fun getActiveChannels(uuid: UUID): Set<String> {
         return playersActiveChannels[uuid] ?: setOf()
-    }
-
-    fun setActiveChannels(uuid: UUID, channels: Set<String>) {
-        playersActiveChannels[uuid] = channels
     }
 
     fun addActiveChannel(uuid: UUID, channel: String) {
@@ -124,13 +154,13 @@ internal class ChatService_ChannelsSubservice(private val service: ChatService, 
         playersActiveChannels[uuid] = playersActiveChannels[uuid]!!.minus(channel)
     }
 
-    fun removeActiveChannels(uuid: UUID) {
-        playersActiveChannels.remove(uuid)
-    }
-
     /*
         data purge timeout
      */
+
+    fun purgePlayer(uuid: UUID) {
+        playersActiveChannels.remove(uuid)
+    }
 
     // clock that will do purgeDataCheck every 10 seconds
     private var purgeScheduledFuture: ScheduledFuture<*>? = null
@@ -162,7 +192,7 @@ internal class ChatService_ChannelsSubservice(private val service: ChatService, 
         // check player's active channels timeout
         for (player in playersActiveChannels.keys) {
             if (plugin.server.getPlayer(player) == null && playersActiveChannelsTimeoutMap[player]?.let { it < 0 } == true) {
-                removeActiveChannels(player)
+                purgePlayer(player)
                 playersActiveChannelsTimeoutMap.remove(player)
                 continue
             } else {

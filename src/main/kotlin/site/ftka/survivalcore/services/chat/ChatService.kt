@@ -5,12 +5,13 @@ import net.kyori.adventure.text.format.NamedTextColor
 import site.ftka.survivalcore.MClass
 import site.ftka.survivalcore.initless.logging.LoggingInitless.*
 import site.ftka.survivalcore.services.ServicesFramework
-import site.ftka.survivalcore.services.chat.commands.ChatService_ExitScreenCommand
+import site.ftka.survivalcore.services.chat.commands.ChatService_BackCommand
+import site.ftka.survivalcore.services.chat.commands.ChatService_ExitCommand
+import site.ftka.survivalcore.services.chat.commands.ChatService_SCommand
 import site.ftka.survivalcore.services.chat.listeners.ChatListener
 import site.ftka.survivalcore.services.chat.subservices.ChatService_ChannelsSubservice
 import site.ftka.survivalcore.services.chat.subservices.ChatService_MessagingSubservice
 import site.ftka.survivalcore.services.chat.subservices.ChatService_ScreensSubservice
-import java.util.UUID
 
 /**
  * ChatService is a class that handles the chat system,
@@ -25,6 +26,12 @@ class ChatService(var plugin: MClass, var servicesFwk: ServicesFramework) {
     internal val config = plugin.essentialsFwk.configs.chatConfig()
     val api = ChatAPI(this)
 
+    /**
+     * Screen standards. idk where to put it
+     */
+    val BACK_BUTTON_SCREEN_STANDARD = "<reset><gray><click:run_command:'/backscreen'><hover:show_text:'<gray>Go back'><-</hover></click>"
+    val EXIT_SCREEN_LINE_STANDARD = " <reset><click:run_command:'/exitscreen'><red><hover:show_text:'<red>Exit screen'>exit</hover></red></click>"
+
     /*
         ChatService
 
@@ -37,7 +44,10 @@ class ChatService(var plugin: MClass, var servicesFwk: ServicesFramework) {
     internal val messaging_ss = ChatService_MessagingSubservice(this, plugin)
 
     private val chatListener = ChatListener(this, plugin)
-    private val exitScreenCommand = ChatService_ExitScreenCommand(this)
+
+    private val exitCommand = ChatService_ExitCommand(this)
+    private val backCommand = ChatService_BackCommand(this)
+    private val sCommand = ChatService_SCommand(this)
 
     internal fun init() {
         logger.log("Initializing...", LogLevel.LOW)
@@ -47,7 +57,11 @@ class ChatService(var plugin: MClass, var servicesFwk: ServicesFramework) {
         plugin.initListener(chatListener)
         plugin.propEventsInitless.registerListener(chatListener)
 
-        plugin.getCommand("exitscreen")?.setExecutor(exitScreenCommand)
+        plugin.initListener(sCommand)
+        plugin.getCommand("s")?.setExecutor(sCommand)
+
+        plugin.getCommand("exitscreen")?.setExecutor(exitCommand)
+        plugin.getCommand("backscreen")?.setExecutor(backCommand)
     }
 
     // 1. reset all chat data

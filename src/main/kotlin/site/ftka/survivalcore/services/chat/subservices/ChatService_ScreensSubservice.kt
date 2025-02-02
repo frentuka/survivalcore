@@ -38,12 +38,29 @@ internal class ChatService_ScreensSubservice(private val svc: ChatService, priva
         return true
     }
 
-    fun refreshScreen(uuid: UUID, page: String) {
+    fun refreshScreen(uuid: UUID, screen: String, page: String) {
         if (!playersInsideScreens.containsKey(uuid))
             return
 
+        // safe-check
+        if (playersInsideScreens[uuid]?.name != screen)
+            return
+
+        screenTimeoutLastUpdateMap[uuid] = System.currentTimeMillis()
+
         playersInsideScreens[uuid]?.currentPage = page
         sendActiveFrame(uuid)
+    }
+
+    // String is just a safe-check to check that the screen is the right one
+    fun modifyScreen(uuid: UUID, name: String, modification: (ChatScreen) -> Unit) {
+        if (!playersInsideScreens.containsKey(uuid))
+            return
+
+        if (!playersInsideScreens[uuid]?.name.equals(name))
+            return
+
+        modification(playersInsideScreens[uuid]!!)
     }
 
     // stop showing screen
@@ -105,8 +122,6 @@ internal class ChatService_ScreensSubservice(private val svc: ChatService, priva
         if (screensScheduledFuture != null)
             return
 
-        logger.log("ChatScreen users: ${playersInsideScreens.keys}")
-
         screensScheduledFuture = plugin.globalScheduler.scheduleAtFixedRate(
             {
                 for (player in playersInsideScreens.keys) {
@@ -120,9 +135,7 @@ internal class ChatService_ScreensSubservice(private val svc: ChatService, priva
                     // if screen has timed out, remove it
                     val currentTimeMillis = System.currentTimeMillis()
                     val elapsedTimeMillis = currentTimeMillis - (screenTimeoutLastUpdateMap[player] ?: 0)
-                    if (!stopped && screenTimeoutLastUpdateMap[player]?.let { elapsedTimeMillis > screen.timeoutMillis } == true) {
-                        logger.log("Screen stopped because of timeout. Elapsed: ${elapsedTimeMillis/1000} Timeout: ${screen.timeoutMillis/1000}")
-
+                    if (!stopped && screen.timeoutMillis >= 0 && screenTimeoutLastUpdateMap[player]?.let { elapsedTimeMillis > screen.timeoutMillis } == true) {
                         stopScreen(player, screen.name)
                         stopped = true
                     }

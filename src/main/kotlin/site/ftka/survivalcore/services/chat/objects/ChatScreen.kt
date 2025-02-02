@@ -1,25 +1,51 @@
 package site.ftka.survivalcore.services.chat.objects
 
 import net.kyori.adventure.text.Component
-import site.ftka.survivalcore.services.chat.ChatService
-import java.util.UUID
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
 
-data class ChatScreen(val name: String) {
+abstract class ChatScreen {
 
-    var isActive = true
+    abstract val name: String
+    var isActive: Boolean = true
 
-    // 30 seconds
-    var timeoutMillis: Long = 1000 * 30
+    val timeoutMillis: Long
+        get() = if (currentPage == "home" || currentPage == "player")
+                30L * 1000
+            else
+                60L * 1000
+
 
     // <Name, Page>
-    var screenContent = mutableMapOf<String, ChatScreenPage>()
+    open var screenContent: MutableMap<String, ChatScreenPage> = mutableMapOf()
 
-    var currentPage: String? = null
+    /**
+     * The current page of the screen.
+     * @see (default) -> "home"
+     */
+    var currentPage: String = "home"
+        set(value) {
+            if (field != value && screenContent.containsKey(value))
+                if (history.isNotEmpty() && history[history.size - 1] != value) // don't add the same page to the history
+                    history.add(value)
+            if (screenContent.containsKey(value))
+                field = value
+        }
 
-    fun getCurrentChatScreenPageObject(): ChatScreenPage? =
-        screenContent[currentPage]
+    val history: MutableList<String> = mutableListOf(currentPage)
 
-    fun getFrame(): Component? = screenContent[currentPage]?.getMessage()
+    fun getCurrentChatScreenPageObject(): ChatScreenPage?
+        = screenContent[currentPage]
+
+    fun previousPage() {
+        print(history.toString())
+
+        if (history.size > 1) {
+            history.removeAt(history.size - 1)
+            currentPage = history[history.size - 1]
+        } else
+            currentPage = "home"
+    }
+
+    // the Process It boolean can be turned false to prevent StackOverflow when a screen watches the same screen
+    fun getFrame(processIt: Boolean = true): Component?
+        = screenContent[currentPage]?.getMessage(processIt)
 }
