@@ -38,7 +38,19 @@ class ChatAPI(private val svc: ChatService) {
         svc.channels_ss.removeChannel(name)
     }
 
-    // channel getters
+    /*
+        channel getters
+     */
+
+    /**
+     * Gets all channels
+     *
+     * @param pretty Whether to pretty-print the channels
+     * @param uuidToDelete The UUID of the player to remove from the channels
+     * @return The channels
+     */
+    fun getAllChannels(pretty: Boolean = true, uuidToDelete: UUID? = null)
+        = svc.channels_ss.getAllChannels()
 
     /**
      * Gets a channel by its name
@@ -66,7 +78,16 @@ class ChatAPI(private val svc: ChatService) {
         = svc.channels_ss.getStaffChannel()
 
     /**
-     * Gets the player's active channels
+     * Gets the player's personal channel
+     *
+     * @param playerName The player's name
+     * @return The player's personal channel
+     */
+    fun getPlayerChannel(playerName: String)
+        = svc.channels_ss.getPlayerChannel(playerName)
+
+    /**
+     * Gets the player's personal channel
      *
      * @param uuid The player's UUID
      * @return The player's personal channel
@@ -74,7 +95,53 @@ class ChatAPI(private val svc: ChatService) {
     fun getPlayerChannel(uuid: UUID)
         = svc.channels_ss.getPlayerChannel(uuid)
 
-    // screens
+    /**
+     * Gets the player's active channels
+     *
+     * @param uuid The player's UUID
+     * @return The player's active channels' names
+     */
+    fun getPlayerActiveChannels(uuid: UUID)
+        = svc.channels_ss.getActiveChannels(uuid)
+
+    /*
+        channel setters
+     */
+
+    /**
+     * Adds a channel to a player's active channels
+     *
+     * @param uuid The player's UUID
+     * @param channel The channel to add
+     */
+    fun addActiveChannel(uuid: UUID, channel: String)
+        = svc.channels_ss.addActiveChannel(uuid, channel)
+
+    /**
+     * Removes a channel from a player's active channels
+     *
+     * @param uuid The player's UUID
+     * @param channel The channel to remove
+     */
+    fun removeActiveChannel(uuid: UUID, channel: String)
+        = svc.channels_ss.removeActiveChannel(uuid, channel)
+
+    /*
+        screens
+     */
+
+
+    /**
+     * Checks if a player is inside a screen
+     *
+     * @param uuid The player's UUID
+     * @return Whether the player is inside a screen
+     */
+    fun isPlayerInsideScreen(uuid: UUID)
+        = svc.screens_ss.isPlayerInsideScreen(uuid)
+
+    fun getActiveScreen(uuid: UUID)
+        = svc.screens_ss.getActiveScreen(uuid)
 
     /**
      * Shows a screen to a player
@@ -86,13 +153,38 @@ class ChatAPI(private val svc: ChatService) {
         = svc.screens_ss.showScreen(uuid, screen)
 
     /**
+     * Shows a screen to a player, refreshing it if it's already shown
+     *
+     * @param uuid The player's UUID
+     * @param screen The screen to show
+     * @param page The page to show
+     */
+    fun showOrRefreshScreen(uuid: UUID, screen: ChatScreen, page: String = "home") {
+        if (isPlayerInsideScreen(uuid) && getActiveScreen(uuid)?.name == screen.name)
+            refreshScreen(uuid, screen.name, page)
+        else
+            showScreen(uuid, screen)
+    }
+
+    /**
      * Refreshes the screen of a player
      *
      * @param uuid The player's UUID
+     * @param screen The screen's name as a safe-check
      * @param page The new page to show
      */
-    fun refreshScreen(uuid: UUID, page: String)
-        = svc.screens_ss.refreshScreen(uuid, page)
+    fun refreshScreen(uuid: UUID, screen: String, page: String)
+        = svc.screens_ss.refreshScreen(uuid, screen, page)
+
+    /**
+     * Modifies player's screen if name coincides
+     *
+     * @param uuid The player's UUID
+     * @param name The screen's name
+     * @param modification The modification to apply
+     */
+    fun modifyScreen(uuid: UUID, name: String, modification: (ChatScreen) -> Unit)
+        = svc.screens_ss.modifyScreen(uuid, name, modification)
 
     /**
      * Stops a specific screen that the player is currently in
@@ -112,7 +204,11 @@ class ChatAPI(private val svc: ChatService) {
     fun stopAnyScreen(uuid: UUID)
         = svc.screens_ss.stopAnyScreen(uuid)
 
-    // chat messages
+
+    /*
+        chat messages
+     */
+
 
     /**
      * Gets the chat log of a player

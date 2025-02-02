@@ -26,9 +26,14 @@ internal class ChatListener(private val svc: ChatService, private val plugin: MC
         // if chat is sent from a screen, trigger corresponding event. don't trigger chat event
         if (svc.screens_ss.isPlayerInsideScreen(uuid)) {
             // execute listener
-            svc.screens_ss.getActiveScreen(uuid)?.getCurrentChatScreenPageObject()?.onChat?.let { it(ev.message()) }
+            svc.screens_ss.getActiveScreen(uuid)?.getCurrentChatScreenPageObject()?.onChat?.let { it(ev.signedMessage().message(), ev.player) }
             return
         }
+
+        // if player is not in global channel, don't send any message
+        // todo: let players send messages to other channels
+        if (!svc.api.getPlayerActiveChannels(uuid).contains(svc.channels_ss.getGlobalChannel().name))
+            return
 
         val event = ChatService_ChatEvent(uuid, ev.message())
         plugin.propEventsInitless.fireEvent(event)
@@ -55,7 +60,9 @@ internal class ChatListener(private val svc: ChatService, private val plugin: MC
         svc.channels_ss.addActiveChannel(ev.uuid, svc.channels_ss.getGlobalChannel().name)
 
         // add player to it's personal channel
-        svc.channels_ss.addActiveChannel(ev.uuid, svc.channels_ss.getPlayerChannel(ev.uuid, true)!!.name)
+        val playerName = plugin.essentialsFwk.usernameTracker.getName(ev.uuid)
+        playerName?.let { svc.api.addActiveChannel(ev.uuid, playerName) }
+
 
         // add player to staff channel if they have staff permissions
         if (plugin.servicesFwk.permissions.api.playerHasPerm(ev.uuid, "staff.*"))
@@ -67,7 +74,7 @@ internal class ChatListener(private val svc: ChatService, private val plugin: MC
 
     @PropEventHandler
     fun onPDQuit(ev: PlayerDataUnregisterEvent) {
-        svc.channels_ss.removeActiveChannels(ev.uuid)
+        svc.channels_ss.purgePlayer(ev.uuid)
         svc.screens_ss.stopAnyScreen(ev.uuid)
     }
 
