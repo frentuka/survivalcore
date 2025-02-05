@@ -157,7 +157,7 @@ class ChatAPI(private val svc: ChatService) {
      *
      * @param uuid The player's UUID
      * @param screen The screen to show
-     * @param page The page to show
+     * @param page The page to show. Default "home"
      */
     fun showOrRefreshScreen(uuid: UUID, screen: ChatScreen, page: String = "home") {
         if (isPlayerInsideScreen(uuid) && getActiveScreen(uuid)?.name == screen.name)

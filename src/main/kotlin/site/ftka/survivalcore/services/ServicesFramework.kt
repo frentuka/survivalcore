@@ -8,6 +8,7 @@ import site.ftka.survivalcore.services.inventorygui.InventoryGUIService
 import site.ftka.survivalcore.services.language.LanguageService
 import site.ftka.survivalcore.services.permissions.PermissionsService
 import site.ftka.survivalcore.services.playerdata.PlayerDataService
+import site.ftka.survivalcore.services.singula.SingulaService
 
 class ServicesFramework(private val plugin: MClass) {
     private val logger = plugin.loggingInitless.getLog("ServicesFramework", Component.text("Services").color(NamedTextColor.RED))
@@ -17,6 +18,7 @@ class ServicesFramework(private val plugin: MClass) {
     var language        = LanguageService(plugin, this)
     var permissions     = PermissionsService(plugin, this)
     var inventoryGUI    = InventoryGUIService(plugin, this)
+    var singula         = SingulaService(plugin, this)
 
     fun initAll() {
         logger.log("Initializing services...")
@@ -26,6 +28,8 @@ class ServicesFramework(private val plugin: MClass) {
         language.init()
         permissions.init()
         inventoryGUI.init()
+
+        singula.init()
     }
 
     fun restartAll() {
@@ -36,6 +40,8 @@ class ServicesFramework(private val plugin: MClass) {
         language.restart()
         permissions.restart()
         inventoryGUI.restart()
+
+        singula.restart()
     }
 
     fun stopAll() {
@@ -46,5 +52,7 @@ class ServicesFramework(private val plugin: MClass) {
         language.stop()
         permissions.stop()
         inventoryGUI.stop()
+
+        singula.stop()
     }
 }

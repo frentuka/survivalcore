@@ -1,4 +1,5 @@
 package site.ftka.survivalcore.services.playerdata
+import site.ftka.survivalcore.services.playerdata.objects.PlayerData
 import java.util.UUID
 
 class PlayerDataAPI(private val svc: PlayerDataService) {

@@ -40,7 +40,7 @@ internal class ServerAdministration_serverCommand(private val src: ServerAdminis
         if (sender !is ConsoleCommandSender) { // check authorization
             if (sender !is Player) return false // can't happen
             else if (!servFwk.playerData.data.getPlayerDataMap().containsKey(sender.uniqueId)) return false // if not exists in pdata
-            if (!servFwk.permissions.permissions_ss.playerHasPerm(sender.uniqueId, SERVER_ADMINISTRATION_PLAYER_PERMISSION)) {
+            if (!servFwk.permissions.permissions_ss.playerHasPerm_locally(sender.uniqueId, SERVER_ADMINISTRATION_PLAYER_PERMISSION)) {
                 val noPermissionMessage = plugin.servicesFwk.language.api.playerLanguagePack(sender.uniqueId).command_error_player_noPermission
                 sender.sendMessage(noPermissionMessage) // player doesn't have permission
                 // return false (testing with no return. shouldn't be commented)

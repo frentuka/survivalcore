@@ -23,7 +23,7 @@ class ChatManager_ChatCommand(private val plugin: MClass): CommandExecutor {
 
         val uuid = sender.uniqueId
 
-        if (plugin.servicesFwk.permissions.api.playerHasPerm(uuid, "staff.chat")) {
+        if (plugin.servicesFwk.permissions.api.player_hasPerm_locally(uuid, "staff.chat")) {
             // player does not have permission
             return false
         }
@@ -43,19 +43,19 @@ class ChatManager_ChatCommand(private val plugin: MClass): CommandExecutor {
 
         // /chat {player}
         if (args.size == 1) {
-            if (plugin.server.getPlayer(args[0]) == null) {
-                chatScreen.homePanel_chatMessage = args[0]
-                chatScreen.homePanel_isOnline = false
-                chatScreen.homePanel_errorMsgTimeout = 3
-                return false
-            }
+            val targetPlayer = plugin.server.getPlayer(args[0])
+                ?: run {
+                    chatScreen.homePanel_chatMessage = args[0]
+                    chatScreen.homePanel_isOnline = false
+                    chatScreen.homePanel_errorMsgTimeout = 3
+                    return false
+                }
 
-            chatScreen.playerSelection(plugin.server.getPlayer(args[0])!!.uniqueId)
+            chatScreen.playerSelection(targetPlayer.uniqueId)
 
             chatScreen.homePanel_isOnline = true
 
             chatAPI.refreshScreen(uuid, chatScreen.name, "player")
-
             return true
         }
 

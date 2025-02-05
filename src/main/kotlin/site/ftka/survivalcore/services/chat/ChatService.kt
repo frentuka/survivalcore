@@ -26,8 +26,8 @@ class ChatService(var plugin: MClass, var servicesFwk: ServicesFramework) {
     internal val config = plugin.essentialsFwk.configs.chatConfig()
     val api = ChatAPI(this)
 
-    /**
-     * Screen standards. idk where to put it
+    /*
+        Screen standards. idk where to put it
      */
     val BACK_BUTTON_SCREEN_STANDARD = "<reset><gray><click:run_command:'/backscreen'><hover:show_text:'<gray>Go back'><-</hover></click>"
     val EXIT_SCREEN_LINE_STANDARD = " <reset><click:run_command:'/exitscreen'><red><hover:show_text:'<red>Exit screen'>exit</hover></red></click>"

@@ -2,7 +2,9 @@ package site.ftka.survivalcore.services.permissions.subservices
 
 import site.ftka.survivalcore.MClass
 import site.ftka.survivalcore.services.permissions.PermissionsService
+import site.ftka.survivalcore.services.playerdata.objects.PlayerData
 import java.util.UUID
+import java.util.concurrent.CompletableFuture
 
 class PermissionsService_PermissionsSubservice(private val service: PermissionsService, private val plugin: MClass) {
 
@@ -13,7 +15,7 @@ class PermissionsService_PermissionsSubservice(private val service: PermissionsS
     fun groupHasPerm(groupID: UUID, permission: String) =
         hasPerm(groupPerms(groupID), permission)
 
-    fun playerHasPerm(uuid: UUID, permission: String): Boolean {
+    fun playerHasPerm_locally(uuid: UUID, permission: String): Boolean {
         val playerdata = plugin.servicesFwk.playerData.data.getPlayerData(uuid) ?: run {
             playerPermissionsCache.remove(uuid)
             return false
@@ -31,6 +33,27 @@ class PermissionsService_PermissionsSubservice(private val service: PermissionsS
         playerPermissionsCache[uuid] = playerPerms
 
         return hasPerm(playerPerms, permission)
+    }
+
+    fun playerHasPerm(uuid: UUID, permission: String): CompletableFuture<Boolean?> {
+        val playerdata = plugin.servicesFwk.playerData.api.getPlayerData(uuid)
+
+        playerPermissionsCache[uuid]?.let { cachedPerms ->
+            if (hasPerm(cachedPerms, permission)) return CompletableFuture.completedFuture(true)
+        }
+
+        return playerdata?.thenApply {
+            if (it == null)
+                return@thenApply null
+
+            // if not, calculate it
+            val playerPerms = playerPerms(it)
+
+            // add to cache
+            playerPermissionsCache[uuid] = playerPerms
+
+            return@thenApply hasPerm(playerPerms, permission)
+        } ?: CompletableFuture.completedFuture(null)
     }
 
     // cache should be invalidated when a player's permissions change
@@ -60,9 +83,13 @@ class PermissionsService_PermissionsSubservice(private val service: PermissionsS
         return false
     }
 
+    fun playerPerms(uuid: UUID): Set<String> {
+        val playerdata = plugin.servicesFwk.playerData.data.getPlayerData(uuid) ?: return setOf()
+        return playerPerms(playerdata)
+    }
+
     // returns all permissions of a player
-    fun playerPerms(playerUUID: UUID): Set<String> {
-        val playerdata = plugin.servicesFwk.playerData.data.getPlayerData(playerUUID) ?: return setOf()
+    fun playerPerms(playerdata: PlayerData): Set<String> {
         val groupsUUIDs = playerdata.permissions?.groups ?: setOf()
 
         val perms = mutableSetOf<String>()

@@ -65,7 +65,7 @@ internal class ChatListener(private val svc: ChatService, private val plugin: MC
 
 
         // add player to staff channel if they have staff permissions
-        if (plugin.servicesFwk.permissions.api.playerHasPerm(ev.uuid, "staff.*"))
+        if (plugin.servicesFwk.permissions.api.player_hasPerm_locally(ev.uuid, "staff.*"))
             svc.channels_ss.addActiveChannel(ev.uuid, svc.channels_ss.getStaffChannel().name)
 
         // restore corresponding chat to player
