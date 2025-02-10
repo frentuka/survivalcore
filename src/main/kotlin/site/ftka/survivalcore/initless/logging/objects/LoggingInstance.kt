@@ -15,11 +15,11 @@ import java.io.File
 import java.io.FileWriter
 import java.io.IOException
 
-internal class ServiceLogger(private val service: LoggingInitless, val serviceName: String, var serviceTag: Component) {
+internal class LoggingInstance(private val service: LoggingInitless, val serviceName: String, var serviceTag: Component) {
 
     /*
-        ServiceLogger will manage and allow services to create logs
-        Any service, to log stuff, will have to ask for a new ServiceLogger at the LoggingService service.
+        LoggingInstance will be an instance to manage and create logs
+        To log stuff, ask for a new LoggingInstance at the Logging initless.
      */
 
     // Map<Timestamp, Log message> | Used to know which logs to dump.
@@ -46,7 +46,7 @@ internal class ServiceLogger(private val service: LoggingInitless, val serviceNa
     /*
         SubLogger
      */
-    data class SubLogger(val logger: ServiceLogger, val tag: String) {
+    data class SubLogger(val logger: LoggingInstance, val tag: String) {
         fun log(text: String, level: LogLevel = LogLevel.NORMAL, color: NamedTextColor = logger.service.defaultTextColor) {
             val newTag =
                 logger.serviceTag.append(Component.text(" {").color(NamedTextColor.WHITE))

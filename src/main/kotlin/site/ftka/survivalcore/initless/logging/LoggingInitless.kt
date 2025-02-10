@@ -5,7 +5,7 @@ import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.TextColor
 import site.ftka.survivalcore.MClass
 import site.ftka.survivalcore.initless.logging.objects.Log
-import site.ftka.survivalcore.initless.logging.objects.ServiceLogger
+import site.ftka.survivalcore.initless.logging.objects.LoggingInstance
 
 /*
     LoggingInitless is a class that provides logging functionality
@@ -41,7 +41,7 @@ internal class LoggingInitless(private val plugin: MClass) {
                     .append(log.text.colorIfAbsent(msgColor)))) // colorized
     }
 
-    fun getLog(serviceName: String, serviceTag: Component) = ServiceLogger(this, serviceName, serviceTag)
+    fun getLog(serviceName: String, serviceTag: Component) = LoggingInstance(this, serviceName, serviceTag)
 
     enum class LogLevel(value: Int) {
         DEBUG(9), HIGH(3), NORMAL(2), LOW(1)
