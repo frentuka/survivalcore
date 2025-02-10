@@ -42,7 +42,7 @@ dependencies {
     compileOnly("io.papermc.paper:paper-api:1.21.4-R0.1-SNAPSHOT")
 
     // Redis & Connection Pooling
-    compileOnly("io.lettuce:lettuce-core:6.5.0.RELEASE")
+    compileOnly("io.lettuce:lettuce-core:6.5.3.RELEASE")
     implementation("org.apache.commons:commons-pool2:2.4.3")
 
     // Testing
