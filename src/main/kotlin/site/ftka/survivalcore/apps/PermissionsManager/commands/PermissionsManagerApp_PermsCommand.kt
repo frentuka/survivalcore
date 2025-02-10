@@ -10,7 +10,7 @@ import org.bukkit.entity.Player
 import site.ftka.survivalcore.MClass
 import site.ftka.survivalcore.apps.PermissionsManager.PermissionsManagerApp
 import site.ftka.survivalcore.apps.PermissionsManager.screens.PermissionsManager_ChatScreen
-import site.ftka.survivalcore.services.chat.ChatAPI
+import site.ftka.survivalcore.essentials.chat.ChatAPI
 import site.ftka.survivalcore.services.permissions.PermissionsAPI
 import site.ftka.survivalcore.services.permissions.subservices.PermissionsService_PlayersSubservice.*
 import java.util.*
@@ -18,7 +18,7 @@ import java.util.*
 internal class PermissionsManagerApp_PermsCommand(private val app: PermissionsManagerApp, private val plugin: MClass): CommandExecutor {
 
     private val chatAPI: ChatAPI
-        get() { return plugin.servicesFwk.chat.api }
+        get() { return plugin.essentialsFwk.chat.api }
 
     private val permsAPI: PermissionsAPI
         get() { return plugin.servicesFwk.permissions.api }

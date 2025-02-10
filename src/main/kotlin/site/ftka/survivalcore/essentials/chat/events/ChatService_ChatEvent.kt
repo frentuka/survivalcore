@@ -1,4 +1,4 @@
-package site.ftka.survivalcore.services.chat.events
+package site.ftka.survivalcore.essentials.chat.events
 
 import net.kyori.adventure.text.Component
 import site.ftka.survivalcore.initless.proprietaryEvents.interfaces.PropEvent

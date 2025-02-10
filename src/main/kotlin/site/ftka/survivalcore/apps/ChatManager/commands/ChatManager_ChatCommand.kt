@@ -10,7 +10,7 @@ import java.util.UUID
 
 class ChatManager_ChatCommand(private val plugin: MClass): CommandExecutor {
 
-    private val chatAPI = plugin.servicesFwk.chat.api
+    private val chatAPI = plugin.essentialsFwk.chat.api
 
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
 //        if (sender is Player)

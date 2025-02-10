@@ -1,13 +1,13 @@
-package site.ftka.survivalcore.services.chat.subservices
+package site.ftka.survivalcore.essentials.chat.subservices
 
 import site.ftka.survivalcore.MClass
-import site.ftka.survivalcore.services.chat.ChatService
-import site.ftka.survivalcore.services.chat.objects.ChatChannel
+import site.ftka.survivalcore.essentials.chat.ChatEssential
+import site.ftka.survivalcore.essentials.chat.objects.ChatChannel
 import java.util.*
 import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
 
-internal class ChatService_ChannelsSubservice(private val service: ChatService, private val plugin: MClass) {
+internal class ChatService_ChannelsSubservice(private val service: ChatEssential, private val plugin: MClass) {
 
     private val channelsMap = mutableMapOf<String, ChatChannel>()
     private val playersActiveChannels = mutableMapOf<UUID, Set<String>>()

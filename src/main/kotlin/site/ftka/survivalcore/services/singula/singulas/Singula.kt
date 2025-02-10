@@ -5,13 +5,12 @@ import net.kyori.adventure.text.Component
 import org.bukkit.entity.Player
 import site.ftka.survivalcore.MClass
 import site.ftka.survivalcore.essentials.usernameTracker.UsernameTrackerEssential
-import site.ftka.survivalcore.services.chat.ChatAPI
-import site.ftka.survivalcore.services.chat.objects.ChatScreen
+import site.ftka.survivalcore.essentials.chat.ChatAPI
+import site.ftka.survivalcore.essentials.chat.objects.ChatScreen
 import site.ftka.survivalcore.services.language.LanguageAPI
 import site.ftka.survivalcore.services.permissions.PermissionsAPI
 import site.ftka.survivalcore.services.permissions.subservices.PermissionsService_PlayersSubservice
 import site.ftka.survivalcore.services.playerdata.PlayerDataAPI
-import site.ftka.survivalcore.services.playerdata.objects.PlayerData
 import java.util.UUID
 
 /**
@@ -37,7 +36,7 @@ class Singula(private val plugin: MClass, val player: Player) {
         get() { return plugin.essentialsFwk.usernameTracker }
 
     private val chatAPI: ChatAPI
-        get() { return plugin.servicesFwk.chat.api }
+        get() { return plugin.essentialsFwk.chat.api }
 
     private val langAPI: LanguageAPI
         get() { return plugin.servicesFwk.language.api }

@@ -2,7 +2,7 @@ package site.ftka.survivalcore.services.singula.singulas
 
 import site.ftka.survivalcore.MClass
 import site.ftka.survivalcore.essentials.usernameTracker.UsernameTrackerEssential
-import site.ftka.survivalcore.services.chat.ChatAPI
+import site.ftka.survivalcore.essentials.chat.ChatAPI
 import site.ftka.survivalcore.services.language.LanguageAPI
 import site.ftka.survivalcore.services.permissions.PermissionsAPI
 import site.ftka.survivalcore.services.playerdata.PlayerDataAPI
@@ -27,7 +27,7 @@ class OfflineSingula(private val plugin: MClass, val uuid: UUID) {
         get() { return plugin.essentialsFwk.usernameTracker }
 
     private val chatAPI: ChatAPI
-        get() { return plugin.servicesFwk.chat.api }
+        get() { return plugin.essentialsFwk.chat.api }
 
     private val langAPI: LanguageAPI
         get() { return plugin.servicesFwk.language.api }

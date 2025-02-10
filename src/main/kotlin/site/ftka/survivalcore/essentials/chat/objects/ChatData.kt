@@ -1,4 +1,4 @@
-package site.ftka.survivalcore.services.chat.objects
+package site.ftka.survivalcore.essentials.chat.objects
 
 import net.kyori.adventure.text.Component
 

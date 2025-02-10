@@ -9,7 +9,7 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import site.ftka.survivalcore.MClass
 import site.ftka.survivalcore.initless.logging.LoggingInitless.LogLevel
-import site.ftka.survivalcore.initless.logging.objects.ServiceLogger
+import site.ftka.survivalcore.initless.logging.objects.LoggingInstance
 import site.ftka.survivalcore.services.ServicesFramework
 import site.ftka.survivalcore.services.playerdata.events.PlayerDataInitEvent
 import site.ftka.survivalcore.services.playerdata.events.PlayerDataRestartEvent
@@ -20,7 +20,7 @@ import site.ftka.survivalcore.services.playerdata.subservices.*
 import java.util.concurrent.TimeUnit
 
 class PlayerDataService(private val plugin: MClass, private val services: ServicesFramework) {
-    internal val logger: ServiceLogger =
+    internal val logger: LoggingInstance =
         plugin.loggingInitless.getLog("PlayerData", Component.text("PlayerData").color(NamedTextColor.DARK_AQUA))
 
     val api = PlayerDataAPI(this)

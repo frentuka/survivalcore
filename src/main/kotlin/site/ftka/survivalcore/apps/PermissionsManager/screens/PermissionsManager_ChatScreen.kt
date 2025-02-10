@@ -2,8 +2,8 @@ package site.ftka.survivalcore.apps.PermissionsManager.screens
 
 import net.kyori.adventure.text.minimessage.MiniMessage
 import site.ftka.survivalcore.MClass
-import site.ftka.survivalcore.services.chat.objects.ChatScreen
-import site.ftka.survivalcore.services.chat.objects.ChatScreenPage
+import site.ftka.survivalcore.essentials.chat.objects.ChatScreen
+import site.ftka.survivalcore.essentials.chat.objects.ChatScreenPage
 import java.util.UUID
 
 internal class PermissionsManager_ChatScreen(
@@ -12,7 +12,7 @@ internal class PermissionsManager_ChatScreen(
     private var targetUUID: UUID? = null
     ): ChatScreen() {
 
-    private val chat = plugin.servicesFwk.chat
+    private val chat = plugin.essentialsFwk.chat
     private val permsAPI = plugin.servicesFwk.permissions.api
 
     override val name = "PermissionsManager"

@@ -1,10 +1,10 @@
-package site.ftka.survivalcore.services.chat.objects
+package site.ftka.survivalcore.essentials.chat.objects
 
 import net.kyori.adventure.text.Component
-import site.ftka.survivalcore.services.chat.ChatService
+import site.ftka.survivalcore.essentials.chat.ChatEssential
 import java.util.UUID
 
-data class ChatChannel(private val service: ChatService, val name: String, var settings: ChatChannelSettings = ChatChannelSettings()) {
+data class ChatChannel(private val service: ChatEssential, val name: String, var settings: ChatChannelSettings = ChatChannelSettings()) {
     val members = mutableSetOf<UUID>()
     val data = ChatData()
 

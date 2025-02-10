@@ -1,4 +1,4 @@
-package site.ftka.survivalcore.services.chat.listeners
+package site.ftka.survivalcore.essentials.chat.listeners
 
 import io.papermc.paper.event.player.AsyncChatEvent
 import net.kyori.adventure.text.Component
@@ -8,12 +8,12 @@ import org.bukkit.event.Listener
 import site.ftka.survivalcore.MClass
 import site.ftka.survivalcore.initless.proprietaryEvents.annotations.PropEventHandler
 import site.ftka.survivalcore.initless.proprietaryEvents.interfaces.PropListener
-import site.ftka.survivalcore.services.chat.ChatService
-import site.ftka.survivalcore.services.chat.events.ChatService_ChatEvent
+import site.ftka.survivalcore.essentials.chat.ChatEssential
+import site.ftka.survivalcore.essentials.chat.events.ChatService_ChatEvent
 import site.ftka.survivalcore.services.playerdata.events.PlayerDataRegisterEvent
 import site.ftka.survivalcore.services.playerdata.events.PlayerDataUnregisterEvent
 
-internal class ChatListener(private val svc: ChatService, private val plugin: MClass) : Listener, PropListener {
+internal class ChatListener(private val svc: ChatEssential, private val plugin: MClass) : Listener, PropListener {
     private val logger = svc.logger.sub("Listener")
 
     @EventHandler

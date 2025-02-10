@@ -1,11 +1,11 @@
-package site.ftka.survivalcore.services.chat
+package site.ftka.survivalcore.essentials.chat
 
 import net.kyori.adventure.text.Component
-import site.ftka.survivalcore.services.chat.objects.ChatChannel
-import site.ftka.survivalcore.services.chat.objects.ChatScreen
+import site.ftka.survivalcore.essentials.chat.objects.ChatChannel
+import site.ftka.survivalcore.essentials.chat.objects.ChatScreen
 import java.util.UUID
 
-class ChatAPI(private val svc: ChatService) {
+class ChatAPI(private val svc: ChatEssential) {
 
     // channel administration
 

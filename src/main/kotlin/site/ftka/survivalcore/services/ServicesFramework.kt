@@ -3,7 +3,6 @@ package site.ftka.survivalcore.services
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import site.ftka.survivalcore.MClass
-import site.ftka.survivalcore.services.chat.ChatService
 import site.ftka.survivalcore.services.inventorygui.InventoryGUIService
 import site.ftka.survivalcore.services.language.LanguageService
 import site.ftka.survivalcore.services.permissions.PermissionsService
@@ -13,7 +12,6 @@ import site.ftka.survivalcore.services.singula.SingulaService
 class ServicesFramework(private val plugin: MClass) {
     private val logger = plugin.loggingInitless.getLog("ServicesFramework", Component.text("Services").color(NamedTextColor.RED))
 
-    var chat            = ChatService(plugin, this)
     var playerData      = PlayerDataService(plugin, this)
     var language        = LanguageService(plugin, this)
     var permissions     = PermissionsService(plugin, this)
@@ -23,7 +21,6 @@ class ServicesFramework(private val plugin: MClass) {
     fun initAll() {
         logger.log("Initializing services...")
 
-        chat.init()
         playerData.init()
         language.init()
         permissions.init()
@@ -35,7 +32,6 @@ class ServicesFramework(private val plugin: MClass) {
     fun restartAll() {
         logger.log("Restarting services...")
 
-        chat.restart()
         playerData.restart()
         language.restart()
         permissions.restart()
@@ -47,7 +43,6 @@ class ServicesFramework(private val plugin: MClass) {
     fun stopAll() {
         logger.log("Stopping services...")
 
-        chat.stop()
         playerData.stop()
         language.stop()
         permissions.stop()

@@ -5,14 +5,14 @@ import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import net.kyori.adventure.text.minimessage.tag.standard.StandardTags
 import site.ftka.survivalcore.MClass
-import site.ftka.survivalcore.services.chat.objects.ChatScreen
-import site.ftka.survivalcore.services.chat.objects.ChatScreenPage
+import site.ftka.survivalcore.essentials.chat.objects.ChatScreen
+import site.ftka.survivalcore.essentials.chat.objects.ChatScreenPage
 import java.util.*
 
 
 internal class ChatManager_ChatScreen(private val plugin: MClass, private var targetUUID: UUID? = null): ChatScreen() {
 
-    private val svc = plugin.servicesFwk.chat
+    private val svc = plugin.essentialsFwk.chat
 
     /*
         ChatScreen data
@@ -176,7 +176,7 @@ internal class ChatManager_ChatScreen(private val plugin: MClass, private var ta
             {
                 targetUUID ?: return@ChatScreenPage MiniMessage.miniMessage().deserialize("<red>error\n${svc.EXIT_SCREEN_LINE_STANDARD}")
                 val text = playerPanel
-                    .replace("{playername}", svc.plugin.essentialsFwk.usernameTracker.getName(targetUUID!!) ?: "{unknown}")
+                    .replace("{playername}", plugin.essentialsFwk.usernameTracker.getName(targetUUID!!) ?: "{unknown}")
                 return@ChatScreenPage MiniMessage.miniMessage().deserialize(text)
             })
 
@@ -186,14 +186,14 @@ internal class ChatManager_ChatScreen(private val plugin: MClass, private var ta
                 targetUUID ?: return@ChatScreenPage MiniMessage.miniMessage().deserialize("<red>error\n${svc.EXIT_SCREEN_LINE_STANDARD}")
 
                 val text = it
-                    .replace("{playerName}", svc.plugin.essentialsFwk.usernameTracker.getName(targetUUID!!) ?: "{unknown}")
+                    .replace("{playerName}", plugin.essentialsFwk.usernameTracker.getName(targetUUID!!) ?: "{unknown}")
 
                     .replace("{activeChannels}", buildString {
                         for (channel in svc.api.getPlayerActiveChannels(targetUUID!!))
                             appendLine(playerChannelsPanel_activeChannelElement.replace("{channelName}", channel))
                     }
 
-                    .replace("{playerName}", svc.plugin.essentialsFwk.usernameTracker.getName(targetUUID!!) ?: "{unknown}"))
+                    .replace("{playerName}", plugin.essentialsFwk.usernameTracker.getName(targetUUID!!) ?: "{unknown}"))
                 return@ChatScreenPage MiniMessage.miniMessage().deserialize(text)
             },
 
@@ -215,7 +215,7 @@ internal class ChatManager_ChatScreen(private val plugin: MClass, private var ta
         = ChatScreenPage(playerScreenPanel,
             {
                 targetUUID ?: return@ChatScreenPage MiniMessage.miniMessage().deserialize("<red>error\n${svc.EXIT_SCREEN_LINE_STANDARD}")
-                val targetName = svc.plugin.essentialsFwk.usernameTracker.getName(targetUUID!!) ?: "{unknown}"
+                val targetName = plugin.essentialsFwk.usernameTracker.getName(targetUUID!!) ?: "{unknown}"
 
                 var text = it.replace("{playerName}", targetName)
 

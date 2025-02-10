@@ -1,17 +1,17 @@
-package site.ftka.survivalcore.services.chat
+package site.ftka.survivalcore.essentials.chat
 
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import site.ftka.survivalcore.MClass
+import site.ftka.survivalcore.essentials.EssentialsFramework
 import site.ftka.survivalcore.initless.logging.LoggingInitless.*
-import site.ftka.survivalcore.services.ServicesFramework
-import site.ftka.survivalcore.services.chat.commands.ChatService_BackCommand
-import site.ftka.survivalcore.services.chat.commands.ChatService_ExitCommand
-import site.ftka.survivalcore.services.chat.commands.ChatService_SCommand
-import site.ftka.survivalcore.services.chat.listeners.ChatListener
-import site.ftka.survivalcore.services.chat.subservices.ChatService_ChannelsSubservice
-import site.ftka.survivalcore.services.chat.subservices.ChatService_MessagingSubservice
-import site.ftka.survivalcore.services.chat.subservices.ChatService_ScreensSubservice
+import site.ftka.survivalcore.essentials.chat.commands.ChatService_BackCommand
+import site.ftka.survivalcore.essentials.chat.commands.ChatService_ExitCommand
+import site.ftka.survivalcore.essentials.chat.commands.ChatService_SCommand
+import site.ftka.survivalcore.essentials.chat.listeners.ChatListener
+import site.ftka.survivalcore.essentials.chat.subservices.ChatService_ChannelsSubservice
+import site.ftka.survivalcore.essentials.chat.subservices.ChatService_MessagingSubservice
+import site.ftka.survivalcore.essentials.chat.subservices.ChatService_ScreensSubservice
 
 /**
  * ChatService is a class that handles the chat system,
@@ -21,7 +21,7 @@ import site.ftka.survivalcore.services.chat.subservices.ChatService_ScreensSubse
  * @param plugin The main plugin class.
  * @param servicesFwk The services' framework.
  */
-class ChatService(var plugin: MClass, var servicesFwk: ServicesFramework) {
+class ChatEssential(private val plugin: MClass, val essentialsFwk: EssentialsFramework) {
     internal val logger = plugin.loggingInitless.getLog("Chat", Component.text("Chat").color(NamedTextColor.DARK_GRAY))
     internal val config = plugin.essentialsFwk.configs.chatConfig()
     val api = ChatAPI(this)

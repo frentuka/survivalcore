@@ -15,8 +15,8 @@ import java.util.UUID
     should only be used internally
     don't ever make it public
  */
-internal class UsernameTrackerEssential (private val essFwk: EssentialsFramework, private val plugin: MClass) {
-    val logger = plugin.loggingInitless.getLog("UsernameTracker", Component.text("usernameTracker").color(NamedTextColor.GRAY))
+class UsernameTrackerEssential (private val essFwk: EssentialsFramework, private val plugin: MClass) {
+    internal val logger = plugin.loggingInitless.getLog("UsernameTracker", Component.text("usernameTracker").color(NamedTextColor.GRAY))
 
     /*
         This class is meant to keep track of player's Usernames <-> UUIDs.
@@ -49,7 +49,7 @@ internal class UsernameTrackerEssential (private val essFwk: EssentialsFramework
 
     private var uuidsNamesMap = UsernameTrackerData()
 
-    fun usernameDatabase (): UsernameTrackerData {
+    internal fun usernameDatabase (): UsernameTrackerData {
         return uuidsNamesMap
     }
 
@@ -147,5 +147,5 @@ internal class UsernameTrackerEssential (private val essFwk: EssentialsFramework
     fun getName(uuid: UUID): String? =
         uuidsNamesMap.getUsername(uuid)
 
-    fun fromJson(json: String?): UsernameTrackerData? = Gson().fromJson(json, UsernameTrackerData::class.java)
+    internal fun fromJson(json: String?): UsernameTrackerData? = Gson().fromJson(json, UsernameTrackerData::class.java)
 }

@@ -1,4 +1,4 @@
-package site.ftka.survivalcore.services.chat.commands
+package site.ftka.survivalcore.essentials.chat.commands
 
 import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
@@ -7,9 +7,9 @@ import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.server.TabCompleteEvent
-import site.ftka.survivalcore.services.chat.ChatService
+import site.ftka.survivalcore.essentials.chat.ChatEssential
 
-class ChatService_SCommand(private val svc: ChatService): CommandExecutor, Listener {
+class ChatService_SCommand(private val svc: ChatEssential): CommandExecutor, Listener {
 
     @EventHandler
     fun onTabComplete(ev: TabCompleteEvent) {
