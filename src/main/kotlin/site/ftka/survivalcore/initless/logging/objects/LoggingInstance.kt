@@ -15,7 +15,7 @@ import java.io.File
 import java.io.FileWriter
 import java.io.IOException
 
-internal class LoggingInstance(private val service: LoggingInitless, val serviceName: String, var serviceTag: Component) {
+internal class LoggingInstance(private val loggingInitless: LoggingInitless, val name: String, var tag: Component) {
 
     /*
         LoggingInstance will be an instance to manage and create logs
@@ -26,7 +26,7 @@ internal class LoggingInstance(private val service: LoggingInitless, val service
     private val logList = mutableListOf<Log>()
 
     // Location where dumped logs will be stored
-    private val logsFolderPath = service.logsFolderPath + "\\$serviceName"
+    private val logsFolderPath = loggingInitless.logsFolderPath + "\\$name"
 
     // If logs list get too heavy, removes some.
     // Set size cap
@@ -47,9 +47,9 @@ internal class LoggingInstance(private val service: LoggingInitless, val service
         SubLogger
      */
     data class SubLogger(val logger: LoggingInstance, val tag: String) {
-        fun log(text: String, level: LogLevel = LogLevel.NORMAL, color: NamedTextColor = logger.service.defaultTextColor) {
+        fun log(text: String, level: LogLevel = LogLevel.NORMAL, color: NamedTextColor = logger.loggingInitless.defaultTextColor) {
             val newTag =
-                logger.serviceTag.append(Component.text(" {").color(NamedTextColor.WHITE))
+                logger.tag.append(Component.text(" {").color(NamedTextColor.WHITE))
                     .append(Component.text(tag).color(NamedTextColor.WHITE))
                     .append(Component.text("}").color(NamedTextColor.WHITE))
             logger.log(Component.text(text), level, newTag)
@@ -65,16 +65,16 @@ internal class LoggingInstance(private val service: LoggingInitless, val service
       ----------------------------------------------------------------------------------
     */
 
-    fun log(text: String, level: LogLevel = LogLevel.NORMAL, color: NamedTextColor = service.defaultTextColor) = log(Component.text(text), level, serviceTag, color)
+    fun log(text: String, level: LogLevel = LogLevel.NORMAL, color: NamedTextColor = loggingInitless.defaultTextColor) = log(Component.text(text), level, tag, color)
 
     @OptIn(DelicateCoroutinesApi::class)
-    fun log(text: Component, level: LogLevel = LogLevel.NORMAL, tag: Component = serviceTag, color: NamedTextColor = service.defaultTextColor) {
+    fun log(text: Component, level: LogLevel = LogLevel.NORMAL, tag: Component = this.tag, color: NamedTextColor = loggingInitless.defaultTextColor) {
         val log = Log(color, text, level)
 
         // print
         GlobalScope.launch {
             if (log.level in printableLogLevels)
-                service.print(tag, log, color)
+                loggingInitless.print(tag, log, color)
 
             // process
             if (log.level in dumpableLogLevels) {
@@ -90,7 +90,7 @@ internal class LoggingInstance(private val service: LoggingInitless, val service
     @OptIn(DelicateCoroutinesApi::class)
     private fun dumpToStorage() {
         // Filename example: 2023-09-22_23:51:33_PlayerData_log.json
-        val fileName = dateUtils.timeFormat(dumpTimestamp, "yyyy-MM-dd_HH:mm:ss") + "_${serviceName}_log.json"
+        val fileName = dateUtils.timeFormat(dumpTimestamp, "yyyy-MM-dd_HH:mm:ss") + "_${name}_log.json"
 
         // Dump log
         log(Component.text("New log dump: $fileName"), LogLevel.DEBUG)

@@ -18,6 +18,10 @@ import site.ftka.survivalcore.initless.logging.objects.LoggingInstance
  */
 internal class LoggingInitless(private val plugin: MClass) {
 
+    enum class LogLevel(value: Int) {
+        DEBUG(9), HIGH(3), NORMAL(2), LOW(1)
+    }
+
     val defaultTextColor: NamedTextColor = NamedTextColor.YELLOW;
 
     val logsFolderPath = plugin.dataFolder.absolutePath + "\\logs"
@@ -41,9 +45,12 @@ internal class LoggingInitless(private val plugin: MClass) {
                     .append(log.text.colorIfAbsent(msgColor)))) // colorized
     }
 
-    fun getLog(serviceName: String, serviceTag: Component) = LoggingInstance(this, serviceName, serviceTag)
-
-    enum class LogLevel(value: Int) {
-        DEBUG(9), HIGH(3), NORMAL(2), LOW(1)
-    }
+    /**
+     * Get a logging instance
+     *
+     * @param instanceName The name of the service.
+     * @param instanceTag The tag of the service.
+     * @return A LoggingInstance object.
+     */
+    fun getLog(instanceName: String, instanceTag: Component) = LoggingInstance(this, instanceName, instanceTag)
 }
