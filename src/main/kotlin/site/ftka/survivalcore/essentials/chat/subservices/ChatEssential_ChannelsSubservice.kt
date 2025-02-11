@@ -7,7 +7,7 @@ import java.util.*
 import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
 
-internal class ChatService_ChannelsSubservice(private val service: ChatEssential, private val plugin: MClass) {
+internal class ChatEssential_ChannelsSubservice(private val service: ChatEssential, private val plugin: MClass) {
 
     private val channelsMap = mutableMapOf<String, ChatChannel>()
     private val playersActiveChannels = mutableMapOf<UUID, Set<String>>()

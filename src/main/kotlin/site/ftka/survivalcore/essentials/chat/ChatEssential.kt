@@ -9,9 +9,9 @@ import site.ftka.survivalcore.essentials.chat.commands.ChatService_BackCommand
 import site.ftka.survivalcore.essentials.chat.commands.ChatService_ExitCommand
 import site.ftka.survivalcore.essentials.chat.commands.ChatService_SCommand
 import site.ftka.survivalcore.essentials.chat.listeners.ChatListener
-import site.ftka.survivalcore.essentials.chat.subservices.ChatService_ChannelsSubservice
-import site.ftka.survivalcore.essentials.chat.subservices.ChatService_MessagingSubservice
-import site.ftka.survivalcore.essentials.chat.subservices.ChatService_ScreensSubservice
+import site.ftka.survivalcore.essentials.chat.subservices.ChatEssential_ChannelsSubservice
+import site.ftka.survivalcore.essentials.chat.subservices.ChatEssential_MessagingSubservice
+import site.ftka.survivalcore.essentials.chat.subservices.ChatEssential_ScreensSubservice
 
 /**
  * ChatService is a class that handles the chat system,
@@ -39,9 +39,9 @@ class ChatEssential(private val plugin: MClass, val essentialsFwk: EssentialsFra
         every player's chat.
      */
 
-    internal val channels_ss =  ChatService_ChannelsSubservice(this, plugin)
-    internal val screens_ss  = ChatService_ScreensSubservice(this, plugin)
-    internal val messaging_ss = ChatService_MessagingSubservice(this, plugin)
+    internal val channels_ss =  ChatEssential_ChannelsSubservice(this, plugin)
+    internal val screens_ss  = ChatEssential_ScreensSubservice(this, plugin)
+    internal val messaging_ss = ChatEssential_MessagingSubservice(this, plugin)
 
     private val chatListener = ChatListener(this, plugin)
 
