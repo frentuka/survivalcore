@@ -4,6 +4,7 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import site.ftka.survivalcore.MClass
 import site.ftka.survivalcore.essentials.actionbar.ActionBarEssential
+import site.ftka.survivalcore.essentials.bossbar.BossBarEssential
 import site.ftka.survivalcore.essentials.chat.ChatEssential
 import site.ftka.survivalcore.essentials.configs.ConfigsEssential
 import site.ftka.survivalcore.essentials.database.DatabaseEssential
@@ -17,6 +18,7 @@ class EssentialsFramework(private val plugin: MClass) {
     val usernameTracker         = UsernameTrackerEssential(this, plugin)
     val chat                    = ChatEssential(plugin, this)
     val actionbar               = ActionBarEssential(plugin, this)
+    var bossbar                 = BossBarEssential(plugin, this)
 
     fun initAll() {
         logger.log("Initializing essentials...")
@@ -26,6 +28,7 @@ class EssentialsFramework(private val plugin: MClass) {
         usernameTracker.init()
         chat.init()
         actionbar.init()
+        bossbar.init()
     }
 
     fun restartAll() {
@@ -36,6 +39,7 @@ class EssentialsFramework(private val plugin: MClass) {
         usernameTracker.restart()
         chat.restart()
         actionbar.restart()
+        bossbar.restart()
     }
 
     fun stopAll() {
@@ -46,6 +50,7 @@ class EssentialsFramework(private val plugin: MClass) {
         usernameTracker.stop()
         chat.stop()
         actionbar.stop()
+        bossbar.stop()
     }
 
 }
