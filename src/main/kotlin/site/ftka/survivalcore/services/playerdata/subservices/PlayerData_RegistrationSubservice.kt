@@ -3,7 +3,6 @@ package site.ftka.survivalcore.services.playerdata.subservices
 import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.entity.Player
 import site.ftka.survivalcore.MClass
-import site.ftka.survivalcore.initless.logging.LoggingInitless
 import site.ftka.survivalcore.initless.logging.LoggingInitless.*
 import site.ftka.survivalcore.services.playerdata.PlayerDataService
 import site.ftka.survivalcore.services.playerdata.events.PlayerDataRegisterEvent
@@ -15,66 +14,47 @@ import site.ftka.survivalcore.services.playerdata.objects.modules.PlayerSettings
 import site.ftka.survivalcore.services.playerdata.objects.modules.PlayerState
 import java.util.*
 
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.future.await
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.withLock
+
 internal class PlayerData_RegistrationSubservice(private val service: PlayerDataService, private val plugin: MClass) {
     private val logger = service.logger.sub("Registration")
 
     // Register functions
-    // 1. Obtain or create player's information (done in this function)
-    // 2. Apply appliable modules
+    // 1. Obtain or create player's information
+    // 2. Apply applicable modules
     // 3. Store in cache (in finishRegistration())
     // 4. Call PlayerDataRegistrationEvent (in finishRegistration())
-    fun register(uuid: UUID, player: Player? = null, async: Boolean = true) {
-        logger.log("Starting registration for uuid ($uuid)", LoggingInitless.LogLevel.DEBUG)
+    @OptIn(DelicateCoroutinesApi::class)
+    fun register(uuid: UUID, player: Player? = null) {
+        GlobalScope.launch {
+            val lock = service.data.getLock(uuid)
+            lock.withLock {
+                logger.log("Starting registration for uuid ($uuid)", LogLevel.DEBUG)
 
-        // 1.
-        val exists = service.inout_ss.exists(uuid, async) ?: return
+                // 1. Check if exists and get data
+                // By combining these, we save a database trip
+                val playerdata = try {
+                    service.inout_ss.get(uuid, async = true)?.await() ?: PlayerData(uuid).also {
+                        logger.log("Does not exist in database, creating new ($uuid)", LogLevel.HIGH)
+                    }
+                } catch (e: Exception) {
+                    logger.log("An exception occurred when retrieving data for ($uuid). Kicking player.")
+                    player?.kick()
+                    e.printStackTrace()
+                    return@withLock
+                }
 
-        exists.whenComplete { existsResult, exc ->
-            if (exc != null) {
-                logger.log("An exception occurred when retrieving data for ($uuid). Kicking player.")
-                player?.kick()
-                exc.printStackTrace()
+                logger.log("Gathered/Created playerdata for ($uuid)", LogLevel.DEBUG)
+
+                // Update timestamp to mark this data as "active"
+                playerdata.updateTimestamp = System.currentTimeMillis()
+
+                finishRegistration(playerdata, player, firstJoin = playerdata.updateTimestamp == 0L)
             }
-
-            // If existsResult, then get
-            // If not, then create
-            if (!existsResult) {
-
-                logger.log("Does not exist in database", LogLevel.HIGH)
-                logger.log("Creating new playerdata ($uuid)")
-
-                // Create and save
-                val playerdata = PlayerData(uuid) // create object
-                finishRegistration(playerdata, player, true)
-
-            } else { // Exists in database!
-
-                logger.log("PlayerData exists in database ($uuid)", LogLevel.HIGH)
-                gatherPlayerData(uuid, async, player)
-
-            }
-        }
-    }
-
-    private fun gatherPlayerData(uuid: UUID, async: Boolean, player: Player?) {
-        val get = service.inout_ss.get(uuid, async)
-        get?.whenComplete { getResult, exc ->
-
-            if (exc != null) {
-                logger.log("There was an exception when trying to gather data from database for $uuid. Kicking player", LogLevel.LOW, NamedTextColor.RED)
-                player?.kick()
-                exc.printStackTrace()
-                return@whenComplete
-            }
-
-            val playerdata = getResult ?: PlayerData(uuid)
-            if (getResult == null) {
-                logger.log("Creating new playerdata as database data seems corrupted ($uuid)", LogLevel.LOW)
-                service.backup_ss.backupFromRequestBuffer(uuid)
-            }
-
-            logger.log("Gathered playerdata from database: $getResult", LogLevel.DEBUG)
-            finishRegistration(playerdata, player, false)
         }
     }
 
@@ -117,27 +97,33 @@ internal class PlayerData_RegistrationSubservice(private val service: PlayerData
     // 2. Save player's information in database (in finishUnregistration())
     // 3. Remove from cache (in finishUnregistration())
     // 4. Report PlayerDataUnregistrationEvent (in finishUnregistration())
-    fun unregister(uuid: UUID, player: Player? = null, async: Boolean = true) {
-        // debug end
-        if (service.data.getPlayerData(uuid) == null) {
-            logger.log("Tried to unregister ($uuid) but no playerdata was found", LogLevel.LOW, NamedTextColor.RED)
-            return
-        }
+        @OptIn(DelicateCoroutinesApi::class)
+    fun unregister(uuid: UUID, player: Player? = null) {
+        GlobalScope.launch {
+            val lock = service.data.getLock(uuid)
+            lock.withLock {
+                val playerdata = service.data.getPlayerData(uuid) ?: run {
+                    logger.log("Tried to unregister ($uuid) but no playerdata was found", LogLevel.LOW, NamedTextColor.RED)
+                    return@withLock
+                }
 
-        val playerdata = service.data.getPlayerData(uuid)!!
-        val safePlayer = player ?: plugin.server.getPlayer(uuid)
+                val safePlayer = player ?: plugin.server.getPlayer(uuid)
 
-        // 1.
-        safePlayer?.let {
-            logger.log("Player found. Gathering playerstate for ($uuid)", LogLevel.DEBUG)
-            playerdata.state?.gatherValuesFromPlayer(safePlayer)
-            playerdata.information?.updateValuesFromPlayer(safePlayer)
-        }
+                safePlayer?.let {
+                    logger.log("Player found. Gathering playerstate for ($uuid)", LogLevel.DEBUG)
+                    playerdata.state?.gatherValuesFromPlayer(safePlayer)
+                    playerdata.information?.updateValuesFromPlayer(safePlayer)
+                }
 
         logger.log("Unregistering playerdata: ($uuid)", LogLevel.DEBUG)
 
-        finishUnregistration(playerdata, async)
+                finishUnregistration(playerdata, async = true)
+            }
+            // Cleanup happens AFTER the lock is released
+            service.data.cleanupLock(uuid)
+        }
     }
+
 
     private fun finishUnregistration(playerdata: PlayerData, async: Boolean) {
         val uuid = playerdata.uuid

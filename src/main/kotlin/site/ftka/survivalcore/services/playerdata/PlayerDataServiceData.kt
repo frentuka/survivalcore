@@ -13,6 +13,32 @@ internal class PlayerDataServiceData(private val service: PlayerDataService, pri
     private val playerDataMap: MutableMap<UUID, PlayerData> = mutableMapOf()
     private val onlinePlayers: MutableMap<UUID, String> = mutableMapOf()
 
+    // Lifecycle locks to prevent race conditions between joins, quits, and modifications
+    private val lifecycleLocks = mutableMapOf<UUID, Mutex>()
+    private val mutexRegistryLock = Mutex()
+
+    /**
+     * Gets or creates a lifecycle lock for a specific player.
+     */
+    suspend fun getLock(uuid: UUID): Mutex = mutexRegistryLock.withLock {
+        lifecycleLocks.getOrPut(uuid) { Mutex() }
+    }
+
+    /**
+     * Removes a lock from the registry if it's not currently locked.
+     * This prevents the registry from growing infinitely.
+     */
+    suspend fun cleanupLock(uuid: UUID) = mutexRegistryLock.withLock {
+        val mutex = lifecycleLocks[uuid]
+        if (mutex != null && !mutex.isLocked) {
+            lifecycleLocks.remove(uuid)
+        }
+    }
+
+    suspend fun isLocked(uuid: UUID): Boolean = mutexRegistryLock.withLock {
+        lifecycleLocks[uuid]?.isLocked ?: false
+    }
+
     fun getPlayerDataMap() =
         playerDataMap
 

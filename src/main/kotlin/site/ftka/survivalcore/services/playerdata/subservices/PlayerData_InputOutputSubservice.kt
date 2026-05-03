@@ -1,6 +1,6 @@
 package site.ftka.survivalcore.services.playerdata.subservices
 
-import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.future.await
 import kotlinx.coroutines.sync.withLock
 import site.ftka.survivalcore.MClass
 import site.ftka.survivalcore.services.playerdata.PlayerDataService
@@ -133,54 +133,55 @@ internal class PlayerData_InputOutputSubservice(private val service: PlayerDataS
         BBBBBB  OOOOOO     TT    HH  HH
      */
 
-    // concurrent playerdata modifications prevention
-    private val activeModificationsMutex = mutableMapOf<UUID, Mutex>()
-    private val modificationsMapMutex = Mutex()
-
     // 1. take playerdata (locally or from database)
     // 2. modify it
     // 3. put it back
     suspend fun makeModification(uuid: UUID, modification: (PlayerData) -> Boolean): PlayerDataModificationResult {
-        // get player's mutex
-        val playerMutex = modificationsMapMutex.withLock {
-            activeModificationsMutex.getOrPut(uuid) { Mutex() }
-        }
+        val lock = service.data.getLock(uuid)
 
         logger.log("Triggered PlayerData modification for $uuid", LogLevel.DEBUG)
 
-        playerMutex.withLock {
-            // take playerdata
-            val pdata = service.data.getPlayerData(uuid) ?: kotlin.run {
-                exists(uuid) ?: return PlayerDataModificationResult.FAILURE_PLAYERDATA_UNAVAILABLE
-                get(uuid) ?: return PlayerDataModificationResult.FAILURE_CORRUPT_PLAYERDATA
-            }
+        return lock.withLock {
+            val isOnline = service.data.exists(uuid)
 
-            // modify it
-            if (pdata is PlayerData) {
-                if (modification(pdata)) {
-                    // put it back
-                    if (service.data.getPlayerDataMap().containsKey(uuid))
-                        service.data.putPlayerData(uuid, pdata)
-                    set(pdata)
-                    return PlayerDataModificationResult.SUCCESS
-                } else
-                    return PlayerDataModificationResult.FAILURE_UNKNOWN
+            // 1. Obtain the PlayerData object (Memory if online, else DB/Cache)
+            val pdata: PlayerData = if (isOnline) {
+                service.data.getPlayerData(uuid)
             } else {
-                (pdata as CompletableFuture<*>).thenApply {
-                    if (modification(it as PlayerData)) {
-                        // put it back
-                        if (service.data.getPlayerDataMap().containsKey(uuid))
-                            service.data.putPlayerData(uuid, it)
-                        set(it)
-                        return@thenApply PlayerDataModificationResult.SUCCESS
-                    } else
-                        return@thenApply PlayerDataModificationResult.FAILURE_UNKNOWN
-                }
+                get(uuid, async = true)?.await()
+            } ?: return@withLock PlayerDataModificationResult.FAILURE_PLAYERDATA_UNAVAILABLE
+
+            // 2. Apply modification
+            val success = try {
+                modification(pdata)
+            } catch (e: Exception) {
+                logger.log("Exception during PlayerData modification for $uuid: ${e.message}", LogLevel.LOW)
+                e.printStackTrace()
+                false
             }
 
-            return PlayerDataModificationResult.FAILURE_UNKNOWN
+            if (!success) return@withLock PlayerDataModificationResult.FAILURE_UNKNOWN
+
+            // 3. Save strategy
+            val result = if (isOnline) {
+                // For online players, we update memory.
+                // Database persistence happens when they quit or via autosave.
+                service.data.putPlayerData(uuid, pdata)
+                PlayerDataModificationResult.SUCCESS
+            } else {
+                // For offline players, we MUST save immediately or the change is lost.
+                val saved = set(pdata, async = true).await()
+                if (saved) PlayerDataModificationResult.SUCCESS
+                else PlayerDataModificationResult.FAILURE_UNKNOWN
+            }
+
+            // 4. Final cleanup
+            if (!isOnline) service.data.cleanupLock(uuid)
+
+            return@withLock result
         }
     }
+
 
     enum class PlayerDataModificationResult {
         SUCCESS,
