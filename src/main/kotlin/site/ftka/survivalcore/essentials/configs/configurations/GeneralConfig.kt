@@ -10,6 +10,15 @@ internal class GeneralConfig {
     val PLAYER_FIRST_JOIN_SPAWN_LOCATION = SerializedLocation()
     val IJUSTWANTTOTEST = ":)"
 
+    val DATABASE = DatabaseConfig()
+
+    class DatabaseConfig {
+        var host: String = "127.0.0.1"
+        var port: Int = 6379
+        var password: String = "13548"
+        var database: Int = 0
+    }
+
     /**
      * Converts the GeneralConfig object to a JSON string representation.
      *

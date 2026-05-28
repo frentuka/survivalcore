@@ -16,7 +16,7 @@ internal class PlayerData_EmergencySubservice(private val service: PlayerDataSer
     // fast access vals
     private val essFwk = plugin.essentialsFwk
 
-    private val emergencyDumpFolderPath = "/${service.baseFolderPath}/EmergencyDump"
+    private val emergencyDumpFolderPath = "${service.baseFolderPath}/EmergencyDump"
 
     fun uploadAllDumpsToDatabase(async: Boolean) {
         val dumps = getAvailableDumps()
@@ -80,8 +80,8 @@ internal class PlayerData_EmergencySubservice(private val service: PlayerDataSer
 
         logger.log("Dumping ${playerdata.information?.username} (${playerdata.uuid})", LoggingInitless.LogLevel.HIGH)
 
-        // e.g. EmergencyDump\srleg_3988d2e9-60c4-4d81-bed0-a6b6c2d13080
-        val playerdataFile = "/${saveLocationFolder.absolutePath}/${playerdata.information?.username}_${playerdata.uuid}.json"
+        // e.g. EmergencyDump/srleg_3988d2e9-60c4-4d81-bed0-a6b6c2d13080.json
+        val playerdataFile = File(saveLocationFolder, "${playerdata.information?.username}_${playerdata.uuid}.json")
 
         val bufferedWriter: BufferedWriter
         try {

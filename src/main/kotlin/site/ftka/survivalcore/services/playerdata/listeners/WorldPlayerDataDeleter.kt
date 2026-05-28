@@ -35,9 +35,8 @@ internal class WorldPlayerDataDeleter(private val plugin: MClass): Listener {
     fun deletePlayerDataFolder(delay: Long) {
         GlobalScope.launch {
             delay(delay)
-            val worldFolder = plugin.server.worldContainer.absolutePath.replace(".", "world")
-            val playerdataFolder = "$worldFolder\\playerdata"
-            val playerdataFolderFile = File(playerdataFolder)
+            val worldFolder = File(plugin.server.worldContainer.absolutePath.replace(".", "world"))
+            val playerdataFolderFile = File(worldFolder, "playerdata")
 
             if (playerdataFolderFile.exists() && playerdataFolderFile.isDirectory && playerdataFolderFile.listFiles() != null)
                 playerdataFolderFile.listFiles()?.forEach { it.deleteRecursively() }

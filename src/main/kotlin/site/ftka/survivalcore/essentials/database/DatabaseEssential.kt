@@ -22,9 +22,7 @@ internal class DatabaseEssential(private val plugin: MClass) {
 
     private var printStackTraces = true
 
-    private val redis_conn_host = "redis://13548@127.0.0.1:6379/0"
-
-    private var redisClient = RedisClient.create(RedisURI.create(redis_conn_host))
+    private var redisClient: RedisClient? = null
     private var redisConnection: StatefulRedisConnection<String, String>? = null
 
     private var healthCheck_ss = DatabaseHealthCheckSubservice(this, plugin)
@@ -62,17 +60,29 @@ internal class DatabaseEssential(private val plugin: MClass) {
 
     // connects, adds listener and returns result
     private fun attemptConnectionInitialization(): Boolean {
+        setupRedisClient()
         val connected = connect()
         redisConnection?.addListener(healthCheck_ss)
 
         return connected
     }
 
+    private fun setupRedisClient() {
+        val dbCfg = plugin.essentialsFwk.configs.generalCfg().DATABASE
+        val passwordPart = if (dbCfg.password.isNotEmpty()) "${dbCfg.password}@" else ""
+        val redisConnHost = "redis://$passwordPart${dbCfg.host}:${dbCfg.port}/${dbCfg.database}"
+        
+        logger.log("Connecting to Redis database at ${dbCfg.host}:${dbCfg.port} (db=${dbCfg.database})...", LogLevel.LOW)
+        
+        redisClient?.shutdown()
+        redisClient = RedisClient.create(RedisURI.create(redisConnHost))
+    }
+
     private fun connect(): Boolean {
         return try {
             runBlocking {
                 if (redisConnection == null || !redisConnection!!.isOpen)
-                    redisConnection = redisClient.connect()
+                    redisConnection = redisClient!!.connect()
                 true
             }
         } catch (e: Exception) { if (printStackTraces) e.printStackTrace(); false }
@@ -80,6 +90,7 @@ internal class DatabaseEssential(private val plugin: MClass) {
 
     fun disconnect() {
         redisConnection?.closeAsync()
+        redisClient?.shutdown()
     }
 
     /*

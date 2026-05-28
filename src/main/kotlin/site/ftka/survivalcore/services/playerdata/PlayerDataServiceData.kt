@@ -77,12 +77,4 @@ internal class PlayerDataServiceData(private val service: PlayerDataService, pri
     fun clearOnlinePlayersMap() =
         onlinePlayers.clear()
 
-    private val modificationMutex = Mutex()
-    suspend fun makeModification(uuid: UUID, modification: (PlayerData) -> Unit) {
-        modificationMutex.withLock {
-            if (playerDataMap.containsKey(uuid))
-                modification(playerDataMap.get(uuid)!!)
-        }
-    }
-
 }

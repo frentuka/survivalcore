@@ -7,6 +7,7 @@ import site.ftka.survivalcore.initless.logging.LoggingInitless.*
 import site.ftka.survivalcore.services.playerdata.PlayerDataService
 import site.ftka.survivalcore.services.playerdata.events.PlayerDataRegisterEvent
 import site.ftka.survivalcore.services.playerdata.events.PlayerDataUnregisterEvent
+import site.ftka.survivalcore.services.playerdata.events.PlayerDataPreUnregisterEvent
 import site.ftka.survivalcore.services.playerdata.objects.PlayerData
 import site.ftka.survivalcore.services.playerdata.objects.modules.PlayerInformation
 import site.ftka.survivalcore.services.playerdata.objects.modules.PlayerPermissions
@@ -98,7 +99,7 @@ internal class PlayerData_RegistrationSubservice(private val service: PlayerData
     // 3. Remove from cache (in finishUnregistration())
     // 4. Report PlayerDataUnregistrationEvent (in finishUnregistration())
         @OptIn(DelicateCoroutinesApi::class)
-    fun unregister(uuid: UUID, player: Player? = null) {
+    fun unregister(uuid: UUID, player: Player? = null, async: Boolean = true) {
         GlobalScope.launch {
             val lock = service.data.getLock(uuid)
             lock.withLock {
@@ -110,14 +111,19 @@ internal class PlayerData_RegistrationSubservice(private val service: PlayerData
                 val safePlayer = player ?: plugin.server.getPlayer(uuid)
 
                 safePlayer?.let {
-                    logger.log("Player found. Gathering playerstate for ($uuid)", LogLevel.DEBUG)
-                    playerdata.state?.gatherValuesFromPlayer(safePlayer)
-                    playerdata.information?.updateValuesFromPlayer(safePlayer)
+                    logger.log("Player found. Firing PreUnregisterEvent and gathering playerstate for ($uuid)", LogLevel.DEBUG)
+                    
+                    // Fire PreUnregisterEvent before gathering so other components can finalize state
+                    val preEvent = PlayerDataPreUnregisterEvent(uuid, playerdata, it)
+                    plugin.propEventsInitless.fireEvent(preEvent)
+                    
+                    playerdata.state?.gatherValuesFromPlayer(it)
+                    playerdata.information?.updateValuesFromPlayer(it)
                 }
 
-        logger.log("Unregistering playerdata: ($uuid)", LogLevel.DEBUG)
+                logger.log("Unregistering playerdata: ($uuid)", LogLevel.DEBUG)
 
-                finishUnregistration(playerdata, async = true)
+                finishUnregistration(playerdata, async = async)
             }
             // Cleanup happens AFTER the lock is released
             service.data.cleanupLock(uuid)

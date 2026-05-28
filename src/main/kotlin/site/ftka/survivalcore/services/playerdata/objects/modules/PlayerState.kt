@@ -26,6 +26,18 @@ class PlayerState {
     var foodLevel: Int = 20
     var saturation: Float = 20f
     var experience: Float = 0f
+    var level: Int = 0
+    var gameMode: String = "SURVIVAL"
+    var potionEffects: List<SerializedPotionEffect> = listOf()
+
+    data class SerializedPotionEffect(
+        val type: String,
+        val duration: Int,
+        val amplifier: Int,
+        val ambient: Boolean,
+        val particles: Boolean,
+        val icon: Boolean
+    )
 
     var bedLocation: SerializedLocation? = null
     var serializedLocation = SerializedLocation()
@@ -47,6 +59,19 @@ class PlayerState {
         this.foodLevel = player.foodLevel
         this.saturation = player.saturation
         this.experience = player.exp
+        this.level = player.level
+        this.gameMode = player.gameMode.name
+        
+        this.potionEffects = player.activePotionEffects.map {
+            SerializedPotionEffect(
+                type = it.type.name,
+                duration = it.duration,
+                amplifier = it.amplifier,
+                ambient = it.isAmbient,
+                particles = it.hasParticles(),
+                icon = it.hasIcon()
+            )
+        }
 
         // location stuff
 
@@ -72,8 +97,33 @@ class PlayerState {
     fun applyValuesToPlayer(plugin: MClass, player: Player) {
         player.health = this.health
         player.foodLevel = this.foodLevel
-        player.saturation = this.saturation;
+        player.saturation = this.saturation
         player.exp = this.experience
+        player.level = this.level
+        
+        try {
+            player.gameMode = org.bukkit.GameMode.valueOf(this.gameMode)
+        } catch (_: Exception) {
+            player.gameMode = org.bukkit.GameMode.SURVIVAL
+        }
+
+        // restore potion effects
+        for (effect in player.activePotionEffects) {
+            player.removePotionEffect(effect.type)
+        }
+        for (serialized in this.potionEffects) {
+            @Suppress("DEPRECATION")
+            val type = org.bukkit.potion.PotionEffectType.getByName(serialized.type) ?: continue
+            val effect = org.bukkit.potion.PotionEffect(
+                type,
+                serialized.duration,
+                serialized.amplifier,
+                serialized.ambient,
+                serialized.particles,
+                serialized.icon
+            )
+            player.addPotionEffect(effect)
+        }
 
         // inventory stuff
         val pinv = player.inventory

@@ -39,7 +39,7 @@ class PlayerDataService(private val plugin: MClass, private val services: Servic
 
     // fast access vals
     private val essFwk = plugin.essentialsFwk
-    internal val baseFolderPath = "/${plugin.dataFolder.absolutePath}/PlayerData"
+    internal val baseFolderPath = "${plugin.dataFolder.absolutePath}/PlayerData"
 
     // Some things must not be done while service is restarting
     // like playerdata modifications or regs/unregs

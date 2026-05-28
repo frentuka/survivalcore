@@ -11,7 +11,7 @@ import java.io.IOException
 internal class ConfigsEssential_InOutSubservice(private val essential: ConfigsEssential, private val plugin: MClass) {
     private val logger = essential.logger.sub("InOut")
 
-    private val configsFolderAbsolutePath = "/${plugin.dataFolder.absolutePath}/configs"
+    private val configsFolderFile = File(plugin.dataFolder, "configs")
 
     /**
      * Retrieves the JSON content of a configuration file or creates it if it doesn't exist.
@@ -25,11 +25,9 @@ internal class ConfigsEssential_InOutSubservice(private val essential: ConfigsEs
      * @return The JSON content of the configuration file as a String, or the defaultJson if the file was just created or if an error occurred.
      */
     fun gatherConfigJson(fileName: String, defaultJson: String): String {
-        val configsFolderFile = File(configsFolderAbsolutePath)
         if (!configsFolderFile.exists()) configsFolderFile.mkdirs()
 
-        val configFileAbsolutePath = "${configsFolderAbsolutePath}\\${fileName}.json"
-        val configFile = File(configFileAbsolutePath)
+        val configFile = File(configsFolderFile, "$fileName.json")
 
         if (!configFile.exists()) {
             logger.log("Config file ${configFile.name} did not exist. Creating it.")
@@ -58,10 +56,9 @@ internal class ConfigsEssential_InOutSubservice(private val essential: ConfigsEs
      * @param overwrite Whether to overwrite the file if it already exists. Defaults to true.
      */
     fun createConfig(fileName: String, configJsonToWrite: String, overwrite: Boolean = true) {
-        val configsFolderFile = File(configsFolderAbsolutePath)
         if (!configsFolderFile.exists()) configsFolderFile.mkdirs()
 
-        val configFile = File("/${configsFolderAbsolutePath}/$fileName.json")
+        val configFile = File(configsFolderFile, "$fileName.json")
         if (configFile.exists() && !overwrite) return
 
         configFile.delete() // idk if necessary, just in case
