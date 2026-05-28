@@ -9,6 +9,7 @@ import net.kyori.adventure.text.format.NamedTextColor
 import site.ftka.survivalcore.MClass
 import site.ftka.survivalcore.essentials.database.subservices.DatabaseHealthCheckSubservice
 import site.ftka.survivalcore.initless.logging.LoggingInitless.*
+import site.ftka.survivalcore.essentials.configs.configurations.GeneralConfig
 import java.util.concurrent.CompletableFuture
 import kotlin.Exception
 
@@ -68,7 +69,7 @@ internal class DatabaseEssential(private val plugin: MClass) {
     }
 
     private fun setupRedisClient() {
-        val dbCfg = plugin.essentialsFwk.configs.generalCfg().DATABASE
+        val dbCfg = plugin.essentialsFwk.configs.generalCfg().DATABASE ?: GeneralConfig.DatabaseConfig()
         val passwordPart = if (dbCfg.password.isNotEmpty()) "${dbCfg.password}@" else ""
         val redisConnHost = "redis://$passwordPart${dbCfg.host}:${dbCfg.port}/${dbCfg.database}"
         

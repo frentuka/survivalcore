@@ -5,12 +5,12 @@ import site.ftka.survivalcore.utils.serializers.SerializedLocation
 
 internal class GeneralConfig {
 
-    var version: Int = 1
+    var version: Int = 2
 
     val PLAYER_FIRST_JOIN_SPAWN_LOCATION = SerializedLocation()
     val IJUSTWANTTOTEST = ":)"
 
-    val DATABASE = DatabaseConfig()
+    var DATABASE: DatabaseConfig? = DatabaseConfig()
 
     class DatabaseConfig {
         var host: String = "127.0.0.1"
