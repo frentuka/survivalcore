@@ -39,7 +39,7 @@ internal class PlayerData_RegistrationSubservice(private val service: PlayerData
                 // 1. Check if exists and get data
                 // By combining these, we save a database trip
                 val playerdata = try {
-                    service.inout_ss.get(uuid, async = true)?.await() ?: PlayerData(uuid).also {
+                    service.inout_ss.get(uuid, async = true).await() ?: PlayerData(uuid).also {
                         logger.log("Does not exist in database, creating new ($uuid)", LogLevel.HIGH)
                     }
                 } catch (e: Exception) {

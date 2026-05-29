@@ -33,7 +33,7 @@ internal class PlayerData_EmergencySubservice(private val service: PlayerDataSer
         for (dump in dumps) {
             val futureGet = service.inout_ss.get(dump.uuid, async)
 
-            futureGet?.whenComplete { result, _ ->
+            futureGet.whenComplete { result, _ ->
                 val shouldUpload = if (result == null) true
                 else dump.updateTimestamp > result.updateTimestamp
 

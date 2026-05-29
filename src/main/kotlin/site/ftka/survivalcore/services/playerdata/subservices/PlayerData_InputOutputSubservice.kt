@@ -34,7 +34,7 @@ internal class PlayerData_InputOutputSubservice(private val service: PlayerDataS
         requestsBuffer[uuid] = result
     }
 
-    fun get(uuid: UUID, async: Boolean = true): CompletableFuture<PlayerData?>? {
+    fun get(uuid: UUID, async: Boolean = true): CompletableFuture<PlayerData?> {
         // sync
         logger.log("Getting playerdata (async = $async) for $uuid", LogLevel.DEBUG)
 
@@ -59,14 +59,14 @@ internal class PlayerData_InputOutputSubservice(private val service: PlayerDataS
         // Case 4: Playerdata is found in the database
         logger.log("Getting playerdata from database", LogLevel.DEBUG)
         val futureString = essFwk.database.get(uuid.toString(), async)
-        return futureString?.thenApply{
+        return futureString.thenApply {
             saveRequest(uuid, it)
             logger.log("Got playerdata from database.", LogLevel.DEBUG)
             service.fromJson(it)
         }
     }
 
-    fun exists(uuid: UUID, async: Boolean = true): CompletableFuture<Boolean>? {
+    fun exists(uuid: UUID, async: Boolean = true): CompletableFuture<Boolean> {
         return essFwk.database.exists(uuid.toString(), async)
     }
 
@@ -148,7 +148,7 @@ internal class PlayerData_InputOutputSubservice(private val service: PlayerDataS
             val pdata: PlayerData = if (isOnline) {
                 service.data.getPlayerData(uuid)
             } else {
-                get(uuid, async = true)?.await()
+                get(uuid, async = true).await()
             } ?: return@withLock PlayerDataModificationResult.FAILURE_PLAYERDATA_UNAVAILABLE
 
             // 2. Apply modification

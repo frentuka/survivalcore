@@ -42,7 +42,7 @@ class SingulaAPI(private val plugin: MClass, private val svc: SingulaService) {
         val future = CompletableFuture<OfflineSingula?>()
 
         future.completeAsync {
-            if (plugin.essentialsFwk.database.api.exists(uuid.toString())?.get() != true)
+            if (plugin.essentialsFwk.database.api.exists(uuid.toString()).get() != true)
                 return@completeAsync null
 
             return@completeAsync OfflineSingula(plugin, uuid)

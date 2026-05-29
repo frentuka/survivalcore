@@ -3,6 +3,9 @@ package site.ftka.survivalcore.essentials.database
 import io.lettuce.core.RedisClient
 import io.lettuce.core.RedisURI
 import io.lettuce.core.api.StatefulRedisConnection
+import io.lettuce.core.support.ConnectionPoolSupport
+import org.apache.commons.pool2.impl.GenericObjectPool
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig
 import kotlinx.coroutines.runBlocking
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
@@ -25,6 +28,7 @@ internal class DatabaseEssential(private val plugin: MClass) {
 
     private var redisClient: RedisClient? = null
     private var redisConnection: StatefulRedisConnection<String, String>? = null
+    private var connectionPool: GenericObjectPool<StatefulRedisConnection<String, String>>? = null
 
     private var healthCheck_ss = DatabaseHealthCheckSubservice(this, plugin)
     var health = true
@@ -84,12 +88,27 @@ internal class DatabaseEssential(private val plugin: MClass) {
             runBlocking {
                 if (redisConnection == null || !redisConnection!!.isOpen)
                     redisConnection = redisClient!!.connect()
+                
+                val poolConfig = GenericObjectPoolConfig().apply {
+                    maxTotal = 4
+                    maxIdle = 2
+                    minIdle = 1
+                }
+                connectionPool = ConnectionPoolSupport.createGenericObjectPool({
+                    redisClient!!.connect()
+                }, poolConfig)
+                
                 true
             }
         } catch (e: Exception) { if (printStackTraces) e.printStackTrace(); false }
     }
 
     fun disconnect() {
+        try {
+            connectionPool?.close()
+        } catch (e: Exception) {
+            if (printStackTraces) e.printStackTrace()
+        }
         redisConnection?.closeAsync()
         redisClient?.shutdown()
     }
@@ -99,63 +118,155 @@ internal class DatabaseEssential(private val plugin: MClass) {
      */
 
     fun ping(async: Boolean = true): CompletableFuture<Boolean> {
+        val pool = connectionPool ?: return CompletableFuture.completedFuture(false)
+        
         // sync
-        if (!async) return try {
-            val syncCommands = redisConnection?.sync()
-            CompletableFuture.completedFuture(syncCommands?.ping() == "PONG")
-        } catch (e: Exception) { if (printStackTraces) e.printStackTrace(); CompletableFuture.completedFuture(false) }
-
+        if (!async) {
+            return try {
+                val connection = pool.borrowObject()
+                try {
+                    val syncCommands = connection.sync()
+                    CompletableFuture.completedFuture(syncCommands.ping() == "PONG")
+                } finally {
+                    pool.returnObject(connection)
+                }
+            } catch (e: Exception) {
+                if (printStackTraces) e.printStackTrace()
+                CompletableFuture.completedFuture(false)
+            }
+        }
 
         // async
         return try {
-            val asyncCommands = redisConnection?.async()
-            asyncCommands?.ping()?.thenApply { it == "PONG" }?.toCompletableFuture()
-                ?: CompletableFuture.completedFuture(false)
-        } catch (e: Exception) { if (printStackTraces) e.printStackTrace(); CompletableFuture.completedFuture(false) }
+            val connection = pool.borrowObject()
+            try {
+                val asyncCommands = connection.async()
+                val future = asyncCommands.ping().thenApply { it == "PONG" }.toCompletableFuture()
+                future.whenComplete { _, _ ->
+                    pool.returnObject(connection)
+                }
+            } catch (e: Exception) {
+                pool.returnObject(connection)
+                throw e
+            }
+        } catch (e: Exception) {
+            if (printStackTraces) e.printStackTrace()
+            CompletableFuture.completedFuture(false)
+        }
     }
 
-    fun exists(key: String, async: Boolean = true): CompletableFuture<Boolean>? {
+    fun exists(key: String, async: Boolean = true): CompletableFuture<Boolean> {
+        val pool = connectionPool ?: return CompletableFuture.completedFuture(false)
+        
         // sync
-        if (!async) return try {
-            val syncCommands = redisConnection?.sync()
-            CompletableFuture.completedFuture(syncCommands?.let{ it.exists(key) > 0 }) // true-false-null
-        } catch (e: Exception) { if (printStackTraces) e.printStackTrace(); null }
+        if (!async) {
+            return try {
+                val connection = pool.borrowObject()
+                try {
+                    val syncCommands = connection.sync()
+                    CompletableFuture.completedFuture(syncCommands.exists(key) > 0)
+                } finally {
+                    pool.returnObject(connection)
+                }
+            } catch (e: Exception) {
+                if (printStackTraces) e.printStackTrace()
+                CompletableFuture.completedFuture(false)
+            }
+        }
 
         // async
         return try {
-            val asyncCommands = redisConnection?.async()
-            asyncCommands?.exists(key)?.thenApply { it > 0 }?.toCompletableFuture()
-                ?: CompletableFuture.completedFuture(false)
-        } catch (e: Exception) { if (printStackTraces) e.printStackTrace(); null }
+            val connection = pool.borrowObject()
+            try {
+                val asyncCommands = connection.async()
+                val future = asyncCommands.exists(key).thenApply { it > 0 }.toCompletableFuture()
+                future.whenComplete { _, _ ->
+                    pool.returnObject(connection)
+                }
+            } catch (e: Exception) {
+                pool.returnObject(connection)
+                throw e
+            }
+        } catch (e: Exception) {
+            if (printStackTraces) e.printStackTrace()
+            CompletableFuture.completedFuture(false)
+        }
     }
 
-    fun get(key: String, async: Boolean = true): CompletableFuture<String>? {
+    fun get(key: String, async: Boolean = true): CompletableFuture<String?> {
+        val pool = connectionPool ?: return CompletableFuture.completedFuture(null)
+        
         // sync
-        if (!async) return try {
-            val syncCommands = redisConnection?.sync()
-            CompletableFuture.completedFuture(syncCommands?.get(key)) // value-null
-        } catch (e: Exception) { if (printStackTraces) e.printStackTrace(); null }
+        if (!async) {
+            return try {
+                val connection = pool.borrowObject()
+                try {
+                    val syncCommands = connection.sync()
+                    CompletableFuture.completedFuture(syncCommands.get(key))
+                } finally {
+                    pool.returnObject(connection)
+                }
+            } catch (e: Exception) {
+                if (printStackTraces) e.printStackTrace()
+                CompletableFuture.completedFuture(null)
+            }
+        }
 
         // async
         return try {
-            val asyncCommands = redisConnection?.async()
-            asyncCommands?.get(key)?.toCompletableFuture()
-        } catch (e: Exception) { if (printStackTraces) e.printStackTrace(); null }
+            val connection = pool.borrowObject()
+            try {
+                val asyncCommands = connection.async()
+                val future = asyncCommands.get(key).toCompletableFuture()
+                future.whenComplete { _, _ ->
+                    pool.returnObject(connection)
+                }
+            } catch (e: Exception) {
+                pool.returnObject(connection)
+                throw e
+            }
+        } catch (e: Exception) {
+            if (printStackTraces) e.printStackTrace()
+            CompletableFuture.completedFuture(null)
+        }
     }
 
     fun set(key: String, value: String, async: Boolean = true): CompletableFuture<Boolean> {
-        // async
-        if (!async) return try {
-            val syncCommands = redisConnection?.sync()
-            CompletableFuture.completedFuture(syncCommands?.set(key, value) == "OK")
-        } catch (e: Exception) { if (printStackTraces) e.printStackTrace(); CompletableFuture.completedFuture(false) }
-
+        val pool = connectionPool ?: return CompletableFuture.completedFuture(false)
+        
         // sync
+        if (!async) {
+            return try {
+                val connection = pool.borrowObject()
+                try {
+                    val syncCommands = connection.sync()
+                    CompletableFuture.completedFuture(syncCommands.set(key, value) == "OK")
+                } finally {
+                    pool.returnObject(connection)
+                }
+            } catch (e: Exception) {
+                if (printStackTraces) e.printStackTrace()
+                CompletableFuture.completedFuture(false)
+            }
+        }
+
+        // async
         return try {
-            val asyncCommands = redisConnection?.async()
-            asyncCommands?.set(key, value)?.thenApply { it == "OK" }?.toCompletableFuture()
-                ?: CompletableFuture.completedFuture(false)
-        } catch (e: Exception) { if (printStackTraces) e.printStackTrace(); CompletableFuture.completedFuture(false) }
+            val connection = pool.borrowObject()
+            try {
+                val asyncCommands = connection.async()
+                val future = asyncCommands.set(key, value).thenApply { it == "OK" }.toCompletableFuture()
+                future.whenComplete { _, _ ->
+                    pool.returnObject(connection)
+                }
+            } catch (e: Exception) {
+                pool.returnObject(connection)
+                throw e
+            }
+        } catch (e: Exception) {
+            if (printStackTraces) e.printStackTrace()
+            CompletableFuture.completedFuture(false)
+        }
     }
 
 }
