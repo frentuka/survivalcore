@@ -40,7 +40,7 @@ dependencies {
     implementation("net.kyori:adventure-text-serializer-legacy:$adventureVersion")
 
     // Paper API
-    compileOnly("io.papermc.paper:paper-api:1.21.4-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:1.21.10-R0.1-SNAPSHOT")
 
     // Redis & Connection Pooling
     compileOnly("io.lettuce:lettuce-core:6.5.3.RELEASE")
@@ -66,7 +66,7 @@ tasks.withType<Jar> {
         attributes["Main-Class"] = "site.ftka.proxycore.MClass"
     }
 
-    val outputDir = findProperty("outputDir") as String? ?: "C:/Users/srleg/Desktop/server/plugins/"
+    val outputDir = findProperty("outputDir") as String? ?: "/mnt/ssd-storage/minecraft/servers/testing/survival/plugins/"
     destinationDirectory = layout.buildDirectory.dir(outputDir)
 
     from(sourceSets.main.get().output)

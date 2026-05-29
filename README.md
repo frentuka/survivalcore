@@ -4,7 +4,7 @@ A comprehensive Minecraft Paper server plugin framework written in Kotlin, provi
 
 - **Author:** srleg
 - **Language:** Kotlin 2.1.0 (JVM 21)
-- **Target API:** Paper MC 1.21.4
+- **Target API:** Paper MC 1.21.10
 - **Database:** Redis (via Lettuce)
 
 ---
@@ -209,7 +209,7 @@ The compiled JAR is automatically copied to the configured server plugins direct
 
 | Library | Version | Purpose |
 |---|---|---|
-| Paper API | 1.21.4 | Minecraft server API |
+| Paper API | 1.21.10 | Minecraft server API |
 | Kotlin | 2.1.0 | Language runtime |
 | Lettuce | 6.5.3 | Async Redis client |
 | Kotlinx Coroutines | 1.7.3 | Async/concurrent operations |
