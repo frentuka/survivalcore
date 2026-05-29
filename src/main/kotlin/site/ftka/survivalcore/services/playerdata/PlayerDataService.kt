@@ -49,6 +49,15 @@ class PlayerDataService(private val plugin: MClass, private val services: Servic
     internal fun init() {
         logger.log("Initializing...", LogLevel.LOW)
 
+        // Validate available disk space (2GB minimum)
+        val minRequiredSpace = 2L * 1024L * 1024L * 1024L // 2GB
+        val dataDir = plugin.dataFolder
+        if (dataDir.freeSpace < minRequiredSpace) {
+            logger.log("CRITICAL ERROR: Less than 2GB of free disk space available (${dataDir.freeSpace / 1024 / 1024 / 1024.0} GB). Shutting down server to prevent data corruption.", LogLevel.LOW, NamedTextColor.RED)
+            plugin.server.shutdown()
+            return
+        }
+
         // initialize listeners
         plugin.initListener(playerDataListener)
         plugin.propEventsInitless.registerListener(playerDataListener)

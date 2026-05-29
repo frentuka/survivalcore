@@ -5,7 +5,7 @@
 * **Documentation:** [PLAYER_DATA.md](file:///home/srleg/Projects/survivalcore/src/main/kotlin/site/ftka/survivalcore/services/playerdata/PLAYER_DATA.md)
 
 ## 🎯 Main Purpose
-Orchestrates the entire player profile lifecycle (inventories, stats, coordinates, permissions, settings). Integrates thread-safe UUID-based `Mutex` locks to prevent race conditions during rapid login/logouts and handles database dropouts via local disk emergency dumps.
+Orchestrates the entire player profile lifecycle (inventories, stats, coordinates, permissions, settings). Integrates thread-safe UUID-based `Mutex` locks to prevent race conditions during rapid logins/logouts. It implements robust **disk space safeguards** (verifies a minimum of 2GB free space on boot, shutting down to prevent corruption) and a space-capped **Emergency Dump subservice** (limited to 500 files, with oldest-dump and UUID duplicate auto-pruning).
 
 ## 🔗 Connections & Dependencies
 * **Data Core:** Backed by `DatabaseEssential` (Redis).

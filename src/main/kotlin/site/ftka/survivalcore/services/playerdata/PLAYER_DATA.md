@@ -45,6 +45,9 @@ graph TD
 ### 2.1 PlayerDataService (Module Core)
 * **Path:** [PlayerDataService.kt](file:///home/srleg/Projects/survivalcore/src/main/kotlin/site/ftka/survivalcore/services/playerdata/PlayerDataService.kt)
 * **Purpose:** Core orchestrator. Initializes subservices, registers listeners, provides base folder path config (`plugins/SurvivalCore/PlayerData`), manages service-wide logging (`LoggingInstance`), and orchestrates safe synchronous restart/stop procedures.
+* **Initialization Procedure:**
+  * Checks available free disk space on the partition hosting the plugin's data directory.
+  * If **less than 2GB of available space** is found, it reports a critical log failure and automatically shuts down the Paper/Minecraft server, preventing potential profile database or file corruptions during boot.
 * **Restart Procedure:**
   1. Sets `isRestarting = true` to pause async modifications or registrations.
   2. Iterates and synchronously unregisters every online player (forces database save or emergency dumps).
@@ -104,10 +107,11 @@ graph TD
 
 ### 2.7 PlayerData_EmergencySubservice (Disk Serializer & Reconnection Sync)
 * **Path:** [PlayerData_EmergencySubservice.kt](file:///home/srleg/Projects/survivalcore/src/main/kotlin/site/ftka/survivalcore/services/playerdata/subservices/PlayerData_EmergencySubservice.kt)
-* **Purpose:** Prevents data loss when Redis drops connection.
+* **Purpose:** Prevents data loss when Redis drops connection, incorporating proactive file safety and memory capping bounds.
 * **Mechanics:**
-  * `emergencyDump(playerdata)`: Synchronously dumps the active player data into local storage at `plugins/SurvivalCore/PlayerData/EmergencyDump/{username}_{uuid}.json`.
-  * `uploadAllDumpsToDatabase(async)`: Executed upon database reconnection or service restart. It scans the `EmergencyDump` folder and asynchronously saves dumps back to Redis **only if** the emergency dump's `updateTimestamp` is greater than the current database entry's timestamp (preventing overwriting newer database changes).
+  * `emergencyDump(playerdata)`: Dumps active player profiles to disk. It automatically checks total dump counts and enforces a **hard cap of 500 dumps**. If exceeded, it automatically prunes the oldest dumps (by `lastModified`) to free partition space.
+  * `pruneDuplicateDumps()`: Scans all JSON files in the `EmergencyDump` folder, grouping them by the player's `UUID` extracted from the filename structure. If multiple dumps exist for the same player, it discards the older duplicates, keeping only the freshest copy (based on internal GSON `updateTimestamp` or file modification date). This is executed at startup and before retrieving available dumps.
+  * `uploadAllDumpsToDatabase(async)`: Triggered on database reconnection or server restart. Compares internal GSON timestamps against active database keys. If the database is newer, it discards the outdated local dump immediately. If the emergency dump is newer, it uploads it to Redis and deletes the local dump file only upon successful write confirmation, preventing redundant database hits and directory leaks.
 
 ### 2.8 PlayerData_IntegritySubservice (Layout Sanitizer)
 * **Path:** [PlayerData_IntegritySubservice.kt](file:///home/srleg/Projects/survivalcore/src/main/kotlin/site/ftka/survivalcore/services/playerdata/subservices/PlayerData_IntegritySubservice.kt)

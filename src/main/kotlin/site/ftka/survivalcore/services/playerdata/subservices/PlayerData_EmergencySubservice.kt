@@ -18,24 +18,37 @@ internal class PlayerData_EmergencySubservice(private val service: PlayerDataSer
 
     private val emergencyDumpFolderPath = "${service.baseFolderPath}/EmergencyDump"
 
+    init {
+        pruneDuplicateDumps()
+    }
+
     fun uploadAllDumpsToDatabase(async: Boolean) {
         val dumps = getAvailableDumps()
 
         if (!essFwk.database.health) {
-            logger.log("Tried to upload all dumps to database but no health check failed. Aborted.")
+            logger.log("Tried to upload all dumps to database but database health check failed. Aborted.")
             return
         }
 
         for (dump in dumps) {
             val futureGet = service.inout_ss.get(dump.uuid, async)
 
-            futureGet?.whenComplete{ result, _ ->
-                var shouldUpload = false // ONLY SHOULD UPLOAD IF EMERGENCY DUMP IS NEWER THAN DATABASE DATA
-                shouldUpload = if (result == null) true
+            futureGet?.whenComplete { result, _ ->
+                val shouldUpload = if (result == null) true
                 else dump.updateTimestamp > result.updateTimestamp
 
-                if (shouldUpload)
-                    service.inout_ss.set(dump, async)
+                if (shouldUpload) {
+                    val futureSet = service.inout_ss.set(dump, async)
+                    futureSet.whenComplete { success, _ ->
+                        if (success) {
+                            deleteEmergencyDump(dump.uuid)
+                            logger.log("Successfully uploaded and cleared emergency dump for ${dump.uuid}", LoggingInitless.LogLevel.LOW)
+                        }
+                    }
+                } else {
+                    // Outdated local dump, database is newer. Delete local copy to clean up.
+                    deleteEmergencyDump(dump.uuid)
+                }
             }
         }
     }
@@ -44,9 +57,11 @@ internal class PlayerData_EmergencySubservice(private val service: PlayerDataSer
         val emergencyDumpFolderFile = File(emergencyDumpFolderPath)
         if (!emergencyDumpFolderFile.exists() || !emergencyDumpFolderFile.isDirectory) return null
 
+        val files = emergencyDumpFolderFile.listFiles { file -> file.extension == "json" && file.name.contains(uuid.toString()) } ?: emptyArray()
         var dumpFile: File? = null
-        for (file in emergencyDumpFolderFile.listFiles { file -> file.extension == "json" && file.name.contains(uuid.toString()) }!!)
+        for (file in files) {
             dumpFile = file
+        }
 
         val fileText = dumpFile?.readText()
         if (deleteIt) dumpFile?.delete()
@@ -54,13 +69,14 @@ internal class PlayerData_EmergencySubservice(private val service: PlayerDataSer
     }
 
     fun getAvailableDumps(): List<PlayerData> {
+        pruneDuplicateDumps()
         val availableDumps = mutableListOf<PlayerData>()
 
         val emergencyDumpFolderFile = File(emergencyDumpFolderPath)
         if (!emergencyDumpFolderFile.exists() || !emergencyDumpFolderFile.isDirectory) return availableDumps.toList()
 
-        // list every json file
-        for (file in emergencyDumpFolderFile.listFiles { file -> file.extension == "json" }!!) {
+        val files = emergencyDumpFolderFile.listFiles { file -> file.extension == "json" } ?: emptyArray()
+        for (file in files) {
             val fileText = file.readText()
             try {
                 val extractedPlayerData = service.fromJson(fileText)
@@ -78,17 +94,71 @@ internal class PlayerData_EmergencySubservice(private val service: PlayerDataSer
         val saveLocationFolder = File(emergencyDumpFolderPath)
         saveLocationFolder.mkdirs()
 
+        // 1. Maintain dump limits: no more than ~500 dumps at a time
+        val files = saveLocationFolder.listFiles { file -> file.extension == "json" } ?: emptyArray()
+        if (files.size >= 500) {
+            val sortedFiles = files.sortedBy { it.lastModified() }
+            val excessCount = files.size - 499 // Leave room for the new dump
+            for (i in 0 until excessCount) {
+                logger.log("Pruning oldest emergency dump due to size limit (>= 500 files): ${sortedFiles[i].name}", LoggingInitless.LogLevel.LOW)
+                sortedFiles[i].delete()
+            }
+        }
+
         logger.log("Dumping ${playerdata.information?.username} (${playerdata.uuid})", LoggingInitless.LogLevel.HIGH)
 
-        // e.g. EmergencyDump/srleg_3988d2e9-60c4-4d81-bed0-a6b6c2d13080.json
         val playerdataFile = File(saveLocationFolder, "${playerdata.information?.username}_${playerdata.uuid}.json")
 
-        val bufferedWriter: BufferedWriter
         try {
-            bufferedWriter = BufferedWriter(FileWriter(playerdataFile))
-            bufferedWriter.write(playerdata.toJson())
-            bufferedWriter.close()
-        } catch (_: IOException) { }
+            playerdataFile.bufferedWriter().use { writer ->
+                writer.write(playerdata.toJson())
+            }
+        } catch (e: IOException) {
+            logger.log("Failed to write emergency dump for ${playerdata.uuid}: ${e.message}", LoggingInitless.LogLevel.HIGH)
+        }
+    }
+
+    /**
+     * Scan all dumps, grouping by UUID. If multiple dumps exist for the same player,
+     * keep only the newest one based on internal updateTimestamp (or file lastModified) and delete others.
+     */
+    fun pruneDuplicateDumps() {
+        val emergencyDumpFolderFile = File(emergencyDumpFolderPath)
+        if (!emergencyDumpFolderFile.exists() || !emergencyDumpFolderFile.isDirectory) return
+
+        val files = emergencyDumpFolderFile.listFiles { file -> file.extension == "json" } ?: return
+        val filesByUuid = mutableMapOf<UUID, MutableList<File>>()
+
+        for (file in files) {
+            val uuid = extractUuidFromFilename(file.name) ?: continue
+            filesByUuid.getOrPut(uuid) { mutableListOf() }.add(file)
+        }
+
+        for ((_, fileList) in filesByUuid) {
+            if (fileList.size <= 1) continue
+
+            val fileToKeep = fileList.maxByOrNull { file ->
+                val pdata = runCatching { service.fromJson(file.readText()) }.getOrNull()
+                pdata?.updateTimestamp ?: file.lastModified()
+            }
+
+            for (file in fileList) {
+                if (file != fileToKeep) {
+                    logger.log("Pruning duplicate emergency dump: ${file.name}", LoggingInitless.LogLevel.LOW)
+                    file.delete()
+                }
+            }
+        }
+    }
+
+    private fun extractUuidFromFilename(name: String): UUID? {
+        return try {
+            val withoutExtension = name.substringBeforeLast(".")
+            val uuidString = withoutExtension.substringAfterLast("_")
+            UUID.fromString(uuidString)
+        } catch (_: Exception) {
+            null
+        }
     }
 
     fun deleteAllEmergencyDumps() {
@@ -98,8 +168,10 @@ internal class PlayerData_EmergencySubservice(private val service: PlayerDataSer
 
     fun deleteEmergencyDump(uuid: UUID) {
         val emergencyDumpFolderFile = File(emergencyDumpFolderPath)
+        val files = emergencyDumpFolderFile.listFiles { file -> file.extension == "json" } ?: return
 
-        for (file in emergencyDumpFolderFile.listFiles { file -> file.extension == "json" }!!)
+        for (file in files) {
             if (file.name.contains(uuid.toString())) file.delete()
+        }
     }
 }
