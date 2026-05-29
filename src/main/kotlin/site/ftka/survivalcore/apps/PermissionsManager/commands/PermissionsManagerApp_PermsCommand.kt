@@ -23,12 +23,19 @@ internal class PermissionsManagerApp_PermsCommand(private val app: PermissionsMa
     private val permsAPI: PermissionsAPI
         get() { return plugin.servicesFwk.permissions.api }
 
-    @OptIn(DelicateCoroutinesApi::class)
+    private val scope = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Default)
+
     override fun onCommand(sender: CommandSender, cmd: Command, label: String, args: Array<out String>): Boolean {
 
         // player zone
         if (sender !is Player) return false
         val player = sender
+
+        // permission check
+        if (!player.hasPermission("survivalcore.admin.permissions")) {
+            player.sendMessage(net.kyori.adventure.text.Component.text("You do not have permission to manage permissions.", net.kyori.adventure.text.format.NamedTextColor.RED))
+            return true
+        }
 
         // no args presented
         val chatScreen = chatScreen(sender.uniqueId)
@@ -42,39 +49,47 @@ internal class PermissionsManagerApp_PermsCommand(private val app: PermissionsMa
 
         // /perms {player}
         if (args.size == 1) {
-            val targetPlayer = plugin.server.getPlayer(args[0]) ?: return false // send error message
+            val targetUUID = plugin.essentialsFwk.usernameTracker.getUUID(args[0])
+            if (targetUUID == null) {
+                player.sendMessage(net.kyori.adventure.text.Component.text("Player '${args[0]}' has never played on this server.", net.kyori.adventure.text.format.NamedTextColor.RED))
+                return true
+            }
 
-            chatScreen.initializeTarget(false, targetPlayer.uniqueId)
-            chatAPI.showOrRefreshScreen(targetPlayer.uniqueId, chatScreen, "player_groups")
-            return false
+            chatScreen.initializeTarget(false, targetUUID)
+            chatAPI.showOrRefreshScreen(player.uniqueId, chatScreen, "player_groups")
+            return true
         }
 
 
         // /perms {player} addgroup {groupname}
         if (args.size == 3 && args[1].equals("addgroup", true)) {
-            val targetPlayer = plugin.server.getPlayer(args[0]) ?: return false // send error message
+            val targetUUID = plugin.essentialsFwk.usernameTracker.getUUID(args[0])
+            if (targetUUID == null) {
+                player.sendMessage(net.kyori.adventure.text.Component.text("Player '${args[0]}' has never played on this server.", net.kyori.adventure.text.format.NamedTextColor.RED))
+                return true
+            }
 
-            GlobalScope.launch {
-                val result = permsAPI.player_addGroup(targetPlayer.uniqueId, args[2])
+            scope.launch {
+                val result = permsAPI.player_addGroup(targetUUID, args[2])
 
-                when (result) { // todo: add messages or screen notifications
+                when (result) {
                     Permissions_addGroupResult.SUCCESS -> {
-                        return@launch
+                        player.sendMessage(net.kyori.adventure.text.Component.text("Successfully added player '${args[0]}' to group '${args[2]}'.", net.kyori.adventure.text.format.NamedTextColor.GREEN))
                     }
                     Permissions_addGroupResult.FAILURE_CORRUPT_PLAYERDATA -> {
-                        return@launch
+                        player.sendMessage(net.kyori.adventure.text.Component.text("Failed: Player data is corrupted.", net.kyori.adventure.text.format.NamedTextColor.RED))
                     }
                     Permissions_addGroupResult.FAILURE_PLAYER_UNAVAILABLE -> {
-                        return@launch
+                        player.sendMessage(net.kyori.adventure.text.Component.text("Failed: Player is unavailable.", net.kyori.adventure.text.format.NamedTextColor.RED))
                     }
                     Permissions_addGroupResult.FAILURE_PLAYER_ALREADY_IN_GROUP -> {
-                        return@launch
+                        player.sendMessage(net.kyori.adventure.text.Component.text("Failed: Player '${args[0]}' is already in group '${args[2]}'.", net.kyori.adventure.text.format.NamedTextColor.RED))
                     }
                     Permissions_addGroupResult.FAILURE_GROUP_UNAVAILABLE -> {
-                        return@launch
+                        player.sendMessage(net.kyori.adventure.text.Component.text("Failed: Group '${args[2]}' does not exist.", net.kyori.adventure.text.format.NamedTextColor.RED))
                     }
                     Permissions_addGroupResult.FAILURE_UNKNOWN -> {
-                        return@launch
+                        player.sendMessage(net.kyori.adventure.text.Component.text("Failed: An unknown error occurred.", net.kyori.adventure.text.format.NamedTextColor.RED))
                     }
                 }
             }
@@ -85,29 +100,33 @@ internal class PermissionsManagerApp_PermsCommand(private val app: PermissionsMa
 
         // /perms {player} removegroup {groupname}
         if (args.size == 3 && args[1].equals("removegroup", true)) {
-            val targetPlayer = plugin.server.getPlayer(args[0]) ?: return false // send error message
+            val targetUUID = plugin.essentialsFwk.usernameTracker.getUUID(args[0])
+            if (targetUUID == null) {
+                player.sendMessage(net.kyori.adventure.text.Component.text("Player '${args[0]}' has never played on this server.", net.kyori.adventure.text.format.NamedTextColor.RED))
+                return true
+            }
 
-            GlobalScope.launch {
-                val result = permsAPI.player_removeGroup(targetPlayer.uniqueId, args[2])
+            scope.launch {
+                val result = permsAPI.player_removeGroup(targetUUID, args[2])
 
-                when (result) { // todo: add messages or screen notifications
+                when (result) {
                     Permissions_removeGroupResult.SUCCESS -> {
-                        return@launch
+                        player.sendMessage(net.kyori.adventure.text.Component.text("Successfully removed player '${args[0]}' from group '${args[2]}'.", net.kyori.adventure.text.format.NamedTextColor.GREEN))
                     }
                     Permissions_removeGroupResult.FAILURE_CORRUPT_PLAYERDATA -> {
-                        return@launch
+                        player.sendMessage(net.kyori.adventure.text.Component.text("Failed: Player data is corrupted.", net.kyori.adventure.text.format.NamedTextColor.RED))
                     }
                     Permissions_removeGroupResult.FAILURE_PLAYER_UNAVAILABLE -> {
-                        return@launch
+                        player.sendMessage(net.kyori.adventure.text.Component.text("Failed: Player is unavailable.", net.kyori.adventure.text.format.NamedTextColor.RED))
                     }
                     Permissions_removeGroupResult.FAILURE_PLAYER_NOT_IN_GROUP -> {
-                        return@launch
+                        player.sendMessage(net.kyori.adventure.text.Component.text("Failed: Player '${args[0]}' is not in group '${args[2]}'.", net.kyori.adventure.text.format.NamedTextColor.RED))
                     }
                     Permissions_removeGroupResult.FAILURE_GROUP_UNAVAILABLE -> {
-                        return@launch
+                        player.sendMessage(net.kyori.adventure.text.Component.text("Failed: Group '${args[2]}' does not exist.", net.kyori.adventure.text.format.NamedTextColor.RED))
                     }
                     Permissions_removeGroupResult.FAILURE_UNKNOWN -> {
-                        return@launch
+                        player.sendMessage(net.kyori.adventure.text.Component.text("Failed: An unknown error occurred.", net.kyori.adventure.text.format.NamedTextColor.RED))
                     }
                 }
             }
@@ -118,26 +137,30 @@ internal class PermissionsManagerApp_PermsCommand(private val app: PermissionsMa
 
         // /perms {player} addperm {permission}
         if (args.size == 3 && args[1].equals("addperm", true)) {
-            val targetPlayer = plugin.server.getPlayer(args[0]) ?: return false // send error message
+            val targetUUID = plugin.essentialsFwk.usernameTracker.getUUID(args[0])
+            if (targetUUID == null) {
+                player.sendMessage(net.kyori.adventure.text.Component.text("Player '${args[0]}' has never played on this server.", net.kyori.adventure.text.format.NamedTextColor.RED))
+                return true
+            }
 
-            GlobalScope.launch {
-                val result = permsAPI.player_addPerm(targetPlayer.uniqueId, args[2])
+            scope.launch {
+                val result = permsAPI.player_addPerm(targetUUID, args[2])
 
-                when (result) { // todo: add messages or screen notifications
+                when (result) {
                     Permissions_addPermissionResult.SUCCESS -> {
-                        return@launch
+                        player.sendMessage(net.kyori.adventure.text.Component.text("Successfully added permission '${args[2]}' to player '${args[0]}'.", net.kyori.adventure.text.format.NamedTextColor.GREEN))
                     }
                     Permissions_addPermissionResult.FAILURE_CORRUPT_PLAYERDATA -> {
-                        return@launch
+                        player.sendMessage(net.kyori.adventure.text.Component.text("Failed: Player data is corrupted.", net.kyori.adventure.text.format.NamedTextColor.RED))
                     }
                     Permissions_addPermissionResult.FAILURE_PLAYER_UNAVAILABLE -> {
-                        return@launch
+                        player.sendMessage(net.kyori.adventure.text.Component.text("Failed: Player is unavailable.", net.kyori.adventure.text.format.NamedTextColor.RED))
                     }
                     Permissions_addPermissionResult.FAILURE_PLAYER_ALREADY_HAS_PERMISSION -> {
-                        return@launch
+                        player.sendMessage(net.kyori.adventure.text.Component.text("Failed: Player '${args[0]}' already has permission '${args[2]}'.", net.kyori.adventure.text.format.NamedTextColor.RED))
                     }
                     Permissions_addPermissionResult.FAILURE_UNKNOWN -> {
-                        return@launch
+                        player.sendMessage(net.kyori.adventure.text.Component.text("Failed: An unknown error occurred.", net.kyori.adventure.text.format.NamedTextColor.RED))
                     }
                 }
             }
@@ -148,26 +171,30 @@ internal class PermissionsManagerApp_PermsCommand(private val app: PermissionsMa
 
         // /perms {player} removeperm {permission}
         if (args.size == 3 && args[1].equals("removeperm", true)) {
-            val targetPlayer = plugin.server.getPlayer(args[0]) ?: return false // send error message
+            val targetUUID = plugin.essentialsFwk.usernameTracker.getUUID(args[0])
+            if (targetUUID == null) {
+                player.sendMessage(net.kyori.adventure.text.Component.text("Player '${args[0]}' has never played on this server.", net.kyori.adventure.text.format.NamedTextColor.RED))
+                return true
+            }
 
-            GlobalScope.launch {
-                val result = permsAPI.player_removePerm(targetPlayer.uniqueId, args[2])
+            scope.launch {
+                val result = permsAPI.player_removePerm(targetUUID, args[2])
 
-                when (result) { // todo: add messages or screen notifications
+                when (result) {
                     Permissions_removePermissionResult.SUCCESS -> {
-                        return@launch
+                        player.sendMessage(net.kyori.adventure.text.Component.text("Successfully removed permission '${args[2]}' from player '${args[0]}'.", net.kyori.adventure.text.format.NamedTextColor.GREEN))
                     }
                     Permissions_removePermissionResult.FAILURE_CORRUPT_PLAYERDATA -> {
-                        return@launch
+                        player.sendMessage(net.kyori.adventure.text.Component.text("Failed: Player data is corrupted.", net.kyori.adventure.text.format.NamedTextColor.RED))
                     }
                     Permissions_removePermissionResult.FAILURE_PLAYER_UNAVAILABLE -> {
-                        return@launch
+                        player.sendMessage(net.kyori.adventure.text.Component.text("Failed: Player is unavailable.", net.kyori.adventure.text.format.NamedTextColor.RED))
                     }
                     Permissions_removePermissionResult.FAILURE_PLAYER_DOESNT_HAVE_PERMISSION -> {
-                        return@launch
+                        player.sendMessage(net.kyori.adventure.text.Component.text("Failed: Player '${args[0]}' does not have permission '${args[2]}'.", net.kyori.adventure.text.format.NamedTextColor.RED))
                     }
                     Permissions_removePermissionResult.FAILURE_UNKNOWN -> {
-                        return@launch
+                        player.sendMessage(net.kyori.adventure.text.Component.text("Failed: An unknown error occurred.", net.kyori.adventure.text.format.NamedTextColor.RED))
                     }
                 }
             }

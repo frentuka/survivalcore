@@ -1,5 +1,6 @@
 package site.ftka.survivalcore.services.permissions.objects
 
+import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import net.kyori.adventure.text.format.NamedTextColor
 import java.util.UUID
@@ -19,7 +20,10 @@ class PermissionGroup {
     enum class GroupCategory { normal, special, staff }
 
     fun toJson(): String {
-        val gsonPretty = GsonBuilder().setPrettyPrinting().create()
         return gsonPretty.toJson(this)
+    }
+
+    companion object {
+        private val gsonPretty: Gson = GsonBuilder().setPrettyPrinting().create()
     }
 }

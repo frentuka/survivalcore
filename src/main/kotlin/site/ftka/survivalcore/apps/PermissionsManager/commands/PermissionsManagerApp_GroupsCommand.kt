@@ -26,6 +26,12 @@ internal class PermissionsManagerApp_GroupsCommand(private val app: PermissionsM
         if (sender !is Player) return false
         val player = sender
 
+        // permission check
+        if (!player.hasPermission("survivalcore.admin.permissions")) {
+            player.sendMessage(net.kyori.adventure.text.Component.text("You do not have permission to manage permissions.", net.kyori.adventure.text.format.NamedTextColor.RED))
+            return true
+        }
+
         // no args presented
         val chatScreen = chatScreen(sender.uniqueId)
 
@@ -40,9 +46,13 @@ internal class PermissionsManagerApp_GroupsCommand(private val app: PermissionsM
 
         // /group {name}
         if (args.size == 1) {
-            val targetUUID = permsAPI.getGroup(args[0]) ?: return false // send error message
+            val targetGroup = permsAPI.getGroup(args[0])
+            if (targetGroup == null) {
+                player.sendMessage(net.kyori.adventure.text.Component.text("Group '${args[0]}' does not exist.", net.kyori.adventure.text.format.NamedTextColor.RED))
+                return true
+            }
 
-            chatScreen.initializeTarget(false, targetUUID.uuid)
+            chatScreen.initializeTarget(true, targetGroup.uuid)
             chatAPI.showOrRefreshScreen(player.uniqueId, chatScreen, "group_perms")
             return true
         }
@@ -52,18 +62,22 @@ internal class PermissionsManagerApp_GroupsCommand(private val app: PermissionsM
         if (args.size == 3 && args[1].equals("addperm", true)) {
             val result = permsAPI.group_addPerm(args[0], args[2])
 
-            when (result) { // todo: add messages or screen notifications
+            when (result) {
                 PermissionGroup_addPermissionResult.SUCCESS -> {
+                    player.sendMessage(net.kyori.adventure.text.Component.text("Successfully added permission '${args[2]}' to group '${args[0]}'.", net.kyori.adventure.text.format.NamedTextColor.GREEN))
                     return true
                 }
                 PermissionGroup_addPermissionResult.FAILURE_GROUP_DOES_NOT_EXIST -> {
-                    return false
+                    player.sendMessage(net.kyori.adventure.text.Component.text("Group '${args[0]}' does not exist.", net.kyori.adventure.text.format.NamedTextColor.RED))
+                    return true
                 }
                 PermissionGroup_addPermissionResult.FAILURE_PERMISSION_ALREADY_EXISTS -> {
-                    return false
+                    player.sendMessage(net.kyori.adventure.text.Component.text("Group '${args[0]}' already has permission '${args[2]}'.", net.kyori.adventure.text.format.NamedTextColor.RED))
+                    return true
                 }
                 PermissionGroup_addPermissionResult.FAILURE_UNKNOWN -> {
-                    return false
+                    player.sendMessage(net.kyori.adventure.text.Component.text("An unknown error occurred.", net.kyori.adventure.text.format.NamedTextColor.RED))
+                    return true
                 }
             }
         }
@@ -73,18 +87,22 @@ internal class PermissionsManagerApp_GroupsCommand(private val app: PermissionsM
         if (args.size == 3 && args[1].equals("removeperm", true)) {
             val result = permsAPI.group_removePerm(args[0], args[2])
 
-            when (result) { // todo: add messages or screen notifications
+            when (result) {
                 PermissionGroup_removePermissionResult.SUCCESS -> {
+                    player.sendMessage(net.kyori.adventure.text.Component.text("Successfully removed permission '${args[2]}' from group '${args[0]}'.", net.kyori.adventure.text.format.NamedTextColor.GREEN))
                     return true
                 }
                 PermissionGroup_removePermissionResult.FAILURE_GROUP_DOES_NOT_EXIST -> {
-                    return false
+                    player.sendMessage(net.kyori.adventure.text.Component.text("Group '${args[0]}' does not exist.", net.kyori.adventure.text.format.NamedTextColor.RED))
+                    return true
                 }
                 PermissionGroup_removePermissionResult.FAILURE_PERMISSION_DOES_NOT_EXIST -> {
-                    return false
+                    player.sendMessage(net.kyori.adventure.text.Component.text("Group '${args[0]}' does not have permission '${args[2]}'.", net.kyori.adventure.text.format.NamedTextColor.RED))
+                    return true
                 }
                 PermissionGroup_removePermissionResult.FAILURE_UNKNOWN -> {
-                    return false
+                    player.sendMessage(net.kyori.adventure.text.Component.text("An unknown error occurred.", net.kyori.adventure.text.format.NamedTextColor.RED))
+                    return true
                 }
             }
         }
@@ -94,21 +112,26 @@ internal class PermissionsManagerApp_GroupsCommand(private val app: PermissionsM
         if (args.size == 3 && (args[1].equals("addinheritance", true) || args[1].equals("addinh", true))) {
             val result = permsAPI.group_addInheritance(args[0], args[2])
 
-            when (result) { // todo: add messages or screen notifications
+            when (result) {
                 PermissionGroup_addInheritanceResult.SUCCESS -> {
+                    player.sendMessage(net.kyori.adventure.text.Component.text("Group '${args[0]}' now inherits from '${args[2]}'.", net.kyori.adventure.text.format.NamedTextColor.GREEN))
                     return true
                 }
                 PermissionGroup_addInheritanceResult.FAILURE_GROUP_DOES_NOT_EXIST -> {
-                    return false
+                    player.sendMessage(net.kyori.adventure.text.Component.text("Group '${args[0]}' does not exist.", net.kyori.adventure.text.format.NamedTextColor.RED))
+                    return true
                 }
                 PermissionGroup_addInheritanceResult.FAILURE_INHERITANCE_GROUP_DOES_NOT_EXIST -> {
-                    return false
+                    player.sendMessage(net.kyori.adventure.text.Component.text("Inherited group '${args[2]}' does not exist.", net.kyori.adventure.text.format.NamedTextColor.RED))
+                    return true
                 }
                 PermissionGroup_addInheritanceResult.FAILURE_INHERITANCE_ALREADY_SET -> {
-                    return false
+                    player.sendMessage(net.kyori.adventure.text.Component.text("Group '${args[0]}' already inherits from '${args[2]}'.", net.kyori.adventure.text.format.NamedTextColor.RED))
+                    return true
                 }
                 PermissionGroup_addInheritanceResult.FAILURE_UNKNOWN -> {
-                    return false
+                    player.sendMessage(net.kyori.adventure.text.Component.text("An unknown error occurred.", net.kyori.adventure.text.format.NamedTextColor.RED))
+                    return true
                 }
             }
         }
@@ -118,21 +141,26 @@ internal class PermissionsManagerApp_GroupsCommand(private val app: PermissionsM
         if (args.size == 3 && (args[1].equals("removeinheritance", true) || args[1].equals("removeinh", true))) {
             val result = permsAPI.group_removeInheritance(args[0], args[2])
 
-            when (result) { // todo: add messages or screen notifications
+            when (result) {
                 PermissionGroup_removeInheritanceResult.SUCCESS -> {
+                    player.sendMessage(net.kyori.adventure.text.Component.text("Successfully removed inheritance of '${args[2]}' from '${args[0]}'.", net.kyori.adventure.text.format.NamedTextColor.GREEN))
                     return true
                 }
                 PermissionGroup_removeInheritanceResult.FAILURE_GROUP_DOES_NOT_EXIST -> {
-                    return false
+                    player.sendMessage(net.kyori.adventure.text.Component.text("Group '${args[0]}' does not exist.", net.kyori.adventure.text.format.NamedTextColor.RED))
+                    return true
                 }
                 PermissionGroup_removeInheritanceResult.FAILURE_INHERITANCE_NOT_IN_GROUP-> {
-                    return false
+                    player.sendMessage(net.kyori.adventure.text.Component.text("Group '${args[0]}' does not inherit from '${args[2]}'.", net.kyori.adventure.text.format.NamedTextColor.RED))
+                    return true
                 }
                 PermissionGroup_removeInheritanceResult.FAILURE_INHERITANCE_GROUP_DOES_NOT_EXIST -> {
-                    return false
+                    player.sendMessage(net.kyori.adventure.text.Component.text("Inherited group '${args[2]}' does not exist.", net.kyori.adventure.text.format.NamedTextColor.RED))
+                    return true
                 }
                 PermissionGroup_removeInheritanceResult.FAILURE_UNKNOWN -> {
-                    return false
+                    player.sendMessage(net.kyori.adventure.text.Component.text("An unknown error occurred.", net.kyori.adventure.text.format.NamedTextColor.RED))
+                    return true
                 }
             }
         }

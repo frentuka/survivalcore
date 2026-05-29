@@ -58,10 +58,8 @@ internal class PermissionsManager_ChatScreen(
      */
     var group_panel_specificGroup = buildString {
         appendLine("<gold><b>          Permissions Manager Panel</b></gold>")
-        appendLine("  ->  <click:run_command:'/permissions group {name}'>{prefix} <{primaryColor}>{name}</click>")
-        appendLine("{prefix} <{primaryColor}>{name}")
+        appendLine("  ->  <{primaryColor}>{name}")
         appendLine("{permissionsList}")
-        appendLine("<click:run_command:'/permissions group {name} add'><green>+ New permission</click>")
         appendLine("<red><click:run_command:'/exitscreen'>exit</click>")
     }
 
@@ -72,24 +70,21 @@ internal class PermissionsManager_ChatScreen(
      */
     val group_panel_specificGroup_permissionElement = buildString {
         appendLine("  <yellow>{permission} ")
-        appendLine("<red> <click:run_command:'/permissions group {name} remove {permission}'>")
+        appendLine("<red> <click:run_command:'/groups {name} removeperm {permission}'>")
         appendLine("<hover:show_text:'<red>remove'><b>[-]</b></hover></click>")
     }
 
     init {
         screenContent["home"] = homePage()
-
-        targettingGroup?.let {
-            //...
-            screenContent["group"]
-        }
+        screenContent["player_groups"] = playerGroupPage()
+        screenContent["groups_home"] = playerGroupPage()
+        screenContent["group_perms"] = groupPermissionsPage()
+        screenContent["group_permissions"] = groupPermissionsPage()
     }
 
     fun initializeTarget(targettingGroup: Boolean, targetUUID: UUID) {
         this.targettingGroup = targettingGroup
         this.targetUUID = targetUUID
-
-        // initialize all screen contents that depend on target
     }
 
     /*
@@ -107,8 +102,7 @@ internal class PermissionsManager_ChatScreen(
                 val text = it.replace("{lastLine}",
                     if (homePanel_notFoundThing_notifTimeout > 0) {
                         homePanel_notFoundThing_notifTimeout--
-                        " <gold>{name} <red>doesn't sound like something that exists...\".replace(\"{playerName}\", chatMsg"
-                            .replace("{name}", homePanel_notFoundThing)
+                        " <gold>${homePanel_notFoundThing} <red>does not exist."
                     }
                     else
                         chat.EXIT_SCREEN_LINE_STANDARD
@@ -163,11 +157,6 @@ internal class PermissionsManager_ChatScreen(
         return ChatScreenPage(
             groupPanel,
             {
-                /*
-                    {groupList} has to be replaced with a list of all groups the player's on.
-                    Each group must use the group_panel_groupElement template.
-                 */
-
                 val groupList = StringBuilder()
                 for (group in plugin.servicesFwk.permissions.data.getGroups()) {
                     groupList.append(groupPanel_groupElement
@@ -181,7 +170,30 @@ internal class PermissionsManager_ChatScreen(
                 return@ChatScreenPage MiniMessage.miniMessage().deserialize(
                     it.replace("{groupList}", groupList.toString()))
             }
+        )
+    }
 
+    fun groupPermissionsPage(): ChatScreenPage {
+        return ChatScreenPage(
+            group_panel_specificGroup,
+            {
+                val uuid = targetUUID ?: return@ChatScreenPage MiniMessage.miniMessage().deserialize("<red>No group selected.")
+                val group = plugin.servicesFwk.permissions.data.getGroup(uuid) ?: return@ChatScreenPage MiniMessage.miniMessage().deserialize("<red>Group not found.")
+
+                val permsBuilder = StringBuilder()
+                for (perm in group.perms) {
+                    permsBuilder.append(group_panel_specificGroup_permissionElement
+                        .replace("{permission}", perm)
+                        .replace("{name}", group.name)
+                    )
+                }
+
+                val result = it.replace("{name}", group.name)
+                    .replace("{primaryColor}", group.primaryColor)
+                    .replace("{permissionsList}", permsBuilder.toString())
+
+                return@ChatScreenPage MiniMessage.miniMessage().deserialize(result)
+            }
         )
     }
 

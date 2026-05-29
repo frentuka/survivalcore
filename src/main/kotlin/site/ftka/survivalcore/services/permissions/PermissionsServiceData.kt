@@ -3,14 +3,15 @@ package site.ftka.survivalcore.services.permissions
 import site.ftka.survivalcore.MClass
 import site.ftka.survivalcore.services.permissions.objects.PermissionGroup
 import java.util.*
+import java.util.concurrent.ConcurrentHashMap
 
 internal class PermissionsServiceData (private val service: PermissionsService, private val plugin: MClass) {
 
-    private val groupsMap = mutableMapOf<UUID, PermissionGroup>()
-    private val groupsNameIDMap = mutableMapOf<String, UUID>()
+    private val groupsMap = ConcurrentHashMap<UUID, PermissionGroup>()
+    private val groupsNameIDMap = ConcurrentHashMap<String, UUID>()
 
     fun getGroup(name: String): PermissionGroup? {
-        val groupUUID = groupsNameIDMap[name]
+        val groupUUID = groupsNameIDMap[name] ?: return null
         return groupsMap[groupUUID]
     }
 
@@ -22,7 +23,7 @@ internal class PermissionsServiceData (private val service: PermissionsService, 
         return groupsMap.values.toSet()
     }
 
-    fun getGroupsMap()
+    fun getGroupsMap(): ConcurrentHashMap<UUID, PermissionGroup>
         = groupsMap
 
     fun setupGroup(group: PermissionGroup) {
@@ -42,6 +43,7 @@ internal class PermissionsServiceData (private val service: PermissionsService, 
 
         // clear caches
         service.permissions_ss.clearCache()
+        service.permissions_ss.invalidateCache()
     }
 
     fun deMaterializeGroup(uuid: UUID) {
@@ -58,6 +60,7 @@ internal class PermissionsServiceData (private val service: PermissionsService, 
         TBR.forEach{ groupsNameIDMap.remove(it) }
 
         service.permissions_ss.clearCache()
+        service.permissions_ss.invalidateCache()
     }
 
 }

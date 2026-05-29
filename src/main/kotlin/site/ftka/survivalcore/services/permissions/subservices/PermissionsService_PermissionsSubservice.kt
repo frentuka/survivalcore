@@ -5,12 +5,13 @@ import site.ftka.survivalcore.services.permissions.PermissionsService
 import site.ftka.survivalcore.services.playerdata.objects.PlayerData
 import java.util.UUID
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.ConcurrentHashMap
 
 class PermissionsService_PermissionsSubservice(private val service: PermissionsService, private val plugin: MClass) {
 
     // Yes it DOES include inheritances.
-    private val groupPermissionsMap = mutableMapOf<UUID, Set<String>>()
-    private val playerPermissionsCache = mutableMapOf<UUID, Set<String>>()
+    private val groupPermissionsMap = ConcurrentHashMap<UUID, Set<String>>()
+    private val playerPermissionsCache = ConcurrentHashMap<UUID, Set<String>>()
 
     fun groupHasPerm(groupID: UUID, permission: String) =
         hasPerm(groupPerms(groupID), permission)
@@ -74,11 +75,14 @@ class PermissionsService_PermissionsSubservice(private val service: PermissionsS
         - Multiple redundancy (e.g. "permission.*")
     */
     private fun hasPerm(permissions: Set<String>, permission: String): Boolean {
-        val permissionSectioned = permission.split(".")
+        if (permissions.contains(permission) || permissions.contains("*")) return true // explicitally or absolute wildcard
 
-        if (permissions.contains(permission)) return true // explicitally
-        for (permissionSection in permissionSectioned) // redundantly
-            if (permissions.contains("$permissionSection.*")) return true
+        val permissionSectioned = permission.split(".")
+        val sb = java.lang.StringBuilder()
+        for (i in 0 until permissionSectioned.size - 1) {
+            sb.append(permissionSectioned[i]).append(".")
+            if (permissions.contains("${sb}*")) return true
+        }
 
         return false
     }
@@ -108,19 +112,32 @@ class PermissionsService_PermissionsSubservice(private val service: PermissionsS
     }
 
     fun groupPerms(groupUUID: UUID, includeInheritances: Boolean = true): Set<String> {
-        groupPermissionsMap[groupUUID]?.let { return it }
+        return calculateGroupPerms(groupUUID, includeInheritances, mutableSetOf())
+    }
+
+    private fun calculateGroupPerms(groupUUID: UUID, includeInheritances: Boolean, traversed: MutableSet<UUID>): Set<String> {
+        if (traversed.contains(groupUUID)) return emptySet() // Guard circular refs
+        traversed.add(groupUUID)
+
+        if (traversed.size == 1) {
+            groupPermissionsMap[groupUUID]?.let { return it }
+        }
 
         val perms = mutableSetOf<String>()
         val group = service.data.getGroup(groupUUID) ?: return perms
         perms.addAll(group.perms)
 
-        if (!includeInheritances) return perms
-        for (inh in group.inheritances) {
-            val inhGroup = service.data.getGroup(inh)
-            inhGroup?.let { perms.addAll(it.perms) }
+        if (includeInheritances) {
+            for (inh in group.inheritances) {
+                if (!traversed.contains(inh)) {
+                    perms.addAll(calculateGroupPerms(inh, true, traversed))
+                }
+            }
         }
 
-        groupPermissionsMap[groupUUID] = perms
+        if (traversed.size == 1) {
+            groupPermissionsMap[groupUUID] = perms
+        }
 
         return perms
     }

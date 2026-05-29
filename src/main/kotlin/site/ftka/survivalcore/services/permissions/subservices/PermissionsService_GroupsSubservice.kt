@@ -24,7 +24,10 @@ class PermissionsService_GroupsSubservice(private val service: PermissionsServic
         if (service.data.getGroup(name) != null) return null
 
         // create group object
-        val group = PermissionGroup()
+        val group = PermissionGroup().apply {
+            this.name = name
+            this.displayName = name
+        }
 
         // save into storage
         service.inout_ss.storeGroupIntoStorage(group)
@@ -45,9 +48,14 @@ class PermissionsService_GroupsSubservice(private val service: PermissionsServic
      *  | False -> Group does not exist
      */
     fun deleteGroup(groupName: String): Boolean {
-        service.data.getGroup(groupName) ?: return false // group does not exist
-        service.data.deMaterializeGroup(service.data.getGroup(groupName)!!.uuid)
-        return service.inout_ss.deleteGroupFile(groupName)
+        val group = service.data.getGroup(groupName) ?: return false // group does not exist
+        service.data.deMaterializeGroup(group.uuid)
+        val result = service.inout_ss.deleteGroupFile(groupName)
+
+        // refresh online attachments
+        service.players_ss.refreshAllOnlineAttachments()
+
+        return result
     }
 
     /*
@@ -60,6 +68,13 @@ class PermissionsService_GroupsSubservice(private val service: PermissionsServic
         // rename file
         service.inout_ss.renameGroupFile(name, newName)
         service.inout_ss.storeGroupsIntoMemory(true)
+
+        // clear cached calculations
+        service.permissions_ss.clearCache()
+        service.permissions_ss.invalidateCache()
+
+        // refresh online player attachments
+        service.players_ss.refreshAllOnlineAttachments()
     }
 
     enum class PermissionGroup_modificationResult {
@@ -87,6 +102,13 @@ class PermissionsService_GroupsSubservice(private val service: PermissionsServic
 
         // apply changes
         service.inout_ss.storeGroupsIntoMemory(true)
+
+        // clear cached calculations
+        service.permissions_ss.clearCache()
+        service.permissions_ss.invalidateCache()
+
+        // refresh online player attachments
+        service.players_ss.refreshAllOnlineAttachments()
 
         return PermissionGroup_modificationResult.SUCCESS
     }
@@ -248,7 +270,7 @@ class PermissionsService_GroupsSubservice(private val service: PermissionsServic
                 return@makeModification
             }
 
-            inheritances.add(inheritance)
+            inheritances.remove(inheritance)
             it.inheritances = inheritances
         })
 

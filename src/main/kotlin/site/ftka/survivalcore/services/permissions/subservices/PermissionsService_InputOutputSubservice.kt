@@ -10,7 +10,7 @@ import java.io.File
 class PermissionsService_InputOutputSubservice(private val service: PermissionsService, private val plugin: MClass) {
     private val logger = service.logger.sub("InOut")
 
-    private val groupsFolderAbsolutePath = "/${plugin.dataFolder.absolutePath}/groups"
+    private val groupsFolderAbsolutePath = "${plugin.dataFolder.absolutePath}/groups"
 
     fun storeGroupsIntoMemory(clearGroupsMap: Boolean = true) {
         if (clearGroupsMap) { service.data.clearGroupsMap() }
@@ -31,12 +31,13 @@ class PermissionsService_InputOutputSubservice(private val service: PermissionsS
         val groupsFolderFile = File(groupsFolderAbsolutePath)
         if (!groupsFolderFile.exists()) { groupsFolderFile.mkdirs(); return listOf() } // does not exist
         if (!groupsFolderFile.isDirectory) { groupsFolderFile.deleteRecursively(); groupsFolderFile.mkdirs(); return listOf() } // something weird
-        if (groupsFolderFile.listFiles()?.size == 0) return listOf() // empty
+        
+        val files = groupsFolderFile.listFiles() ?: return listOf()
+        if (files.isEmpty()) return listOf() // empty
 
         val groups = mutableListOf<PermissionGroup>()
 
-        for (possibleGroupFile in groupsFolderFile.listFiles()!!
-            .filter{it.extension == "json" && !it.name.startsWith("INVALID")}) {
+        for (possibleGroupFile in files.filter{it.extension == "json" && !it.name.startsWith("INVALID")}) {
 
             try {
                 val text = possibleGroupFile.readText()
@@ -52,6 +53,7 @@ class PermissionsService_InputOutputSubservice(private val service: PermissionsS
                 if (groupNameLowercase != possibleGroupFile.nameWithoutExtension) {
                     logger.log("Group file discrepancy detected: File name is ${possibleGroupFile.name} when it should be $groupNameLowercase. Renaming.", LogLevel.LOW, NamedTextColor.RED)
                     renameGroupFile(possibleGroupFile.nameWithoutExtension, groupNameLowercase)
+                    group.name = groupNameLowercase
                 }
 
             } catch (e: Exception) {
@@ -80,7 +82,7 @@ class PermissionsService_InputOutputSubservice(private val service: PermissionsS
         if (!groupsFolderFile.isDirectory) return false // something weird
 
         val groupFileName = "${group.name}.json"
-        val groupFileAbsolutePath = "/$groupsFolderFile/$groupFileName"
+        val groupFileAbsolutePath = "$groupsFolderFile/$groupFileName"
         val groupFile = File(groupFileAbsolutePath)
 
         if (groupFile.exists() && !overwriteIfExists) return false
@@ -98,7 +100,7 @@ class PermissionsService_InputOutputSubservice(private val service: PermissionsS
     fun renameGroupFile(groupName: String, newGroupName: String): Boolean {
         val groupFile = getGroupFile(groupName) ?: return false
 
-        val newGroupFileAbsolutePath = "/$groupsFolderAbsolutePath/$newGroupName.json"
+        val newGroupFileAbsolutePath = "$groupsFolderAbsolutePath/$newGroupName.json"
         val newGroupFile = File(newGroupFileAbsolutePath)
 
         val result = groupFile.renameTo(newGroupFile)
@@ -130,7 +132,7 @@ class PermissionsService_InputOutputSubservice(private val service: PermissionsS
         if (!groupsFolderFile.exists()) return null
         if (!groupsFolderFile.isDirectory) return null
 
-        val groupFileAbsolutePath = "/$groupsFolderAbsolutePath/$groupName.json"
+        val groupFileAbsolutePath = "$groupsFolderAbsolutePath/$groupName.json"
         val groupFile = File(groupFileAbsolutePath)
 
         // if file exists, return it, otherwise return null

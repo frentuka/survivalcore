@@ -5,10 +5,52 @@ import site.ftka.survivalcore.services.permissions.PermissionsService
 import site.ftka.survivalcore.services.playerdata.subservices.PlayerData_InputOutputSubservice
 import java.util.UUID
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.ConcurrentHashMap
+import org.bukkit.entity.Player
+import org.bukkit.permissions.PermissionAttachment
 
 class PermissionsService_PlayersSubservice(private val service: PermissionsService, private val plugin: MClass) {
 
     private fun pdAPI() = plugin.servicesFwk.playerData.api
+
+    private val attachments = ConcurrentHashMap<UUID, PermissionAttachment>()
+
+    fun refreshAttachment(player: Player) {
+        if (!plugin.server.isPrimaryThread) {
+            plugin.server.scheduler.runTask(plugin, Runnable { refreshAttachment(player) })
+            return
+        }
+        service.permissions_ss.invalidateCache(player.uniqueId)
+        val attachment = attachments.computeIfAbsent(player.uniqueId) { player.addAttachment(plugin) }
+        val currentPermissions = attachment.permissions.keys.toList()
+        for (perm in currentPermissions) {
+            attachment.unsetPermission(perm)
+        }
+        val permissions = service.permissions_ss.playerPerms(player.uniqueId)
+        for (perm in permissions) {
+            attachment.setPermission(perm, true)
+        }
+    }
+
+    fun removeAttachment(player: Player) {
+        if (!plugin.server.isPrimaryThread) {
+            plugin.server.scheduler.runTask(plugin, Runnable { removeAttachment(player) })
+            return
+        }
+        attachments.remove(player.uniqueId)?.let {
+            try {
+                player.removeAttachment(it)
+            } catch (e: Exception) {
+                // ignore
+            }
+        }
+    }
+
+    fun refreshAllOnlineAttachments() {
+        for (player in plugin.server.onlinePlayers) {
+            refreshAttachment(player)
+        }
+    }
 
     /*
         This subservice will be responsible for modifying
@@ -21,18 +63,16 @@ class PermissionsService_PlayersSubservice(private val service: PermissionsServi
 
     fun getGroups(player: String, localOnly: Boolean = false): CompletableFuture<Set<UUID>?> {
         val uuid = plugin.essentialsFwk.usernameTracker.getUUID(player) ?: return CompletableFuture.completedFuture(null)
-        return getGroups(uuid)
+        return getGroups(uuid, localOnly)
     }
 
     fun getGroups(uuid: UUID, localOnly: Boolean = false): CompletableFuture<Set<UUID>?> {
         if (localOnly)
             return CompletableFuture.completedFuture(pdAPI().getPlayerData_locally(uuid)?.permissions?.groups)
 
-        return CompletableFuture<Set<UUID>>().thenApply{
-            plugin.servicesFwk.playerData.api.getPlayerData(uuid)?.thenApply {
-                it?.permissions?.groups
-            }?.get()
-        }
+        return pdAPI().getPlayerData(uuid)?.thenApply {
+            it?.permissions?.groups
+        } ?: CompletableFuture.completedFuture(null)
     }
 
     /*
@@ -90,6 +130,11 @@ class PermissionsService_PlayersSubservice(private val service: PermissionsServi
             PlayerData_InputOutputSubservice.PlayerDataModificationResult.FAILURE_UNKNOWN -> Permissions_addGroupResult.FAILURE_UNKNOWN
         }
 
+        if (result == Permissions_addGroupResult.SUCCESS) {
+            service.permissions_ss.invalidateCache(player)
+            plugin.server.getPlayer(player)?.let { refreshAttachment(it) }
+        }
+
         return result
     }
 
@@ -132,7 +177,7 @@ class PermissionsService_PlayersSubservice(private val service: PermissionsServi
                 return@makeModification false
             }
 
-            // add to group
+            // remove from group
             val groups = pdata.permissions?.groups?.toMutableList() ?: mutableListOf()
             groups.remove(group)
             pdata.permissions?.groups = groups.toSet()
@@ -146,6 +191,11 @@ class PermissionsService_PlayersSubservice(private val service: PermissionsServi
             PlayerData_InputOutputSubservice.PlayerDataModificationResult.FAILURE_PLAYERDATA_UNAVAILABLE -> Permissions_removeGroupResult.FAILURE_PLAYER_UNAVAILABLE
             PlayerData_InputOutputSubservice.PlayerDataModificationResult.FAILURE_CORRUPT_PLAYERDATA -> Permissions_removeGroupResult.FAILURE_CORRUPT_PLAYERDATA
             PlayerData_InputOutputSubservice.PlayerDataModificationResult.FAILURE_UNKNOWN -> Permissions_removeGroupResult.FAILURE_UNKNOWN
+        }
+
+        if (result == Permissions_removeGroupResult.SUCCESS) {
+            service.permissions_ss.invalidateCache(player)
+            plugin.server.getPlayer(player)?.let { refreshAttachment(it) }
         }
 
         return result
@@ -164,11 +214,9 @@ class PermissionsService_PlayersSubservice(private val service: PermissionsServi
         if (localOnly)
             return CompletableFuture.completedFuture(pdAPI().getPlayerData_locally(uuid)?.permissions?.permissions)
 
-        return CompletableFuture<Set<String>>().thenApply{
-            plugin.servicesFwk.playerData.api.getPlayerData(uuid)?.thenApply {
-                it?.permissions?.permissions
-            }?.get()
-        }
+        return pdAPI().getPlayerData(uuid)?.thenApply {
+            it?.permissions?.permissions
+        } ?: CompletableFuture.completedFuture(null)
     }
 
     /*
@@ -220,6 +268,11 @@ class PermissionsService_PlayersSubservice(private val service: PermissionsServi
             PlayerData_InputOutputSubservice.PlayerDataModificationResult.FAILURE_PLAYERDATA_UNAVAILABLE -> Permissions_addPermissionResult.FAILURE_PLAYER_UNAVAILABLE
             PlayerData_InputOutputSubservice.PlayerDataModificationResult.FAILURE_CORRUPT_PLAYERDATA -> Permissions_addPermissionResult.FAILURE_CORRUPT_PLAYERDATA
             PlayerData_InputOutputSubservice.PlayerDataModificationResult.FAILURE_UNKNOWN -> Permissions_addPermissionResult.FAILURE_UNKNOWN
+        }
+
+        if (result == Permissions_addPermissionResult.SUCCESS) {
+            service.permissions_ss.invalidateCache(player)
+            plugin.server.getPlayer(player)?.let { refreshAttachment(it) }
         }
 
         return result
@@ -276,6 +329,11 @@ class PermissionsService_PlayersSubservice(private val service: PermissionsServi
             PlayerData_InputOutputSubservice.PlayerDataModificationResult.FAILURE_UNKNOWN -> Permissions_removePermissionResult.FAILURE_UNKNOWN
         }
 
+        if (result == Permissions_removePermissionResult.SUCCESS) {
+            service.permissions_ss.invalidateCache(player)
+            plugin.server.getPlayer(player)?.let { refreshAttachment(it) }
+        }
+
         return result
     }
 
@@ -319,7 +377,7 @@ class PermissionsService_PlayersSubservice(private val service: PermissionsServi
     }
 
     suspend fun setDisplayGroup(uuid: UUID, group: UUID): Permissions_setDisplayGroupResult {
-        var result: Permissions_setDisplayGroupResult
+        var result = Permissions_setDisplayGroupResult.SUCCESS
 
         val modification = plugin.servicesFwk.playerData.inout_ss.makeModification(uuid) { pdata ->
             // corrupt pdata
@@ -329,7 +387,7 @@ class PermissionsService_PlayersSubservice(private val service: PermissionsServi
             }
 
             // player not in group to display
-            if (pdata.permissions?.groups?.contains(group) ?: false) {
+            if (pdata.permissions?.groups?.contains(group) == false) {
                 result = Permissions_setDisplayGroupResult.FAILURE_PLAYER_NOT_IN_GROUP
                 return@makeModification false
             }
@@ -349,6 +407,11 @@ class PermissionsService_PlayersSubservice(private val service: PermissionsServi
             PlayerData_InputOutputSubservice.PlayerDataModificationResult.FAILURE_PLAYERDATA_UNAVAILABLE -> Permissions_setDisplayGroupResult.FAILURE_PLAYER_UNAVAILABLE
             PlayerData_InputOutputSubservice.PlayerDataModificationResult.FAILURE_CORRUPT_PLAYERDATA -> Permissions_setDisplayGroupResult.FAILURE_CORRUPT_PLAYERDATA
             PlayerData_InputOutputSubservice.PlayerDataModificationResult.FAILURE_UNKNOWN -> Permissions_setDisplayGroupResult.FAILURE_UNKNOWN
+        }
+
+        if (result == Permissions_setDisplayGroupResult.SUCCESS) {
+            service.permissions_ss.invalidateCache(uuid)
+            plugin.server.getPlayer(uuid)?.let { refreshAttachment(it) }
         }
 
         return result

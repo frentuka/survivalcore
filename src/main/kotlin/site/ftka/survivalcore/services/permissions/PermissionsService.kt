@@ -6,11 +6,14 @@ import net.kyori.adventure.text.format.TextColor
 import site.ftka.survivalcore.MClass
 import site.ftka.survivalcore.initless.logging.LoggingInitless.*
 import site.ftka.survivalcore.services.ServicesFramework
+import site.ftka.survivalcore.services.permissions.listeners.PermissionsServiceListener
 import site.ftka.survivalcore.services.permissions.objects.PermissionGroup
 import site.ftka.survivalcore.services.permissions.subservices.*
 
 class PermissionsService(val plugin: MClass, private val services: ServicesFramework) {
     internal val logger = plugin.loggingInitless.getLog("PermissionsService", Component.text("Perms").color(TextColor.fromHexString("#8298d9")))
+
+    private val gson = Gson()
 
     val api                 = PermissionsAPI(this)
     internal val data                = PermissionsServiceData(this, plugin)
@@ -20,9 +23,14 @@ class PermissionsService(val plugin: MClass, private val services: ServicesFrame
     internal val groups_ss           = PermissionsService_GroupsSubservice(this, plugin)
     internal val inout_ss            = PermissionsService_InputOutputSubservice(this, plugin)
 
+    internal val permissionsListener = PermissionsServiceListener(this, plugin)
+
     internal fun init() {
         logger.log("Initializing...", LogLevel.LOW)
         inout_ss.storeGroupsIntoMemory(true)
+
+        plugin.initListener(permissionsListener)
+        plugin.propEventsInitless.registerListener(permissionsListener)
     }
 
     internal fun restart() {
@@ -37,6 +45,6 @@ class PermissionsService(val plugin: MClass, private val services: ServicesFrame
     }
 
     fun fromJson(json: String): PermissionGroup {
-        return Gson().fromJson(json, PermissionGroup::class.java)
+        return gson.fromJson(json, PermissionGroup::class.java)
     }
 }
