@@ -23,7 +23,7 @@ class ChatManager_ChatCommand(private val plugin: MClass): CommandExecutor {
 
         val uuid = sender.uniqueId
 
-        if (plugin.servicesFwk.permissions.api.player_hasPerm_locally(uuid, "staff.chat")) {
+        if (!plugin.servicesFwk.permissions.api.player_hasPerm_locally(uuid, "staff.chat")) {
             // player does not have permission
             return false
         }
@@ -72,12 +72,11 @@ class ChatManager_ChatCommand(private val plugin: MClass): CommandExecutor {
 
         // /chat {player} channels disable {channel}
         if (args.size == 4 && args[1].equals("channels", true) && args[2].equals("disable", true)) {
-            if (plugin.server.getPlayer(args[0]) == null)
-                return false
+            val targetPlayer = plugin.server.getPlayer(args[0]) ?: return false
 
-            chatAPI.removeActiveChannel(uuid, args[3])
+            chatAPI.removeActiveChannel(targetPlayer.uniqueId, args[3])
 
-            chatScreen.playerSelection(plugin.server.getPlayer(args[0])!!.uniqueId)
+            chatScreen.playerSelection(targetPlayer.uniqueId)
             chatAPI.refreshScreen(uuid, chatScreen.name, "player_channels")
             return false
         }

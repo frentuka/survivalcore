@@ -1,5 +1,6 @@
 package site.ftka.survivalcore.essentials.chat.subservices
 
+import net.kyori.adventure.text.Component
 import site.ftka.survivalcore.MClass
 import site.ftka.survivalcore.initless.logging.LoggingInitless
 import site.ftka.survivalcore.essentials.chat.ChatEssential
@@ -12,7 +13,8 @@ internal class ChatEssential_ScreensSubservice(private val svc: ChatEssential, p
     private val logger = svc.logger.sub("Screens")
 
     // <Player's UUID, Screen>
-    private val playersInsideScreens = mutableMapOf<UUID, ChatScreen>()
+    private val playersInsideScreens = java.util.concurrent.ConcurrentHashMap<UUID, ChatScreen>()
+    private val lastSentFrameMap = java.util.concurrent.ConcurrentHashMap<UUID, Component>()
 
     fun showScreen(uuid: UUID, screen: ChatScreen): Boolean {
         // is player inside another screen?
@@ -79,6 +81,7 @@ internal class ChatEssential_ScreensSubservice(private val svc: ChatEssential, p
     fun stopAnyScreen(uuid: UUID) {
         playersInsideScreens.remove(uuid)
         screenTimeoutLastUpdateMap.remove(uuid)
+        lastSentFrameMap.remove(uuid)
 
         // send player's corresponding chat
         svc.messaging_ss.clearChat(uuid)
@@ -86,15 +89,22 @@ internal class ChatEssential_ScreensSubservice(private val svc: ChatEssential, p
     }
 
     // refresh frame for player's active screen
-    private fun sendActiveFrame(uuid: UUID) {
+    private fun sendActiveFrame(uuid: UUID, forceRedraw: Boolean = false) {
         if (!playersInsideScreens.containsKey(uuid))
             return
 
         val screen = playersInsideScreens[uuid]!!
-        screen.getFrame()?.let {
-            svc.messaging_ss.clearChat(uuid)
-            svc.messaging_ss.sendChannellessMessage(uuid, it, false)
-        } ?: stopScreen(uuid, screen.name)
+        val frame = screen.getFrame()
+        if (frame != null) {
+            val lastFrame = lastSentFrameMap[uuid]
+            if (forceRedraw || lastFrame != frame) {
+                svc.messaging_ss.clearChat(uuid)
+                svc.messaging_ss.sendChannellessMessage(uuid, frame, false)
+                lastSentFrameMap[uuid] = frame
+            }
+        } else {
+            stopScreen(uuid, screen.name)
+        }
     }
 
     /*
@@ -116,7 +126,7 @@ internal class ChatEssential_ScreensSubservice(private val svc: ChatEssential, p
     }
 
     private var screensScheduledFuture: ScheduledFuture<*>? = null
-    private val screenTimeoutLastUpdateMap = mutableMapOf<UUID, Long>()
+    private val screenTimeoutLastUpdateMap = java.util.concurrent.ConcurrentHashMap<UUID, Long>()
 
     private fun serviceTimer() {
         if (screensScheduledFuture != null)
@@ -124,7 +134,7 @@ internal class ChatEssential_ScreensSubservice(private val svc: ChatEssential, p
 
         screensScheduledFuture = plugin.globalScheduler.scheduleAtFixedRate(
             {
-                for (player in playersInsideScreens.keys) {
+                for (player in playersInsideScreens.keys.toList()) {
                     val screen = playersInsideScreens[player] ?: continue
                     var stopped = !screen.isActive
 

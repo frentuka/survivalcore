@@ -4,13 +4,14 @@ import site.ftka.survivalcore.MClass
 import site.ftka.survivalcore.essentials.chat.ChatEssential
 import site.ftka.survivalcore.essentials.chat.objects.ChatChannel
 import java.util.*
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
 
 internal class ChatEssential_ChannelsSubservice(private val service: ChatEssential, private val plugin: MClass) {
 
-    private val channelsMap = mutableMapOf<String, ChatChannel>()
-    private val playersActiveChannels = mutableMapOf<UUID, Set<String>>()
+    private val channelsMap = ConcurrentHashMap<String, ChatChannel>()
+    private val playersActiveChannels = ConcurrentHashMap<UUID, Set<String>>()
 
     // "$" to prevent collision with playernames
     private val GLOBAL_CHANNEL_NAME: String = "\$global"
@@ -89,12 +90,12 @@ internal class ChatEssential_ChannelsSubservice(private val service: ChatEssenti
         channels.add(GLOBAL_CHANNEL_NAME)
         channels.add(STAFF_CHANNEL_NAME)
 
-        for (channelName in channelsMap.keys) {
+        for (channelName in channelsMap.keys.toList()) {
             if (channelName.startsWith(CLAN_CHANNEL_NAME_PREFIX))
                 channels.add(channelName)
         }
 
-        for (channelName in channelsMap.keys)
+        for (channelName in channelsMap.keys.toList())
             if (!channelName.startsWith(CLAN_CHANNEL_NAME_PREFIX) && channelName != GLOBAL_CHANNEL_NAME && channelName != STAFF_CHANNEL_NAME && channelName != uuidToDelete?.toString())
                 channels.add(channelName)
 
@@ -116,20 +117,20 @@ internal class ChatEssential_ChannelsSubservice(private val service: ChatEssenti
     }
 
     fun getPlayerChannel(uuid: UUID, createIfNotExists: Boolean = true): ChatChannel? {
-        val name = plugin.server.getPlayer(uuid)?.uniqueId ?: return null
-            return getPlayerChannel(name, createIfNotExists)
+        val uuidStr = uuid.toString()
+        if (channelsMap.containsKey(uuidStr))
+            return channelsMap[uuidStr]
+
+        val player = plugin.server.getPlayer(uuid) ?: return null
+        if (createIfNotExists)
+            return registerChannel(player.name, true, uuid)
+
+        return null
     }
 
     fun getPlayerChannel(playerName: String, createIfNotExists: Boolean = true): ChatChannel? {
-        if (channelsMap.containsKey(playerName))
-            return channelsMap[playerName]
-
         val uuid = plugin.server.getPlayer(playerName)?.uniqueId ?: return null
-
-        if (createIfNotExists)
-            return registerChannel(playerName, true, uuid)
-
-        return null
+        return getPlayerChannel(uuid, createIfNotExists)
     }
 
     /*
@@ -164,7 +165,6 @@ internal class ChatEssential_ChannelsSubservice(private val service: ChatEssenti
 
     // clock that will do purgeDataCheck every 10 seconds
     private var purgeScheduledFuture: ScheduledFuture<*>? = null
-    private var playersActiveChannelsTimeoutMap = mutableMapOf<UUID, Int>()
 
     private fun startPurgeDataTimer() {
         if (purgeScheduledFuture != null)
@@ -178,7 +178,7 @@ internal class ChatEssential_ChannelsSubservice(private val service: ChatEssenti
     // will remove data from channels if they dont update in certain amount of time
     private fun purgeDataCheck() {
         // check all channels
-        for (channelName in channelsMap.keys) {
+        for (channelName in channelsMap.keys.toList()) {
             val channel = getChannel(channelName) ?: continue
 
             if (channel.settings.timeoutAfterSeconds < 0)
@@ -190,13 +190,9 @@ internal class ChatEssential_ChannelsSubservice(private val service: ChatEssenti
         }
 
         // check player's active channels timeout
-        for (player in playersActiveChannels.keys) {
-            if (plugin.server.getPlayer(player) == null && playersActiveChannelsTimeoutMap[player]?.let { it < 0 } == true) {
+        for (player in playersActiveChannels.keys.toList()) {
+            if (plugin.server.getPlayer(player) == null) {
                 purgePlayer(player)
-                playersActiveChannelsTimeoutMap.remove(player)
-                continue
-            } else {
-                playersActiveChannelsTimeoutMap[player] = playersActiveChannelsTimeoutMap[player]?.minus(1) ?: 0
             }
         }
     }

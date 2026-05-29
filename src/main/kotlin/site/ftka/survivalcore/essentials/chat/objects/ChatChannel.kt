@@ -5,7 +5,7 @@ import site.ftka.survivalcore.essentials.chat.ChatEssential
 import java.util.UUID
 
 data class ChatChannel(private val service: ChatEssential, val name: String, var settings: ChatChannelSettings = ChatChannelSettings()) {
-    val members = mutableSetOf<UUID>()
+    val members: MutableSet<UUID> = java.util.Collections.newSetFromMap(java.util.concurrent.ConcurrentHashMap<UUID, Boolean>())
     val data = ChatData()
 
     var lastMessage = System.currentTimeMillis()
@@ -22,19 +22,23 @@ data class ChatChannel(private val service: ChatEssential, val name: String, var
      * Message won't be sent
      */
     fun addMessage(message: Component) {
-        var timeMillis = System.currentTimeMillis()
+        synchronized(data) {
+            var timeMillis = System.currentTimeMillis()
 
-        // another message could have the exact same timeMillis
-        while (data.chatMap.containsKey(timeMillis))
-            timeMillis+= 1
+            // another message could have the exact same timeMillis
+            while (data.chatMap.containsKey(timeMillis))
+                timeMillis += 1
 
-        data.add(message, timeMillis)
-        lastMessage = timeMillis
+            data.add(message, timeMillis)
+            lastMessage = timeMillis
 
-        // prevent message data from exceeding limit
-        if (settings.maxStoredChatEntries < 0) return // no limit if max is < 0
-        while (data.chatMap.keys.size > settings.maxStoredChatEntries)
-            data.chatMap.remove(data.chatMap.keys.min()) // removes the older value
+            // prevent message data from exceeding limit
+            if (settings.maxStoredChatEntries < 0) return // no limit if max is < 0
+            while (data.chatMap.keys.size > settings.maxStoredChatEntries) {
+                val minKey = data.chatMap.keys.minOrNull() ?: break
+                data.chatMap.remove(minKey) // removes the older value
+            }
+        }
     }
 
     /**
