@@ -10,6 +10,7 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.server.TabCompleteEvent
 import site.ftka.survivalcore.MClass
+import site.ftka.survivalcore.apps.ServerAdministration.gui.ServerAdministration_MainMenuGUI
 
 internal class ServerAdministration_serverCommand(private val src: ServerAdministrationApp, private val plugin: MClass): CommandExecutor, Listener {
 
@@ -32,27 +33,28 @@ internal class ServerAdministration_serverCommand(private val src: ServerAdminis
     }
 
     override fun onCommand(sender: CommandSender, cmd: Command, label: String, args: Array<out String>): Boolean {
-        if (sender is Player) {
-            sender.sendMessage(servFwk.playerData.data.getPlayerDataMap().keys.toString())
-            sender.sendMessage(sender.uniqueId.toString())
-        }
-
         if (sender !is ConsoleCommandSender) { // check authorization
-            if (sender !is Player) return false // can't happen
-            else if (!servFwk.playerData.data.getPlayerDataMap().containsKey(sender.uniqueId)) return false // if not exists in pdata
+            if (sender !is Player) return false
+            if (!servFwk.playerData.data.getPlayerDataMap().containsKey(sender.uniqueId)) {
+                sender.sendMessage("§cYour player profile is not currently loaded!")
+                return true
+            }
             if (!servFwk.permissions.permissions_ss.playerHasPerm_locally(sender.uniqueId, SERVER_ADMINISTRATION_PLAYER_PERMISSION)) {
                 val noPermissionMessage = plugin.servicesFwk.language.api.playerLanguagePack(sender.uniqueId).command_error_player_noPermission
-                sender.sendMessage(noPermissionMessage) // player doesn't have permission
-                // return false (testing with no return. shouldn't be commented)
+                sender.sendMessage(noPermissionMessage)
+                return true
             }
         }
 
-        //val msg = ServerAdminCommandMessages()
-
-        // get help
         if (args.isEmpty()) {
-            sender.sendMessage(src.lang.help_message)
-            return false
+            if (sender is Player) {
+                val gui = ServerAdministration_MainMenuGUI(plugin, sender)
+                sender.openInventory(gui.inventory)
+                return true
+            } else {
+                sender.sendMessage(src.lang.help_message)
+                return true
+            }
         }
 
         if (args.get(0) == "service") return false

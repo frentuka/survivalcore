@@ -19,10 +19,16 @@ commands:
     description: go back to the previous screen page
   server:
     description: run ServerAdministration app
-    aliases: sv
+    aliases:
+      - sv
   permissions:
     description: run PermissionsManager players app
-    aliases: p, perms
+    aliases:
+      - p
+      - perms
+      - perm
   groups:
     description: run PermissionsManager groups app
-    aliases: g, group
+    aliases:
+      - g
+      - group

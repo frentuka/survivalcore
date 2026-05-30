@@ -10,17 +10,8 @@ class PermissionsManagerApp(val plugin: MClass) {
     private val groupsCommand = PermissionsManagerApp_GroupsCommand(this, plugin)
 
     internal fun init() {
-        // init command
-
-        // perms command is player-side
-        plugin.getCommand("p")?.setExecutor(permsCommand)
-        plugin.getCommand("perm")?.setExecutor(permsCommand)
-        plugin.getCommand("perms")?.setExecutor(permsCommand)
+        // init commands
         plugin.getCommand("permissions")?.setExecutor(permsCommand)
-
-        // groups command is group-side
-        plugin.getCommand("g")?.setExecutor(groupsCommand)
-        plugin.getCommand("group")?.setExecutor(groupsCommand)
         plugin.getCommand("groups")?.setExecutor(groupsCommand)
     }
 

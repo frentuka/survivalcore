@@ -2,14 +2,15 @@ package site.ftka.survivalcore.services.inventorygui
 
 import net.kyori.adventure.text.Component
 import org.bukkit.event.inventory.InventoryType
+import org.bukkit.inventory.Inventory
 import site.ftka.survivalcore.services.inventorygui.interfaces.InventoryGUIOwner
 
 class InventoryGUIAPI(private val svc: InventoryGUIService) {
 
-    fun createInventory(owner: InventoryGUIOwner, type: InventoryType, title: Component)
+    fun createInventory(owner: InventoryGUIOwner, type: InventoryType, title: Component): Inventory
         = svc.createInventory(owner, type, title)
 
-    fun getInventoryOwner(ownerName: String)
-        = svc.getInventoryOwner(ownerName)
+    fun createInventory(owner: InventoryGUIOwner, size: Int, title: Component): Inventory
+        = svc.createInventory(owner, size, title)
 
 }

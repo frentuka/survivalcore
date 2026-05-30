@@ -29,8 +29,6 @@ class InventoryGUIService(private val plugin: MClass, private val services: Serv
 
     private val detectionListener = InventoryGUIDetectionListener(this)
 
-    private val inventoryOwnersMap = mutableMapOf<String, InventoryGUIOwner>()
-
     internal fun init() {
         logger.log("Initializing...", LogLevel.LOW)
         plugin.initListener(detectionListener)
@@ -50,11 +48,10 @@ class InventoryGUIService(private val plugin: MClass, private val services: Serv
     }
 
     fun createInventory(owner: InventoryGUIOwner, type: InventoryType, title: Component): Inventory {
-        inventoryOwnersMap[owner.ownerName] = owner
-        val inv = Bukkit.createInventory(owner, type, title)
         return Bukkit.createInventory(owner, type, title)
     }
 
-    fun getInventoryOwner(ownerName: String): InventoryGUIOwner?
-    = inventoryOwnersMap[ownerName]
+    fun createInventory(owner: InventoryGUIOwner, size: Int, title: Component): Inventory {
+        return Bukkit.createInventory(owner, size, title)
+    }
 }
