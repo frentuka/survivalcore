@@ -71,6 +71,10 @@ Complex services providing compound business logic built on bootstrap and essent
 * **Inventory GUI** (`InventoryGUIService`): Framework to build dynamic inventory click UI owners.
   * *Brief Overview:* [INVENTORY_GUI.md](file:///home/srleg/Projects/survivalcore/universe/services/INVENTORY_GUI.md)
   * *Codebase Path:* `src/main/kotlin/site/ftka/survivalcore/services/inventorygui/`
+* **World Board Engine** (`WorldBoardService`): High-performance, Folia-threaded holographic 3D text display system.
+  * *Brief Overview:* [WORLD_BOARD.md](file:///home/srleg/Projects/survivalcore/universe/services/WORLD_BOARD.md)
+  * *Detailed Docs:* [WORLD_BOARD.md](file:///home/srleg/Projects/survivalcore/src/main/kotlin/site/ftka/survivalcore/services/worldboard/WORLD_BOARD.md)
+  * *Codebase Path:* `src/main/kotlin/site/ftka/survivalcore/services/worldboard/`
 * **Unified Singula** (`SingulaService`): A facade layer that streamlines standard queries to other services.
   * *Brief Overview:* [SINGULA.md](file:///home/srleg/Projects/survivalcore/universe/services/SINGULA.md)
   * *Codebase Path:* `src/main/kotlin/site/ftka/survivalcore/services/singula/`

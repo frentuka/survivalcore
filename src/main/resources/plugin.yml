@@ -32,3 +32,5 @@ commands:
     aliases:
       - g
       - group
+  wbtest:
+    description: test the world board service
