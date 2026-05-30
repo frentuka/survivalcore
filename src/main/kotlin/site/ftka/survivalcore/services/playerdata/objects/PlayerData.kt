@@ -14,6 +14,7 @@ data class PlayerData(val uuid: UUID) {
     var settings:       PlayerSettings?     = PlayerSettings()
 
     // misc
+    var unlockedChunks: MutableList<Pair<Int, Int>> = mutableListOf()
     var updateTimestamp: Long = System.currentTimeMillis()
 
     fun toJson(): String {

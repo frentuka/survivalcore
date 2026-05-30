@@ -10,6 +10,8 @@ import site.ftka.survivalcore.services.permissions.PermissionsService
 import site.ftka.survivalcore.services.playerdata.PlayerDataService
 import site.ftka.survivalcore.services.singula.SingulaService
 import site.ftka.survivalcore.services.worldboard.WorldBoardService
+import site.ftka.survivalcore.services.territory.TerritoryService
+import site.ftka.survivalcore.services.spawnfinder.SpawnFinderService
 
 class ServicesFramework(private val plugin: MClass) {
     private val logger = plugin.loggingInitless.getLog("ServicesFramework", Component.text("Services").color(NamedTextColor.RED))
@@ -20,6 +22,8 @@ class ServicesFramework(private val plugin: MClass) {
     var inventoryGUI    = InventoryGUIService(plugin, this)
     var worldBoard      = WorldBoardService(plugin, this)
     var chunkBorder     = ChunkBorderService(plugin, this)
+    var territory       = TerritoryService(plugin, this)
+    var spawnFinder     = SpawnFinderService(plugin, this)
     var singula         = SingulaService(plugin, this)
 
     fun initAll() {
@@ -31,6 +35,8 @@ class ServicesFramework(private val plugin: MClass) {
         inventoryGUI.init()
         worldBoard.init()
         chunkBorder.init()
+        territory.init()
+        spawnFinder.init()
 
         singula.init()
     }
@@ -44,6 +50,8 @@ class ServicesFramework(private val plugin: MClass) {
         inventoryGUI.restart()
         worldBoard.restart()
         chunkBorder.restart()
+        territory.restart()
+        spawnFinder.restart()
 
         singula.restart()
     }
@@ -57,6 +65,8 @@ class ServicesFramework(private val plugin: MClass) {
         inventoryGUI.stop()
         worldBoard.stop()
         chunkBorder.stop()
+        territory.stop()
+        spawnFinder.stop()
 
         singula.stop()
     }

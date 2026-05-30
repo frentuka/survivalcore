@@ -6,6 +6,7 @@ import net.kyori.adventure.text.format.NamedTextColor
 import site.ftka.survivalcore.MClass
 import site.ftka.survivalcore.apps.ChatManager.ChatManagerApp
 import site.ftka.survivalcore.apps.PermissionsManager.PermissionsManagerApp
+import site.ftka.survivalcore.apps.RandomSpawn.RandomSpawnApp
 
 class AppsFramework(private val plugin: MClass) {
     private val logger = plugin.loggingInitless.getLog("AppsFramework", Component.text("Apps").color(NamedTextColor.BLACK))
@@ -14,6 +15,7 @@ class AppsFramework(private val plugin: MClass) {
     val permissionsManager = PermissionsManagerApp(plugin)
     val chatManager = ChatManagerApp(plugin)
     val worldBoardTest = site.ftka.survivalcore.apps.WorldBoardTest.WorldBoardTestApp(plugin)
+    val randomSpawn = RandomSpawnApp(plugin)
 
     fun initAll() {
         logger.log("Initializing apps...")
@@ -22,6 +24,7 @@ class AppsFramework(private val plugin: MClass) {
         permissionsManager.init()
         serverAdministration.init()
         worldBoardTest.init()
+        randomSpawn.init()
     }
 
     fun restartAll() {
@@ -31,6 +34,7 @@ class AppsFramework(private val plugin: MClass) {
         permissionsManager.restart()
         serverAdministration.restart()
         worldBoardTest.restart()
+        randomSpawn.restart()
     }
 
     fun stopAll() {
@@ -40,6 +44,7 @@ class AppsFramework(private val plugin: MClass) {
         permissionsManager.stop()
         serverAdministration.stop()
         worldBoardTest.stop()
+        randomSpawn.stop()
     }
 
 }
