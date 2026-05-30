@@ -60,14 +60,12 @@ graph TD
 ### 2.5 PermissionsService_PlayersSubservice (Integration & Dynamic Sync)
 * **Path:** [PermissionsService_PlayersSubservice.kt](file:///home/srleg/Projects/survivalcore/src/main/kotlin/site/ftka/survivalcore/services/permissions/subservices/PermissionsService_PlayersSubservice.kt)
 * **Purpose:** Bridges players with groups and permissions. Mutates player data configurations via `PlayerDataService`'s transactional locks.
-* **Bukkit Attachment Engine:** Manages Spigot's `PermissionAttachment` collection. Schedules all attachment updates to run on the primary server thread to prevent Bukkit async attachment exceptions:
+* **Bukkit Attachment Engine:** Manages Spigot's `PermissionAttachment` collection. Schedules all attachment updates to run on the player's EntityScheduler to be Folia-compatible:
   ```kotlin
   fun refreshAttachment(player: Player) {
-      if (!plugin.server.isPrimaryThread) {
-          plugin.server.scheduler.runTask(plugin, Runnable { refreshAttachment(player) })
-          return
-      }
-      // Calculates and applies standard Spigot permissions...
+      player.scheduler.execute(plugin, Runnable {
+          // Calculates and applies standard Spigot permissions...
+      }, null, 0L)
   }
   ```
 

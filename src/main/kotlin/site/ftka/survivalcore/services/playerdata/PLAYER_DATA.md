@@ -121,8 +121,8 @@ graph TD
 ### 2.9 PlayerData_RegistrationSubservice (Lifecycle Orchestration)
 * **Path:** [PlayerData_RegistrationSubservice.kt](file:///home/srleg/Projects/survivalcore/src/main/kotlin/site/ftka/survivalcore/services/playerdata/subservices/PlayerData_RegistrationSubservice.kt)
 * **Purpose:** Manages the step-by-step join/quit registration pipeline inside coroutines, ensuring proper initialization and cleanup.
-* **Join (register):** Fetches or creates data, updates timestamp, runs integrity checks, handles corruptions by backing up and rewriting default modules, updates name maps, applies physical statistics to the Spigot player, and fires `PlayerDataRegisterEvent`.
-* **Quit (unregister):** Fetches in-memory data, fires `PlayerDataPreUnregisterEvent` (so other components can append final states), gathers physical metrics from the player, saves to Redis (with fallback emergency dumps), clears active memory, fires `PlayerDataUnregisterEvent`, and releases mutex.
+* **Join (register):** Fetches or creates data, updates timestamp, runs integrity checks, handles corruptions by backing up and rewriting default modules, updates name maps, applies physical statistics to the Spigot player, and fires `PlayerDataRegisterEvent`. On Folia, player-touching actions are executed on the player's `EntityScheduler` and awaited asynchronously using a coroutine-integrated `CompletableFuture`.
+* **Quit (unregister):** Fetches in-memory data, fires `PlayerDataPreUnregisterEvent` (so other components can append final states), gathers physical metrics from the player, saves to Redis (with fallback emergency dumps), clears active memory, fires `PlayerDataUnregisterEvent`, and releases mutex. On Folia, player state gathering operations execute synchronously if the current thread owns the player's region (critical for retiring entities upon quit to avoid dropped tasks), otherwise dispatched to the player's `EntityScheduler` and suspended until completion to prevent off-thread access.
 
 ---
 
@@ -156,7 +156,7 @@ graph TD
 * **Path:** [PlayerState.kt](file:///home/srleg/Projects/survivalcore/src/main/kotlin/site/ftka/survivalcore/services/playerdata/objects/modules/PlayerState.kt)
 * **Purpose:** Captures and restores the physical, vanilla state of the player on login/logout.
 * **Features:**
-  * **Stats:** Health, food level, saturation, experience, levels, gamemode.
+  * **Stats:** Health, food level, saturation, experience, levels, gamemode, allowFlight, isFlying.
   * **Potion Effects:** Custom nested data class `SerializedPotionEffect` to map type, duration, amplifier, ambient, particles, and icon attributes.
   * **Location & Physics:** Bed location, standard coordinates (`SerializedLocation`), momentum velocity vectors (`Triple<Double, Double, Double>`), fall distance.
   * **Inventory Serialization:** Encodes inventories and enderchests to Base64 strings mapped by slot ID (`MutableMap<Int, String>`) using the `base64Utils` helper to store items compactly in JSON.
@@ -266,6 +266,8 @@ Saved in Redis under the player's `UUID` key. Formatted as:
     "experience": 0.5,
     "level": 15,
     "gameMode": "SURVIVAL",
+    "allowFlight": false,
+    "isFlying": false,
     "potionEffects": [
       {
         "type": "SPEED",

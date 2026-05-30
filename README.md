@@ -1,10 +1,10 @@
 # SurvivalCore
 
-A comprehensive Minecraft Paper server plugin framework written in Kotlin, providing a modular foundation for survival servers. SurvivalCore handles chat management, player data persistence, permissions, inventory GUIs, and server administration through a clean three-tier architecture.
+A comprehensive Minecraft Folia server plugin framework written in Kotlin, providing a modular foundation for survival servers. SurvivalCore handles chat management, player data persistence, permissions, inventory GUIs, and server administration through a clean three-tier architecture.
 
 - **Author:** srleg
 - **Language:** Kotlin 2.1.0 (JVM 21)
-- **Target API:** Paper MC 1.21.10
+- **Target API:** Folia 1.21.11
 - **Database:** Redis (via Lettuce)
 
 ---
@@ -209,7 +209,7 @@ The compiled JAR is automatically copied to the configured server plugins direct
 
 | Library | Version | Purpose |
 |---|---|---|
-| Paper API | 1.21.10 | Minecraft server API |
+| Folia API | 1.21.11 | Minecraft server API |
 | Kotlin | 2.1.0 | Language runtime |
 | Lettuce | 6.5.3 | Async Redis client |
 | Kotlinx Coroutines | 1.7.3 | Async/concurrent operations |

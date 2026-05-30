@@ -31,6 +31,9 @@ class MClass: JavaPlugin(), CommandExecutor {
     internal var starting: Boolean = true
     internal var stopping: Boolean = false
 
+    // --- TEST HUD (EASILY REMOVABLE) ---
+    private var testHUD: TestHUD? = null
+
     override fun onEnable() {
         // initialize all essentials
         essentialsFwk.initAll()
@@ -46,10 +49,17 @@ class MClass: JavaPlugin(), CommandExecutor {
         starting = false
 
         getCommand("restart")?.setExecutor(this)
+
+        // --- TEST HUD (EASILY REMOVABLE) ---
+        testHUD = TestHUD(this).apply { start() }
     }
 
     override fun onDisable() {
         stopping = true
+
+        // --- TEST HUD (EASILY REMOVABLE) ---
+        testHUD?.stop()
+        testHUD = null
 
         appsFwk.stopAll()
         servicesFwk.stopAll()

@@ -16,34 +16,30 @@ class PermissionsService_PlayersSubservice(private val service: PermissionsServi
     private val attachments = ConcurrentHashMap<UUID, PermissionAttachment>()
 
     fun refreshAttachment(player: Player) {
-        if (!plugin.server.isPrimaryThread) {
-            plugin.server.scheduler.runTask(plugin, Runnable { refreshAttachment(player) })
-            return
-        }
-        service.permissions_ss.invalidateCache(player.uniqueId)
-        val attachment = attachments.computeIfAbsent(player.uniqueId) { player.addAttachment(plugin) }
-        val currentPermissions = attachment.permissions.keys.toList()
-        for (perm in currentPermissions) {
-            attachment.unsetPermission(perm)
-        }
-        val permissions = service.permissions_ss.playerPerms(player.uniqueId)
-        for (perm in permissions) {
-            attachment.setPermission(perm, true)
-        }
+        player.scheduler.execute(plugin, Runnable {
+            service.permissions_ss.invalidateCache(player.uniqueId)
+            val attachment = attachments.computeIfAbsent(player.uniqueId) { player.addAttachment(plugin) }
+            val currentPermissions = attachment.permissions.keys.toList()
+            for (perm in currentPermissions) {
+                attachment.unsetPermission(perm)
+            }
+            val permissions = service.permissions_ss.playerPerms(player.uniqueId)
+            for (perm in permissions) {
+                attachment.setPermission(perm, true)
+            }
+        }, null, 0L)
     }
 
     fun removeAttachment(player: Player) {
-        if (!plugin.server.isPrimaryThread) {
-            plugin.server.scheduler.runTask(plugin, Runnable { removeAttachment(player) })
-            return
-        }
-        attachments.remove(player.uniqueId)?.let {
-            try {
-                player.removeAttachment(it)
-            } catch (e: Exception) {
-                // ignore
+        player.scheduler.execute(plugin, Runnable {
+            attachments.remove(player.uniqueId)?.let {
+                try {
+                    player.removeAttachment(it)
+                } catch (e: Exception) {
+                    // ignore
+                }
             }
-        }
+        }, null, 0L)
     }
 
     fun refreshAllOnlineAttachments() {

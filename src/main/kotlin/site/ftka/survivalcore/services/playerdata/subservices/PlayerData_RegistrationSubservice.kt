@@ -14,6 +14,7 @@ import site.ftka.survivalcore.services.playerdata.objects.modules.PlayerPermissi
 import site.ftka.survivalcore.services.playerdata.objects.modules.PlayerSettings
 import site.ftka.survivalcore.services.playerdata.objects.modules.PlayerState
 import java.util.*
+import java.util.concurrent.CompletableFuture
 
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
@@ -54,7 +55,26 @@ internal class PlayerData_RegistrationSubservice(private val service: PlayerData
                 // Update timestamp to mark this data as "active"
                 playerdata.updateTimestamp = System.currentTimeMillis()
 
-                finishRegistration(playerdata, player, firstJoin = playerdata.updateTimestamp == 0L)
+                if (player != null) {
+                    val future = CompletableFuture<Void>()
+                    player.scheduler.execute(plugin, Runnable {
+                        try {
+                            finishRegistration(playerdata, player, firstJoin = playerdata.updateTimestamp == 0L)
+                            future.complete(null)
+                        } catch (e: Exception) {
+                            future.completeExceptionally(e)
+                        }
+                    }, null, 0L)
+                    
+                    try {
+                        future.await()
+                    } catch (e: Exception) {
+                        logger.log("Failed to finish registration on entity thread: ${e.message}")
+                        e.printStackTrace()
+                    }
+                } else {
+                    finishRegistration(playerdata, null, firstJoin = playerdata.updateTimestamp == 0L)
+                }
             }
         }
     }
@@ -100,6 +120,33 @@ internal class PlayerData_RegistrationSubservice(private val service: PlayerData
     // 4. Report PlayerDataUnregistrationEvent (in finishUnregistration())
         @OptIn(DelicateCoroutinesApi::class)
     fun unregister(uuid: UUID, player: Player? = null, async: Boolean = true) {
+        val safePlayer = player ?: plugin.server.getPlayer(uuid)
+        val preGatheredData = service.data.getPlayerData(uuid)
+        
+        var gatherFuture: CompletableFuture<Void>? = null
+        var gatherTask: Runnable? = null
+
+        if (safePlayer != null && preGatheredData != null) {
+            gatherFuture = CompletableFuture<Void>()
+            gatherTask = Runnable {
+                try {
+                    val preEvent = PlayerDataPreUnregisterEvent(uuid, preGatheredData, safePlayer)
+                    plugin.propEventsInitless.fireEvent(preEvent)
+                    
+                    preGatheredData.state?.gatherValuesFromPlayer(safePlayer)
+                    preGatheredData.information?.updateValuesFromPlayer(safePlayer)
+                    gatherFuture.complete(null)
+                } catch (e: Exception) {
+                    gatherFuture.completeExceptionally(e)
+                }
+            }
+
+            if (plugin.server.isOwnedByCurrentRegion(safePlayer)) {
+                logger.log("Gathering playerstate synchronously for ($uuid)", LogLevel.DEBUG)
+                gatherTask.run()
+            }
+        }
+
         GlobalScope.launch {
             val lock = service.data.getLock(uuid)
             lock.withLock {
@@ -108,17 +155,21 @@ internal class PlayerData_RegistrationSubservice(private val service: PlayerData
                     return@withLock
                 }
 
-                val safePlayer = player ?: plugin.server.getPlayer(uuid)
-
-                safePlayer?.let {
-                    logger.log("Player found. Firing PreUnregisterEvent and gathering playerstate for ($uuid)", LogLevel.DEBUG)
+                if (safePlayer != null && gatherTask != null && gatherFuture != null) {
+                    if (!gatherFuture.isDone) {
+                        logger.log("Gathering playerstate asynchronously for ($uuid)", LogLevel.DEBUG)
+                        val scheduled = safePlayer.scheduler.execute(plugin, gatherTask, null, 0L)
+                        if (scheduled == null) {
+                            gatherFuture.completeExceptionally(IllegalStateException("Entity scheduler returned null for retiring entity"))
+                        }
+                    }
                     
-                    // Fire PreUnregisterEvent before gathering so other components can finalize state
-                    val preEvent = PlayerDataPreUnregisterEvent(uuid, playerdata, it)
-                    plugin.propEventsInitless.fireEvent(preEvent)
-                    
-                    playerdata.state?.gatherValuesFromPlayer(it)
-                    playerdata.information?.updateValuesFromPlayer(it)
+                    try {
+                        gatherFuture.await()
+                    } catch (e: Exception) {
+                        logger.log("Failed to gather values on entity thread: ${e.message}")
+                        e.printStackTrace()
+                    }
                 }
 
                 logger.log("Unregistering playerdata: ($uuid)", LogLevel.DEBUG)

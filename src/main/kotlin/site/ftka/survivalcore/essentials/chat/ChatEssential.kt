@@ -23,7 +23,7 @@ import site.ftka.survivalcore.essentials.chat.subservices.ChatEssential_ScreensS
  */
 class ChatEssential(private val plugin: MClass, val essentialsFwk: EssentialsFramework) {
     internal val logger = plugin.loggingInitless.getLog("Chat", Component.text("Chat").color(NamedTextColor.DARK_GRAY))
-    internal val config = plugin.essentialsFwk.configs.chatConfig()
+    internal val config = essentialsFwk.configs.chatConfig()
     val api = ChatAPI(this)
 
     /*
