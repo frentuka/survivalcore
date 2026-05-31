@@ -10,6 +10,8 @@ import site.ftka.survivalcore.initless.proprietaryEvents.events.ChunkClaimedEven
 import site.ftka.survivalcore.initless.proprietaryEvents.events.ChunkUnclaimedEvent
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 class TerritoryService(private val plugin: MClass, private val services: ServicesFramework) {
     internal val logger = plugin.loggingInitless.getLog("Territory", Component.text("Territory").color(NamedTextColor.GREEN))
@@ -51,17 +53,14 @@ class TerritoryService(private val plugin: MClass, private val services: Service
         plugin.propEventsInitless.fireEvent(event)
         
         // Also update player data
-        plugin.server.scheduler.runTaskAsynchronously(plugin, Runnable {
-            // Need to update the PlayerData, waiting for it to be accessible
-            kotlinx.coroutines.runBlocking {
-                services.playerData.inout_ss.makeModification(uuid) { data ->
-                    if (!data.unlockedChunks.contains(chunk)) {
-                        data.unlockedChunks.add(chunk)
-                    }
-                    true
+        GlobalScope.launch {
+            services.playerData.inout_ss.makeModification(uuid) { data ->
+                if (!data.unlockedChunks.contains(chunk)) {
+                    data.unlockedChunks.add(chunk)
                 }
+                true
             }
-        })
+        }
         return true
     }
 
@@ -75,14 +74,12 @@ class TerritoryService(private val plugin: MClass, private val services: Service
         plugin.propEventsInitless.fireEvent(event)
         
         // Update player data
-        plugin.server.scheduler.runTaskAsynchronously(plugin, Runnable {
-            kotlinx.coroutines.runBlocking {
-                services.playerData.inout_ss.makeModification(owner) { data ->
-                    data.unlockedChunks.remove(chunk)
-                    true
-                }
+        GlobalScope.launch {
+            services.playerData.inout_ss.makeModification(owner) { data ->
+                data.unlockedChunks.remove(chunk)
+                true
             }
-        })
+        }
         return true
     }
 

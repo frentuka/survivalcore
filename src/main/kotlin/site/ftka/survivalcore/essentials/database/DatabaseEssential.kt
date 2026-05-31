@@ -269,4 +269,42 @@ internal class DatabaseEssential(private val plugin: MClass) {
         }
     }
 
+    fun del(key: String, async: Boolean = true): CompletableFuture<Boolean> {
+        val pool = connectionPool ?: return CompletableFuture.completedFuture(false)
+        
+        // sync
+        if (!async) {
+            return try {
+                val connection = pool.borrowObject()
+                try {
+                    val syncCommands = connection.sync()
+                    CompletableFuture.completedFuture(syncCommands.del(key) > 0)
+                } finally {
+                    pool.returnObject(connection)
+                }
+            } catch (e: Exception) {
+                if (printStackTraces) e.printStackTrace()
+                CompletableFuture.completedFuture(false)
+            }
+        }
+
+        // async
+        return try {
+            val connection = pool.borrowObject()
+            try {
+                val asyncCommands = connection.async()
+                val future = asyncCommands.del(key).thenApply { it > 0 }.toCompletableFuture()
+                future.whenComplete { _, _ ->
+                    pool.returnObject(connection)
+                }
+            } catch (e: Exception) {
+                pool.returnObject(connection)
+                throw e
+            }
+        } catch (e: Exception) {
+            if (printStackTraces) e.printStackTrace()
+            CompletableFuture.completedFuture(false)
+        }
+    }
+
 }

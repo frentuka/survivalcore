@@ -91,18 +91,7 @@ class TestHUD(private val plugin: MClass) : Listener {
     }
 
     private fun updateHUD(player: Player, bossBar: BossBar) {
-        // 1. Update ActionBar (Coordinates)
-        val loc = player.location
-        val coordsComponent = Component.text()
-            .append(Component.text("X: ").color(NamedTextColor.GRAY))
-            .append(Component.text(loc.blockX).color(NamedTextColor.GREEN))
-            .append(Component.text("  Y: ").color(NamedTextColor.GRAY))
-            .append(Component.text(loc.blockY).color(NamedTextColor.GREEN))
-            .append(Component.text("  Z: ").color(NamedTextColor.GRAY))
-            .append(Component.text(loc.blockZ).color(NamedTextColor.GREEN))
-            .build()
-        
-        player.sendActionBar(coordsComponent)
+        // 1. (Removed ActionBar coords to free up ActionBar for notifications)
 
         // 2. Update BossBar (Held Item & Durability)
         val item = player.inventory.itemInMainHand

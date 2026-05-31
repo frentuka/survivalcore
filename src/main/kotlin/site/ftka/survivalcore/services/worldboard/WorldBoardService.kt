@@ -31,7 +31,7 @@ class WorldBoardService(private val plugin: MClass, private val services: Servic
             for (chunk in world.loadedChunks) {
                 plugin.server.regionScheduler.execute(plugin, world, chunk.x, chunk.z) {
                     for (entity in chunk.entities) {
-                        if (entity is TextDisplay) {
+                        if (entity is org.bukkit.entity.Display) {
                             cleanIfOrphan(entity)
                         }
                     }
@@ -85,27 +85,28 @@ class WorldBoardService(private val plugin: MClass, private val services: Servic
     fun onChunkLoad(event: ChunkLoadEvent) {
         val chunk = event.chunk
         for (entity in chunk.entities) {
-            if (entity is TextDisplay) {
+            if (entity is org.bukkit.entity.Display) {
                 cleanIfOrphan(entity)
             }
         }
     }
 
     /**
-     * Checks if a TextDisplay is an orphaned WorldBoard or a legacy ghost from before the tracking tag was added,
+     * Checks if a Display is an orphaned WorldBoard or a legacy ghost from before the tracking tag was added,
      * and safely deletes it.
      */
-    private fun cleanIfOrphan(entity: TextDisplay) {
+    private fun cleanIfOrphan(entity: org.bukkit.entity.Display) {
         val key = NamespacedKey(plugin, "worldboard")
         val boardId = entity.persistentDataContainer.get(key, PersistentDataType.STRING)
         
         if (boardId != null) {
-            // It has our PDC tag. If it is NOT in the active registry, it's a ghost from a previous session!
-            if (!activeBoards.containsKey(boardId)) {
+            // It has our PDC tag. If it is NOT in the active registry, or if it is but isn't the specific entity UUID, it's a ghost from a previous session!
+            val activeBoard = activeBoards[boardId]
+            if (activeBoard == null || !activeBoard.isOwnedEntity(entity)) {
                 entity.remove()
-                logger.log("Automatically swept orphaned WorldBoard entity: $boardId", LogLevel.LOW)
+                logger.log("Automatically swept orphaned WorldBoard display entity: $boardId", LogLevel.LOW)
             }
-        } else {
+        } else if (entity is TextDisplay) {
             // Legacy Cleanup Fallback: Check if the text matches the test commands to wipe the old untagged ghost!
             val rawText = entity.text()
             val plainText = net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(rawText)

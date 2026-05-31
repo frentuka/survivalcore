@@ -7,6 +7,7 @@ import site.ftka.survivalcore.MClass
 import site.ftka.survivalcore.apps.ChatManager.ChatManagerApp
 import site.ftka.survivalcore.apps.PermissionsManager.PermissionsManagerApp
 import site.ftka.survivalcore.apps.RandomSpawn.RandomSpawnApp
+import site.ftka.survivalcore.apps.PlayerDataManager.PlayerDataManagerApp
 
 class AppsFramework(private val plugin: MClass) {
     private val logger = plugin.loggingInitless.getLog("AppsFramework", Component.text("Apps").color(NamedTextColor.BLACK))
@@ -14,8 +15,8 @@ class AppsFramework(private val plugin: MClass) {
     val serverAdministration = ServerAdministrationApp(plugin)
     val permissionsManager = PermissionsManagerApp(plugin)
     val chatManager = ChatManagerApp(plugin)
-    val worldBoardTest = site.ftka.survivalcore.apps.WorldBoardTest.WorldBoardTestApp(plugin)
     val randomSpawn = RandomSpawnApp(plugin)
+    val playerDataManager = PlayerDataManagerApp(plugin)
 
     fun initAll() {
         logger.log("Initializing apps...")
@@ -23,8 +24,8 @@ class AppsFramework(private val plugin: MClass) {
         chatManager.init()
         permissionsManager.init()
         serverAdministration.init()
-        worldBoardTest.init()
         randomSpawn.init()
+        playerDataManager.init()
     }
 
     fun restartAll() {
@@ -33,8 +34,8 @@ class AppsFramework(private val plugin: MClass) {
         chatManager.restart()
         permissionsManager.restart()
         serverAdministration.restart()
-        worldBoardTest.restart()
         randomSpawn.restart()
+        playerDataManager.restart()
     }
 
     fun stopAll() {
@@ -43,8 +44,8 @@ class AppsFramework(private val plugin: MClass) {
         chatManager.stop()
         permissionsManager.stop()
         serverAdministration.stop()
-        worldBoardTest.stop()
         randomSpawn.stop()
+        playerDataManager.stop()
     }
 
 }

@@ -32,7 +32,10 @@ commands:
     aliases:
       - g
       - group
-  wbtest:
-    description: test the world board service
+
   randomspawn:
     description: randomly teleport to a valid spawn chunk or analyse valid spawns
+  playerdata:
+    description: run PlayerDataManager app
+    aliases:
+      - pdata

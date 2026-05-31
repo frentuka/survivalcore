@@ -18,7 +18,9 @@ graph TD
     
     WorldBoardAPI -->|Returns| WorldBoardInstance[WorldBoardInstance Wrapper]
     WorldBoardInstance -->|Encapsulates| FoliaSchedulers["Folia Schedulers<br>(Region & Entity)"]
-    FoliaSchedulers -->|Spawns/Modifies| TextDisplay["Bukkit TextDisplay Entity"]
+    FoliaSchedulers -->|Spawns/Modifies| TextDisplay["Main Bukkit TextDisplay"]
+    FoliaSchedulers -->|Spawns/Modifies| SubtitleDisplay["Subtitle Bukkit TextDisplay"]
+    FoliaSchedulers -->|Spawns/Modifies| ItemDisplays["Bukkit ItemDisplays (Icons)"]
 ```
 
 ### 1.1 Folia Multi-threading Compliance
@@ -51,12 +53,24 @@ A paramount design pillar of this module is its absolute adherence to the Folia 
   * Abstracts all scheduler execution blocks away from the consumer.
   * Facilitates matrix animations through `triggerScaleAnimation()`.
   * Pre-configured with premium aesthetics (centered billboarding, transparent glass backing, text glow, drop shadows).
+  * **Subtitle Engine:** Supports spawning and animating an entirely independent secondary `TextDisplay` anchored below the main board (at exactly Y: -0.35f), ideal for tax indicators or discounts, without bloating the main bounding box.
+  * **Native GPU Interpolation:** Completely detaches all spawned entities from passenger/mount chains, guaranteeing 100% pure vanilla client-side `teleportDuration` interpolation for buttery smooth movement (eliminates all server-side TPS stutter).
   * Native integration with the **Frame Facility**, automatically wrapping text strings inside aesthetic shapes.
 
 ### 2.4 WorldBoardFrame (Aesthetic Framing)
 * **Path:** `objects/WorldBoardFrame.kt`
 * **Purpose:** Provides an elegant, pre-configured Unicode box-drawing frame (`ROUNDED`) with a MiniMessage gradient backing.
 * **Dynamic Wrapping:** If a frame is assigned to an instance (`board.frame = WorldBoardFrame.ROUNDED`), calling `board.updateText()` will automatically re-wrap the new text inside the borders without any extra effort required by the consuming app.
+
+### 2.5 WorldBoardTextLayout & Multi-Icon Rendering
+* **Path:** `objects/WorldBoardTextLayout.kt`, `objects/WorldBoardIcon.kt`
+* **Purpose:** Provides flawless, dynamic inline rendering of 3D item holograms (Minecraft Items) intermixed with the TextDisplay string.
+* **Mechanics:** 
+  * The TextLayout builder generates spaces automatically to make room for `ItemStack` icons.
+  * The `MinecraftFontWidthCalculator` parses the exact pixel widths of the preceding string (utilizing the vanilla 5px character rules).
+  * The pixels are scaled to absolute block offsets (`0.025` blocks per pixel) and used to calculate the precise X translation for each item's `ItemDisplay` relative to the centered `TextDisplay`.
+  * The Z-axis translation can be fine-tuned via the `zOffset` parameter in `appendIcon` (defaulting to `-0.03f`), which pushes the 3D items slightly "inside the wall" to avoid excessive protrusion and seamlessly blend with the text. Items with `isSolid == true` (like blocks) dynamically ignore this offset to prevent clipping, while flat textures (like Wheat) sink perfectly in front of the wall.
+  * The `WorldBoardInstance` iterates through the generated `WorldBoardIcon` definitions and spawns/synchronizes companion `ItemDisplay` entities perfectly next to the text. These icons are intentionally **not** mounted as passengers to allow for flawless native client-side spatial interpolation.
 
 ---
 

@@ -20,6 +20,7 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.withLock
 
 internal class PlayerData_RegistrationSubservice(private val service: PlayerDataService, private val plugin: MClass) {
@@ -39,8 +40,10 @@ internal class PlayerData_RegistrationSubservice(private val service: PlayerData
 
                 // 1. Check if exists and get data
                 // By combining these, we save a database trip
+                var isNew = false
                 val playerdata = try {
                     service.inout_ss.get(uuid, async = true).await() ?: PlayerData(uuid).also {
+                        isNew = true
                         logger.log("Does not exist in database, creating new ($uuid)", LogLevel.HIGH)
                     }
                 } catch (e: Exception) {
@@ -59,7 +62,7 @@ internal class PlayerData_RegistrationSubservice(private val service: PlayerData
                     val future = CompletableFuture<Void>()
                     player.scheduler.execute(plugin, Runnable {
                         try {
-                            finishRegistration(playerdata, player, firstJoin = playerdata.updateTimestamp == 0L)
+                            finishRegistration(playerdata, player, firstJoin = isNew)
                             future.complete(null)
                         } catch (e: Exception) {
                             future.completeExceptionally(e)
@@ -73,7 +76,7 @@ internal class PlayerData_RegistrationSubservice(private val service: PlayerData
                         e.printStackTrace()
                     }
                 } else {
-                    finishRegistration(playerdata, null, firstJoin = playerdata.updateTimestamp == 0L)
+                    finishRegistration(playerdata, null, firstJoin = isNew)
                 }
             }
         }
@@ -147,7 +150,7 @@ internal class PlayerData_RegistrationSubservice(private val service: PlayerData
             }
         }
 
-        GlobalScope.launch {
+        val block = suspend {
             val lock = service.data.getLock(uuid)
             lock.withLock {
                 val playerdata = service.data.getPlayerData(uuid) ?: run {
@@ -178,6 +181,16 @@ internal class PlayerData_RegistrationSubservice(private val service: PlayerData
             }
             // Cleanup happens AFTER the lock is released
             service.data.cleanupLock(uuid)
+        }
+
+        if (async) {
+            GlobalScope.launch {
+                block()
+            }
+        } else {
+            runBlocking {
+                block()
+            }
         }
     }
 
