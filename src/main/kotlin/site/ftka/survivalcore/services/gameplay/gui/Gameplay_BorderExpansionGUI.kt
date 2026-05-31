@@ -156,11 +156,13 @@ class Gameplay_BorderExpansionGUI(
                 player.inventory.removeItem(ItemStack(cost.type, cost.amount))
             }
             
-            // Claim chunk
             val success = plugin.servicesFwk.territory.claimChunk(player.uniqueId, chunkX, chunkZ)
             if (success) {
+                player.playSound(player.location, Sound.UI_TOAST_CHALLENGE_COMPLETE, 1f, 1f)
                 player.playSound(player.location, Sound.ENTITY_PLAYER_LEVELUP, 1f, 1f)
-                player.sendActionBar(Component.text("Territory expanded!").color(NamedTextColor.GREEN))
+                player.sendActionBar(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<bold><gold>⭐ Territory Expanded! ⭐</gold></bold>"))
+                player.world.spawnParticle(org.bukkit.Particle.TOTEM_OF_UNDYING, player.location.add(0.0, 1.0, 0.0), 50, 1.0, 1.0, 1.0, 0.5)
+                player.world.spawnParticle(org.bukkit.Particle.HAPPY_VILLAGER, player.location.add(0.0, 1.0, 0.0), 30, 1.0, 1.0, 1.0, 0.1)
             } else {
                 // Refund if failed (e.g., already claimed)
                 for (cost in option.items) {
@@ -179,8 +181,11 @@ class Gameplay_BorderExpansionGUI(
     private fun handleForcePurchase() {
         val success = plugin.servicesFwk.territory.claimChunk(player.uniqueId, chunkX, chunkZ)
         if (success) {
+            player.playSound(player.location, Sound.UI_TOAST_CHALLENGE_COMPLETE, 1f, 1f)
             player.playSound(player.location, Sound.ENTITY_PLAYER_LEVELUP, 1f, 1f)
-            player.sendActionBar(Component.text("Territory force-claimed!").color(NamedTextColor.GREEN))
+            player.sendActionBar(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<bold><gold>⭐ Territory Force-Claimed! ⭐</gold></bold>"))
+            player.world.spawnParticle(org.bukkit.Particle.TOTEM_OF_UNDYING, player.location.add(0.0, 1.0, 0.0), 50, 1.0, 1.0, 1.0, 0.5)
+            player.world.spawnParticle(org.bukkit.Particle.HAPPY_VILLAGER, player.location.add(0.0, 1.0, 0.0), 30, 1.0, 1.0, 1.0, 0.1)
         } else {
             player.playSound(player.location, Sound.BLOCK_NOTE_BLOCK_BASS, 1f, 0.5f)
             player.sendActionBar(Component.text("Failed to claim region. Is it already claimed?").color(NamedTextColor.RED))

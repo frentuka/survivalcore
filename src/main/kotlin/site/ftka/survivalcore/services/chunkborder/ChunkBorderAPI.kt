@@ -25,4 +25,8 @@ class ChunkBorderAPI(private val service: ChunkBorderService) {
     fun destroyRegion(world: World, region: BorderRegion): CompletableFuture<Void> {
         return service.restoration_ss.restoreRegion(world, region)
     }
+
+    fun refreshRegionBorders(world: World, region: BorderRegion, newMaterial: org.bukkit.Material): CompletableFuture<Void> {
+        return service.generation_ss.refreshRegionBorders(world, region, newMaterial)
+    }
 }

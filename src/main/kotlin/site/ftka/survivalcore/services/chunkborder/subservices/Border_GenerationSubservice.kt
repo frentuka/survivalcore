@@ -66,8 +66,46 @@ class Border_GenerationSubservice(private val service: ChunkBorderService, priva
                         if (!region.blocks.containsKey(packed)) {
                             val cached = service.storage_ss.serializeBlock(block)
                             region.blocks[packed] = cached
-                            block.setType(Material.GRAY_STAINED_GLASS, false)
+                            block.setType(Material.LIGHT_GRAY_STAINED_GLASS, false)
                         }
+                    }
+                }
+                future.complete(null)
+            }
+        }
+        
+        return CompletableFuture.allOf(*futures.toTypedArray())
+    }
+
+    fun refreshRegionBorders(world: org.bukkit.World, region: BorderRegion, newMaterial: Material): CompletableFuture<Void> {
+        val futures = mutableListOf<CompletableFuture<Void>>()
+        
+        // Group blocks by chunk for Folia thread-safety
+        val blocksByChunk = mutableMapOf<Pair<Int, Int>, MutableList<Triple<Int, Int, Int>>>()
+        
+        for (packed in region.blocks.keys) {
+            val bx = BorderRegion.unpackX(packed)
+            val by = BorderRegion.unpackY(packed)
+            val bz = BorderRegion.unpackZ(packed)
+            
+            val cx = bx shr 4
+            val cz = bz shr 4
+            val chunkPair = Pair(cx, cz)
+            if (!blocksByChunk.containsKey(chunkPair)) {
+                blocksByChunk[chunkPair] = mutableListOf()
+            }
+            blocksByChunk[chunkPair]!!.add(Triple(bx, by, bz))
+        }
+        
+        for ((chunk, blocks) in blocksByChunk) {
+            val future = CompletableFuture<Void>()
+            futures.add(future)
+            plugin.server.regionScheduler.run(plugin, world, chunk.first, chunk.second) {
+                for (b in blocks) {
+                    val block = world.getBlockAt(b.first, b.second, b.third)
+                    // Only update if it's not already the correct material, and don't replace bedrock!
+                    if (block.type != newMaterial && block.type != Material.BEDROCK) {
+                        block.setType(newMaterial, false)
                     }
                 }
                 future.complete(null)

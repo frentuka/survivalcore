@@ -17,16 +17,24 @@ import site.ftka.survivalcore.services.chunkborder.objects.BorderRegion
 
 class BorderListener(private val service: ChunkBorderService, private val plugin: MClass) : Listener {
 
+    private fun isBorderBlock(block: org.bukkit.block.Block): Boolean {
+        val packed = BorderRegion.packCoord(block.x, block.y, block.z)
+        val activeRegions = plugin.servicesFwk.gameplay.border_ss.activeRegions
+        for (region in activeRegions.values) {
+            if (region.blocks.containsKey(packed)) return true
+        }
+        return false
+    }
+
     @EventHandler
     fun onPlayerInteract(e: PlayerInteractEvent) {
         val block = e.clickedBlock ?: return
         
-        // Check if the block is a Gray Stained Glass
-        if (block.type != Material.GRAY_STAINED_GLASS) return
-        
         // Only trigger on right-click with an empty hand
         if (e.action != Action.RIGHT_CLICK_BLOCK) return
         if (e.player.inventory.itemInMainHand.type != Material.AIR) return
+        
+        if (!isBorderBlock(block)) return
 
         // Fire proprietary event so wbtest command or other systems can handle it
         plugin.propEventsInitless.fireEvent(BorderPunchEvent(e.player, block))
@@ -34,38 +42,18 @@ class BorderListener(private val service: ChunkBorderService, private val plugin
 
     @EventHandler
     fun onBlockBreak(e: BlockBreakEvent) {
-        val block = e.block
-        if (block.type != Material.GRAY_STAINED_GLASS) return
-
-        val packed = BorderRegion.packCoord(block.x, block.y, block.z)
-        val activeRegions = plugin.servicesFwk.gameplay.border_ss.activeRegions
-
-        for (region in activeRegions.values) {
-            if (region.blocks.containsKey(packed)) {
-                e.isCancelled = true
-                return
-            }
+        if (isBorderBlock(e.block)) {
+            e.isCancelled = true
         }
     }
 
     @EventHandler
     fun onEntityExplode(e: EntityExplodeEvent) {
         val iterator = e.blockList().iterator()
-        val activeRegions = plugin.servicesFwk.gameplay.border_ss.activeRegions
         while (iterator.hasNext()) {
             val block = iterator.next()
-            if (block.type == Material.GRAY_STAINED_GLASS) {
-                val packed = BorderRegion.packCoord(block.x, block.y, block.z)
-                var isBorder = false
-                for (region in activeRegions.values) {
-                    if (region.blocks.containsKey(packed)) {
-                        isBorder = true
-                        break
-                    }
-                }
-                if (isBorder) {
-                    iterator.remove()
-                }
+            if (isBorderBlock(block)) {
+                iterator.remove()
             }
         }
     }
@@ -73,53 +61,30 @@ class BorderListener(private val service: ChunkBorderService, private val plugin
     @EventHandler
     fun onBlockExplode(e: BlockExplodeEvent) {
         val iterator = e.blockList().iterator()
-        val activeRegions = plugin.servicesFwk.gameplay.border_ss.activeRegions
         while (iterator.hasNext()) {
             val block = iterator.next()
-            if (block.type == Material.GRAY_STAINED_GLASS) {
-                val packed = BorderRegion.packCoord(block.x, block.y, block.z)
-                var isBorder = false
-                for (region in activeRegions.values) {
-                    if (region.blocks.containsKey(packed)) {
-                        isBorder = true
-                        break
-                    }
-                }
-                if (isBorder) {
-                    iterator.remove()
-                }
+            if (isBorderBlock(block)) {
+                iterator.remove()
             }
         }
     }
 
     @EventHandler
     fun onPistonExtend(e: BlockPistonExtendEvent) {
-        val activeRegions = plugin.servicesFwk.gameplay.border_ss.activeRegions
         for (block in e.blocks) {
-            if (block.type == Material.GRAY_STAINED_GLASS) {
-                val packed = BorderRegion.packCoord(block.x, block.y, block.z)
-                for (region in activeRegions.values) {
-                    if (region.blocks.containsKey(packed)) {
-                        e.isCancelled = true
-                        return
-                    }
-                }
+            if (isBorderBlock(block)) {
+                e.isCancelled = true
+                return
             }
         }
     }
 
     @EventHandler
     fun onPistonRetract(e: BlockPistonRetractEvent) {
-        val activeRegions = plugin.servicesFwk.gameplay.border_ss.activeRegions
         for (block in e.blocks) {
-            if (block.type == Material.GRAY_STAINED_GLASS) {
-                val packed = BorderRegion.packCoord(block.x, block.y, block.z)
-                for (region in activeRegions.values) {
-                    if (region.blocks.containsKey(packed)) {
-                        e.isCancelled = true
-                        return
-                    }
-                }
+            if (isBorderBlock(block)) {
+                e.isCancelled = true
+                return
             }
         }
     }

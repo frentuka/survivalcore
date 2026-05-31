@@ -65,6 +65,12 @@ class Gameplay_TerritoryBorderSubservice(private val service: GameplayService, p
         val region = event.playerdata?.borderRegion
         if (region != null) {
             activeRegions[event.uuid] = region
+            
+            // Automatically migrate existing physical blocks to the new default material
+            val player = plugin.server.getPlayer(event.uuid)
+            if (player != null) {
+                plugin.servicesFwk.chunkBorder.api.refreshRegionBorders(player.world, region, org.bukkit.Material.LIGHT_GRAY_STAINED_GLASS)
+            }
         }
     }
 
