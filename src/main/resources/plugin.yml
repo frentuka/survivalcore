@@ -33,8 +33,13 @@ commands:
       - g
       - group
 
-  randomspawn:
-    description: randomly teleport to a valid spawn chunk or analyse valid spawns
+  spawnmanager:
+    description: run SpawnManager app
+    aliases:
+      - sm
+      - spawn
+      - randomspawn
+
   playerdata:
     description: run PlayerDataManager app
     aliases:

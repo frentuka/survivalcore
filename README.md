@@ -141,6 +141,16 @@ Server control and plugin management interface.
 - Command: `/server` (alias: `/sv`)
 - Located at: [apps/ServerAdministration/](src/main/kotlin/site/ftka/survivalcore/apps/ServerAdministration/)
 
+### PlayerDataManagerApp
+Interactive player data profile GUI and management system.
+- Command: `/playerdata` (alias: `/pdata`)
+- Located at: [apps/PlayerDataManager/](src/main/kotlin/site/ftka/survivalcore/apps/PlayerDataManager/)
+
+### SpawnManagerApp
+Administrative spawn scanning, verification, and teleportation interface.
+- Command: `/spawnmanager` (aliases: `/sm`, `/spawn`, `/randomspawn`)
+- Located at: [apps/SpawnManager/](src/main/kotlin/site/ftka/survivalcore/apps/SpawnManager/)
+
 ---
 
 ## Commands Reference
@@ -154,6 +164,8 @@ Server control and plugin management interface.
 | `/server` | `/sv` | Server administration panel |
 | `/permissions` | `/p`, `/perms` | Manage player permissions |
 | `/groups` | `/g`, `/group` | Manage permission groups |
+| `/playerdata` | `/pdata` | Manage player profiles via GUI |
+| `/spawnmanager` | `/sm`, `/spawn`, `/randomspawn` | Safe spawn scanning and teleportation |
 
 ---
 
@@ -183,7 +195,9 @@ src/main/kotlin/site/ftka/survivalcore/
 │   ├── AppsFramework.kt
 │   ├── ChatManager/             # /chat
 │   ├── PermissionsManager/      # /permissions, /groups
-│   └── ServerAdministration/    # /server
+│   ├── ServerAdministration/    # /server
+│   ├── PlayerDataManager/       # /playerdata
+│   └── SpawnManager/            # /spawnmanager
 └── utils/
     ├── base64Utils.kt
     ├── dateUtils.kt

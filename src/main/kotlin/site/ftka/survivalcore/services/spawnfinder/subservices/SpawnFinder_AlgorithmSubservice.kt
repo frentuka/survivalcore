@@ -69,7 +69,7 @@ class SpawnFinder_AlgorithmSubservice(private val service: SpawnFinderService, p
     fun analyse(sender: CommandSender, radius: Int) {
         val mm = MiniMessage.miniMessage()
         if (isAnalysing) {
-            sender.sendMessage(mm.deserialize("<red>✖ An analysis is already in progress. Use <white>/randomspawn cancel</white> to stop it.</red>"))
+            sender.sendMessage(mm.deserialize("<red>✖ An analysis is already in progress. Use <white>/spawnmanager cancel</white> to stop it.</red>"))
             return
         }
         

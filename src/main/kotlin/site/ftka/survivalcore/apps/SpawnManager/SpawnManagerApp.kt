@@ -1,19 +1,19 @@
-package site.ftka.survivalcore.apps.RandomSpawn
+package site.ftka.survivalcore.apps.SpawnManager
 
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import site.ftka.survivalcore.MClass
 import site.ftka.survivalcore.initless.logging.LoggingInitless.LogLevel
-import site.ftka.survivalcore.apps.RandomSpawn.commands.RandomSpawnCommand
+import site.ftka.survivalcore.apps.SpawnManager.commands.SpawnManagerCommand
 
-class RandomSpawnApp(private val plugin: MClass) {
-    internal val logger = plugin.loggingInitless.getLog("RandomSpawn", Component.text("RandomSpawn").color(NamedTextColor.YELLOW))
+class SpawnManagerApp(private val plugin: MClass) {
+    internal val logger = plugin.loggingInitless.getLog("SpawnManager", Component.text("SpawnManager").color(NamedTextColor.YELLOW))
 
     internal fun init() {
         logger.log("Initializing...", LogLevel.LOW)
-        val cmd = plugin.server.getPluginCommand("randomspawn")
+        val cmd = plugin.server.getPluginCommand("spawnmanager")
         if (cmd != null) {
-            val executor = RandomSpawnCommand(plugin, this)
+            val executor = SpawnManagerCommand(plugin, this)
             cmd.setExecutor(executor)
             cmd.setTabCompleter(executor)
         }
