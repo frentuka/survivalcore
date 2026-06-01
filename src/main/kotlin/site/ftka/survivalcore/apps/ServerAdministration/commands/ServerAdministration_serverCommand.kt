@@ -60,7 +60,7 @@ internal class ServerAdministration_serverCommand(private val src: ServerAdminis
 
         if (args.get(0).equals("logs", ignoreCase = true)) {
             if (args.size < 2) {
-                sender.sendMessage("§cUsage: /server logs <loggerNames> [level] [date] [limit]")
+                sender.sendMessage(Component.text("Usage: /server logs <loggerNames> [level] [date] [limit]").color(NamedTextColor.RED))
                 return true
             }
             val loggerNames = args[1].split(",")
@@ -90,17 +90,22 @@ internal class ServerAdministration_serverCommand(private val src: ServerAdminis
                 val finalLogs = allLogs.sortedByDescending { it.second.timestamp }.take(limit)
 
                 val header = Component.text()
-                    .append(Component.text("\n§8§m                                        §r\n"))
-                    .append(Component.text("  §6§lLogs Query Results\n"))
-                    .append(Component.text("  §7Modules: §f${args[1].replace(",", ", ")}\n"))
-                    .append(Component.text("  §7Level: §f$levelFilter  §8|  §7Date: §f$dateFilter\n"))
-                    .append(Component.text("§8§m                                        §r"))
+                    .append(Component.text("\n                                        \n").color(NamedTextColor.DARK_GRAY).decorate(net.kyori.adventure.text.format.TextDecoration.STRIKETHROUGH))
+                    .append(Component.text("  Logs Query Results\n").color(NamedTextColor.GOLD).decorate(net.kyori.adventure.text.format.TextDecoration.BOLD))
+                    .append(Component.text("  Modules: ").color(NamedTextColor.GRAY))
+                    .append(Component.text("${args[1].replace(",", ", ")}\n").color(NamedTextColor.WHITE))
+                    .append(Component.text("  Level: ").color(NamedTextColor.GRAY))
+                    .append(Component.text(levelFilter).color(NamedTextColor.WHITE))
+                    .append(Component.text("  |  ").color(NamedTextColor.DARK_GRAY))
+                    .append(Component.text("Date: ").color(NamedTextColor.GRAY))
+                    .append(Component.text("$dateFilter\n").color(NamedTextColor.WHITE))
+                    .append(Component.text("                                        ").color(NamedTextColor.DARK_GRAY).decorate(net.kyori.adventure.text.format.TextDecoration.STRIKETHROUGH))
                     .build()
                 sender.sendMessage(header)
 
                 if (finalLogs.isEmpty()) {
-                    sender.sendMessage("§cNo logs found.")
-                    sender.sendMessage("§8§m                                        §r")
+                    sender.sendMessage(Component.text("No logs found.").color(NamedTextColor.RED))
+                    sender.sendMessage(Component.text("                                        ").color(NamedTextColor.DARK_GRAY).decorate(net.kyori.adventure.text.format.TextDecoration.STRIKETHROUGH))
                 } else {
                     val sdfUTC = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
                     sdfUTC.timeZone = java.util.TimeZone.getTimeZone("UTC")
@@ -122,8 +127,15 @@ internal class ServerAdministration_serverCommand(private val src: ServerAdminis
                             .color(NamedTextColor.DARK_GRAY)
                             .hoverEvent(HoverEvent.showText(hoverTimeText))
                         
+                        val levelColor = when (log.level) {
+                            site.ftka.survivalcore.initless.logging.LoggingInitless.LogLevel.DEBUG -> NamedTextColor.GRAY
+                            site.ftka.survivalcore.initless.logging.LoggingInitless.LogLevel.NORMAL -> NamedTextColor.BLUE
+                            site.ftka.survivalcore.initless.logging.LoggingInitless.LogLevel.LOW -> NamedTextColor.YELLOW
+                            site.ftka.survivalcore.initless.logging.LoggingInitless.LogLevel.HIGH -> NamedTextColor.RED
+                        }
+                        
                         val levelComp = Component.text(" [${log.level}] ")
-                            .color(NamedTextColor.GRAY)
+                            .color(levelColor)
                             
                         val modComp = Component.text("[$shortName] ")
                             .color(modColor)
@@ -138,7 +150,7 @@ internal class ServerAdministration_serverCommand(private val src: ServerAdminis
                             
                         sender.sendMessage(finalMsg)
                     }
-                    sender.sendMessage(Component.text("§8§m                                        §r"))
+                    sender.sendMessage(Component.text("                                        ").color(NamedTextColor.DARK_GRAY).decorate(net.kyori.adventure.text.format.TextDecoration.STRIKETHROUGH))
                 }
             }
             return true
