@@ -64,6 +64,9 @@ class MClass: JavaPlugin(), CommandExecutor {
         appsFwk.stopAll()
         servicesFwk.stopAll()
         essentialsFwk.stopAll()
+
+        // Shutdown and flush all pending logs as the final bootstrap tier step
+        loggingInitless.shutdown()
     }
 
     private val listenerList = mutableListOf<Listener>()

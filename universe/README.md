@@ -29,6 +29,7 @@ Bootstrap components with zero internal dependencies that initialize before all 
 
 * **Logging System** (`LoggingInitless`): Establishes color-coded logging and rolling JSON file writes.
   * *Brief Overview:* [LOGGING.md](file:///home/srleg/Projects/survivalcore/universe/initless/LOGGING.md)
+  * *Detailed Docs:* [LOGGING_INITLESS.md](file:///home/srleg/Projects/survivalcore/src/main/kotlin/site/ftka/survivalcore/initless/logging/LOGGING_INITLESS.md)
   * *Codebase Path:* `src/main/kotlin/site/ftka/survivalcore/initless/logging/`
 * **Custom Event Bus** (`ProprietaryEventsInitless`): Reflection-based event bus for decoupled inter-component signaling.
   * *Brief Overview:* [PROPRIETARY_EVENTS.md](file:///home/srleg/Projects/survivalcore/universe/initless/PROPRIETARY_EVENTS.md)
