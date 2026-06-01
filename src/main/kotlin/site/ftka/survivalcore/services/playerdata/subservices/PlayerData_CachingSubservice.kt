@@ -37,7 +37,7 @@ internal class PlayerData_CachingSubservice(private val service: PlayerDataServi
             deleteCachedData(uuid)
     }
 
-    private fun deleteCachedData(uuid: UUID) {
+    fun deleteCachedData(uuid: UUID) {
         // Remove entry from expirationTimes
         expirationTimes.remove(uuid)
 
@@ -61,9 +61,8 @@ internal class PlayerData_CachingSubservice(private val service: PlayerDataServi
         logger.log("Stored into cache (${playerdata.uuid})")
     }
 
-    fun getCachedPlayerData(uuid: UUID, deleteIt: Boolean = true): PlayerData? {
+    fun getCachedPlayerData(uuid: UUID): PlayerData? {
         val pdata = storedPlayerData[uuid]
-        if (deleteIt) deleteCachedData(uuid)
 
         logger.log("PlayerData was retrieved from cache ($uuid)")
 

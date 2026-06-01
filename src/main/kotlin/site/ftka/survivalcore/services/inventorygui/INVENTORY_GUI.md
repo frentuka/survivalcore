@@ -61,13 +61,26 @@ graph TD
   * If valid, routes the event directly to the holder.
   * Direct casting removes the need for slow/buggy global lookup maps.
 
+### 2.5 InventoryGUI_AnvilInput (Folia-Ticking Real Anvil Input GUI)
+* **Path:** [InventoryGUI_AnvilInput.kt](file:///home/srleg/Projects/survivalcore/src/main/kotlin/site/ftka/survivalcore/services/inventorygui/InventoryGUI_AnvilInput.kt)
+* **Purpose:** Provides a premium, reusable, location-bound real Anvil-based text input field that ticks and calculates natively under Folia.
+* **Mechanics:**
+  * Opens a tracked anvil container via `Player.openAnvil` at the player's active regional thread location, ensuring Spigot's standard anvil ticking and `PrepareAnvilEvent` fire natively.
+  * Temporarily awards the player 1,000 experience levels to satisfy the client-side anvil rename cost requirement.
+  * Tracks active inputs via `activeAnvilInputs` cache in `InventoryGUIService` to cleanly route clicks, drags, close events, and anvil updates.
+  * Listens to slot 2 clicks to extract the renamed plain-text value, cancels the click, closes the inventory, and invokes a callback with the results.
+  * Safely restores the player's original experience level and XP progress on close, preventing exploits.
+
 ---
 
 ## 3. Recent Critical Fixes & Improvements
 
 We performed an exhaustive audit and implemented the following improvements:
 
-1. **Duplicate Inventory Creation Fix**: 
+1. **Virtual Anvil Text Input GUI**:
+   * *Problem*: Chat-based text prompts can be messy or fail to feel like premium UI components. Additionally, Minecraft client-side prediction logic causes the client to believe it successfully took the anvil's result item (creating ghost items such as papers named `"000000"` or containing `"Preview"`) when Slot 2 is clicked or when the window is closed immediately.
+   * *Fix*: Added the fully self-contained `InventoryGUI_AnvilInput` utility to prompt players for input using a standard, highly interactive Minecraft anvil interface. Bypasses client-side XP requirements safely and cleans up experience records instantly upon closure. Implemented a bulletproof, 1-tick delayed `cleanupGhostItems` task running on the player's regional scheduler during all click and close events. To prevent any risk of wiping a player's legitimate custom survival papers (even if named `"000000"`), the system applies a unique custom `NamespacedKey` tag (`survivalcore:virtual_anvil_input`) to all virtual anvil placeholder and result items using the Persistent Data Container (PDC). The delayed cleanup task strictly filters by this unique tag, ensuring player-owned items are never touched while ghost papers/panes are eradicated and synchronized via `player.updateInventory()`.
+2. **Duplicate Inventory Creation Fix**: 
    * *Problem*: The previous implementation of `createInventory` called `Bukkit.createInventory` twice, storing the first result in an unused variable and returning the second redundant instance.
    * *Fix*: Cleaned up the method to execute the call exactly once and return the instantiated inventory directly.
 2. **Zero-Leak & Zero-Collision Architecture**:

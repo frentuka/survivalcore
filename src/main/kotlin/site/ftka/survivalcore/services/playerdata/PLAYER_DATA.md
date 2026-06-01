@@ -103,7 +103,7 @@ graph TD
 ### 2.6 PlayerData_CachingSubservice (TTL Cache Layer)
 * **Path:** [PlayerData_CachingSubservice.kt](file:///home/srleg/Projects/survivalcore/src/main/kotlin/site/ftka/survivalcore/services/playerdata/subservices/PlayerData_CachingSubservice.kt)
 * **Purpose:** Prevents duplicate database hits for players logging out and quickly logging back in (or API queries right after logouts).
-* **Behavior:** Configurable via `playerdata.json` config (`timeToLiveMillis` and `clockLoopTimeSecs`). Runs a scheduled cleaner task that deletes expired caches. Calling `getCachedPlayerData()` with `deleteIt = true` cleanses cache on retrieval.
+* **Behavior:** Configurable via `playerdata.json` config (`timeToLiveMillis` and `clockLoopTimeSecs`). Runs a scheduled cleaner task that deletes expired caches. Reads are clean and non-evicting via `getCachedPlayerData(uuid)`. Manual/explicit cache evictions can be triggered by calling `deleteCachedData(uuid)`. Inout retrievals from the Redis database automatically seed/prime this cache, allowing subsequent read hits to be served instantly from memory.
 
 ### 2.7 PlayerData_EmergencySubservice (Disk Serializer & Reconnection Sync)
 * **Path:** [PlayerData_EmergencySubservice.kt](file:///home/srleg/Projects/survivalcore/src/main/kotlin/site/ftka/survivalcore/services/playerdata/subservices/PlayerData_EmergencySubservice.kt)

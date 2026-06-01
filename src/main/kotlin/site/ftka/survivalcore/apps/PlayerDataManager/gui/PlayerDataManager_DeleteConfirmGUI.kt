@@ -126,7 +126,7 @@ internal class PlayerDataManager_DeleteConfirmGUI(
 
         // 2. Remove from Memory
         plugin.servicesFwk.playerData.data.removePlayerData(targetUUID)
-        plugin.servicesFwk.playerData.caching_ss.getCachedPlayerData(targetUUID, true)
+        plugin.servicesFwk.playerData.caching_ss.deleteCachedData(targetUUID)
 
         // 3. Remove from Redis
         plugin.essentialsFwk.database.api.del(targetUUID.toString(), true).thenAccept { success ->

@@ -13,4 +13,12 @@ class InventoryGUIAPI(private val svc: InventoryGUIService) {
     fun createInventory(owner: InventoryGUIOwner, size: Int, title: Component): Inventory
         = svc.createInventory(owner, size, title)
 
+    fun openAnvilInput(
+        player: org.bukkit.entity.Player,
+        title: Component,
+        placeholderText: String = "Enter text...",
+        isHexColor: Boolean = false,
+        callback: (String) -> Unit
+    ) = svc.openAnvilInput(player, title, placeholderText, isHexColor, callback)
+
 }

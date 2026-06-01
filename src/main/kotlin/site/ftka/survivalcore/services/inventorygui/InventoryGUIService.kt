@@ -18,6 +18,19 @@ class InventoryGUIService(private val plugin: MClass, private val services: Serv
     internal val logger = plugin.loggingInitless.getLog("InventoryGUI", Component.text("InvGUI").color(TextColor.fromHexString("#cc6600")))
     val api = InventoryGUIAPI(this)
 
+    val activeAnvilInputs = java.util.concurrent.ConcurrentHashMap<java.util.UUID, InventoryGUI_AnvilInput>()
+
+    fun openAnvilInput(
+        player: org.bukkit.entity.Player,
+        title: Component,
+        placeholderText: String = "Enter text...",
+        isHexColor: Boolean = false,
+        callback: (String) -> Unit
+    ) {
+        val anvil = InventoryGUI_AnvilInput(plugin, player, title, placeholderText, isHexColor, callback)
+        activeAnvilInputs[player.uniqueId] = anvil
+    }
+
     /*
         This service is meant to control
         inventory gui interfaces.

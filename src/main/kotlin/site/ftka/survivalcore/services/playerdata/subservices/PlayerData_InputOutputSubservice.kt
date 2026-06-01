@@ -62,7 +62,11 @@ internal class PlayerData_InputOutputSubservice(private val service: PlayerDataS
         return futureString.thenApply {
             saveRequest(uuid, it)
             logger.log("Got playerdata from database.", LogLevel.DEBUG)
-            service.fromJson(it)
+            val pdata = service.fromJson(it)
+            if (pdata != null) {
+                service.caching_ss.storeLatestPlayerData(pdata)
+            }
+            pdata
         }
     }
 

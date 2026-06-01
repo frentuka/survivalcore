@@ -26,7 +26,7 @@ class MClass: JavaPlugin(), CommandExecutor {
     internal val servicesFwk = ServicesFramework(this)
 
     // Instantiate apps
-    private val appsFwk = AppsFramework(this)
+    internal val appsFwk = AppsFramework(this)
 
     internal var starting: Boolean = true
     internal var stopping: Boolean = false
