@@ -52,78 +52,91 @@ class Gameplay_FirstJoinSubservice(private val service: GameplayService, private
         )
         player.showTitle(title)
 
-        // 2. Obtain a valid spawn or fallback
-        var spawnChunk = plugin.servicesFwk.spawnFinder.validSpawns.randomOrNull()
-
-        if (spawnChunk == null) {
-            service.logger.log("No valid spawns cached in SpawnFinder! Initiating emergency radius 100 scan...", LogLevel.HIGH, NamedTextColor.RED)
-            // Emergency scan logic
-            val world = plugin.server.worlds.first() // Usually the overworld
-            // Simple fast scan around 0,0 avoiding currently claimed chunks if possible, or just stepping until a valid biome is found
-            spawnChunk = performEmergencyScan()
-            if (spawnChunk == null) {
-                service.logger.log("Emergency scan failed. Defaulting to 0,0", LogLevel.HIGH, NamedTextColor.RED)
-                spawnChunk = Pair(0, 0)
+        // 2. Obtain a valid spawn or fallback asynchronously
+        getSpawnChunkAsync { spawnChunk ->
+            // 3. Claim the chunk for them
+            val claimed = plugin.servicesFwk.territory.claimChunk(event.uuid, spawnChunk.first, spawnChunk.second)
+            if (!claimed) {
+                service.logger.log("Failed to claim chunk ${spawnChunk.first}, ${spawnChunk.second} for ${player.name}. It might already be claimed.", LogLevel.HIGH, NamedTextColor.RED)
             }
-        } else {
-            // Remove it so it doesn't get used again immediately before the territory service updates
-            plugin.servicesFwk.spawnFinder.validSpawns.remove(spawnChunk)
-        }
 
-        // 3. Claim the chunk for them
-        val claimed = plugin.servicesFwk.territory.claimChunk(event.uuid, spawnChunk.first, spawnChunk.second)
-        if (!claimed) {
-            service.logger.log("Failed to claim chunk ${spawnChunk.first}, ${spawnChunk.second} for ${player.name}. It might already be claimed.", LogLevel.HIGH, NamedTextColor.RED)
-        }
+            // 4. Teleport player safely and give starter item
+            val world = plugin.server.worlds.first()
+            val blockX = (spawnChunk.first shl 4) + 8
+            val blockZ = (spawnChunk.second shl 4) + 8
 
-        // 4. Give the starter item
-        val cake = ItemStack(Material.CAKE)
-        val meta = cake.itemMeta
-        meta.displayName(Component.text("Cake?", NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false))
-        meta.lore(listOf(
-            Component.text("Just in case of emergencies", NamedTextColor.DARK_GRAY, TextDecoration.ITALIC)
-        ))
-        cake.itemMeta = meta
-        player.inventory.addItem(cake)
+            // Run teleport in chunk
+            world.getChunkAtAsync(spawnChunk.first, spawnChunk.second).thenAccept { chunk ->
+                val highestY = world.getHighestBlockYAt(blockX, blockZ)
+                val spawnLocation = org.bukkit.Location(world, blockX.toDouble(), highestY.toDouble() + 1.0, blockZ.toDouble())
+                
+                player.scheduler.execute(plugin, Runnable {
+                    // Give the starter item here so it's guaranteed to be on the player's region thread
+                    val cake = ItemStack(Material.CAKE)
+                    val meta = cake.itemMeta
+                    meta.displayName(Component.text("Cake?", NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false))
+                    meta.lore(listOf(
+                        Component.text("Just in case of emergencies", NamedTextColor.DARK_GRAY, TextDecoration.ITALIC)
+                    ))
+                    cake.itemMeta = meta
+                    player.inventory.addItem(cake)
 
-        // 5. Teleport player safely
-        val world = plugin.server.worlds.first()
-        val blockX = (spawnChunk.first shl 4) + 8
-        val blockZ = (spawnChunk.second shl 4) + 8
-
-        // Run teleport in chunk
-        world.getChunkAtAsync(spawnChunk.first, spawnChunk.second).thenAccept { chunk ->
-            val highestY = world.getHighestBlockYAt(blockX, blockZ)
-            val spawnLocation = org.bukkit.Location(world, blockX.toDouble(), highestY.toDouble() + 1.0, blockZ.toDouble())
-            
-            player.scheduler.execute(plugin, Runnable {
-                player.setRespawnLocation(spawnLocation, true)
-                player.teleportAsync(spawnLocation)
-            }, null, 0L)
+                    player.setRespawnLocation(spawnLocation, true)
+                    player.teleportAsync(spawnLocation)
+                }, null, 0L)
+            }
         }
     }
 
-    private fun performEmergencyScan(): Pair<Int, Int>? {
-        // Run a blocking-like or simple loop since this is a fallback that should never happen
-        // The user said "execute an analysis with radius=100 and select the first available valid chunk found"
-        // Since we are likely on an async event thread right now (Registration happens inside a coroutine GlobalScope),
-        // we shouldn't do complex chunk loads synchronously if possible, but finding a chunk logic just by checking territory is fast.
+    private fun getSpawnChunkAsync(callback: (Pair<Int, Int>) -> Unit) {
+        val cached = plugin.servicesFwk.spawnFinder.validSpawns.randomOrNull()
+        if (cached != null) {
+            plugin.servicesFwk.spawnFinder.validSpawns.remove(cached)
+            plugin.servicesFwk.spawnFinder.checkAndTriggerAnalysisIfNeeded()
+            callback(cached)
+            return
+        }
+        
+        service.logger.log("No valid spawns cached in SpawnFinder! Initiating emergency radius 100 scan...", LogLevel.HIGH, NamedTextColor.RED)
         
         val world = plugin.server.worlds.first()
-        val radius = 100 // chunk radius
+        val radius = 100
+        val step = 4
         
-        // This is a naive spiral or simple loop scan
-        for (x in -radius..radius step 4) {
-            for (z in -radius..radius step 4) {
+        val coords = mutableListOf<Pair<Int, Int>>()
+        for (x in -radius..radius step step) {
+            for (z in -radius..radius step step) {
                 if (plugin.servicesFwk.territory.getOwner(x, z) == null) {
-                    val biome = world.getBiome(x shl 4, 0, z shl 4)
-                    // Basic blacklist check
-                    if (!biome.name().contains("OCEAN") && !biome.name().contains("RIVER")) {
-                        return Pair(x, z)
-                    }
+                    coords.add(Pair(x, z))
                 }
             }
         }
-        return null
+        
+        coords.shuffle()
+        checkNextCoord(coords, 0, world, callback)
+    }
+
+    private fun checkNextCoord(coords: List<Pair<Int, Int>>, index: Int, world: org.bukkit.World, callback: (Pair<Int, Int>) -> Unit) {
+        if (index >= coords.size || index >= 100) { // Limit to 100 checks to prevent lag spikes
+            service.logger.log("Emergency scan failed. Defaulting to 0,0", LogLevel.HIGH, NamedTextColor.RED)
+            callback(Pair(0, 0))
+            return
+        }
+        
+        val coord = coords[index]
+        plugin.server.regionScheduler.execute(plugin, world, coord.first, coord.second) {
+            try {
+                val blockX = coord.first shl 4
+                val blockZ = coord.second shl 4
+                val biome = world.getBiome(blockX, 64, blockZ)
+                if (!biome.name().contains("OCEAN") && !biome.name().contains("RIVER")) {
+                    callback(coord)
+                } else {
+                    checkNextCoord(coords, index + 1, world, callback)
+                }
+            } catch (e: Exception) {
+                checkNextCoord(coords, index + 1, world, callback)
+            }
+        }
     }
 }

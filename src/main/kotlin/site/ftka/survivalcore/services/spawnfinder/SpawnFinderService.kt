@@ -26,6 +26,7 @@ class SpawnFinderService(private val plugin: MClass, private val services: Servi
         logger.log("Initializing SpawnFinderService...", LogLevel.LOW)
         storage_ss.load()
         plugin.propEventsInitless.registerListener(this)
+        checkAndTriggerAnalysisIfNeeded()
     }
 
     internal fun restart() {
@@ -37,6 +38,7 @@ class SpawnFinderService(private val plugin: MClass, private val services: Servi
         storage_ss.load()
         plugin.propEventsInitless.registerListener(this)
         isRestarting = false
+        checkAndTriggerAnalysisIfNeeded()
     }
 
     internal fun stop() {
@@ -64,6 +66,14 @@ class SpawnFinderService(private val plugin: MClass, private val services: Servi
         }
         if (changed) {
             storage_ss.saveAsync()
+        }
+        checkAndTriggerAnalysisIfNeeded()
+    }
+
+    fun checkAndTriggerAnalysisIfNeeded() {
+        if (validSpawns.size < 5 && !algorithm_ss.isAnalysing) {
+            logger.log("Valid spawns pool is low (${validSpawns.size}). Triggering automatic analysis...", LogLevel.NORMAL)
+            algorithm_ss.analyse(plugin.server.consoleSender, 100)
         }
     }
 }
