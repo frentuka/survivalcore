@@ -1,5 +1,6 @@
 package site.ftka.survivalcore.services.permissions
 
+import site.ftka.survivalcore.services.permissions.objects.PermissionGroup
 import java.util.UUID
 
 class PermissionsAPI(private val svc: PermissionsService) {
@@ -92,6 +93,9 @@ class PermissionsAPI(private val svc: PermissionsService) {
         groups
      */
 
+    fun getGroups(): Set<PermissionGroup>
+        = svc.data.getGroups()
+
     fun getGroup(group: String)
         = svc.data.getGroup(group)
 
@@ -110,6 +114,15 @@ class PermissionsAPI(private val svc: PermissionsService) {
 
     fun renameGroup(name: String, newName: String)
         = svc.groups_ss.renameGroup(name, newName)
+
+    fun setTagToGroup(uuid: UUID, newTag: String)
+        = svc.groups_ss.setTagToGroup(uuid, newTag)
+
+    fun setPrimaryColorToGroup(uuid: UUID, primaryColor: String)
+        = svc.groups_ss.setPrimaryColorToGroup(uuid, primaryColor)
+
+    fun setSecondaryColorToGroup(uuid: UUID, secondaryColor: String)
+        = svc.groups_ss.setSecondaryColorToGroup(uuid, secondaryColor)
 
     /*
         group's permissions

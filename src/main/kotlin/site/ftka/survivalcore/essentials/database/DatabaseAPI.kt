@@ -20,4 +20,6 @@ internal class DatabaseAPI(private val ess: DatabaseEssential) {
     fun set(key: String, value: String, async: Boolean): CompletableFuture<Boolean>
         = ess.set(key, value, async)
 
+    fun del(key: String, async: Boolean): CompletableFuture<Boolean>
+        = ess.del(key, async)
 }

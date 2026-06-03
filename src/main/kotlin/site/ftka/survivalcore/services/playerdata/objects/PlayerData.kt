@@ -2,6 +2,7 @@ package site.ftka.survivalcore.services.playerdata.objects
 
 import com.google.gson.GsonBuilder
 import site.ftka.survivalcore.services.playerdata.objects.modules.*
+import site.ftka.survivalcore.services.chunkborder.objects.BorderRegion
 import java.util.UUID
 
 data class PlayerData(val uuid: UUID) {
@@ -14,6 +15,15 @@ data class PlayerData(val uuid: UUID) {
     var settings:       PlayerSettings?     = PlayerSettings()
 
     // misc
+    var unlockedChunks: MutableList<Pair<Int, Int>> = mutableListOf()
+        get() {
+            @Suppress("SENSELESS_COMPARISON")
+            if (field == null) {
+                field = mutableListOf()
+            }
+            return field
+        }
+    var borderRegion: BorderRegion? = null
     var updateTimestamp: Long = System.currentTimeMillis()
 
     fun toJson(): String {

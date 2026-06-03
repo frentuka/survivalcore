@@ -26,10 +26,13 @@ class MClass: JavaPlugin(), CommandExecutor {
     internal val servicesFwk = ServicesFramework(this)
 
     // Instantiate apps
-    private val appsFwk = AppsFramework(this)
+    internal val appsFwk = AppsFramework(this)
 
     internal var starting: Boolean = true
     internal var stopping: Boolean = false
+
+    // --- TEST HUD (EASILY REMOVABLE) ---
+    private var testHUD: TestHUD? = null
 
     override fun onEnable() {
         // initialize all essentials
@@ -46,14 +49,24 @@ class MClass: JavaPlugin(), CommandExecutor {
         starting = false
 
         getCommand("restart")?.setExecutor(this)
+
+        // --- TEST HUD (EASILY REMOVABLE) ---
+        testHUD = TestHUD(this).apply { start() }
     }
 
     override fun onDisable() {
         stopping = true
 
+        // --- TEST HUD (EASILY REMOVABLE) ---
+        testHUD?.stop()
+        testHUD = null
+
         appsFwk.stopAll()
         servicesFwk.stopAll()
         essentialsFwk.stopAll()
+
+        // Shutdown and flush all pending logs as the final bootstrap tier step
+        loggingInitless.shutdown()
     }
 
     private val listenerList = mutableListOf<Listener>()

@@ -4,6 +4,10 @@ main: site.ftka.survivalcore.MClass
 description: Survival Core
 author: srleg
 api-version: '1.21'
+folia-supported: true
+libraries:
+  - io.lettuce:lettuce-core:6.5.3.RELEASE
+  - org.apache.commons:commons-pool2:2.4.3
 commands:
   chat:
     description: run ChatManager app
@@ -15,10 +19,28 @@ commands:
     description: go back to the previous screen page
   server:
     description: run ServerAdministration app
-    aliases: sv
+    aliases:
+      - sv
   permissions:
     description: run PermissionsManager players app
-    aliases: p, perms
+    aliases:
+      - p
+      - perms
+      - perm
   groups:
     description: run PermissionsManager groups app
-    aliases: g, group
+    aliases:
+      - g
+      - group
+
+  spawnmanager:
+    description: run SpawnManager app
+    aliases:
+      - sm
+      - spawn
+      - randomspawn
+
+  playerdata:
+    description: run PlayerDataManager app
+    aliases:
+      - pdata

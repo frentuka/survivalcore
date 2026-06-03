@@ -39,11 +39,11 @@ dependencies {
     implementation("net.kyori:adventure-text-serializer-plain:$adventureVersion")
     implementation("net.kyori:adventure-text-serializer-legacy:$adventureVersion")
 
-    // Paper API
-    compileOnly("io.papermc.paper:paper-api:1.21.10-R0.1-SNAPSHOT")
+    // Folia API
+    compileOnly("dev.folia:folia-api:1.21.11-R0.1-SNAPSHOT")
 
     // Redis & Connection Pooling
-    compileOnly("io.lettuce:lettuce-core:6.5.3.RELEASE")
+    implementation("io.lettuce:lettuce-core:6.5.3.RELEASE")
     implementation("org.apache.commons:commons-pool2:2.4.3")
 
     // Testing

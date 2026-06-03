@@ -14,11 +14,13 @@ import site.ftka.survivalcore.services.playerdata.objects.modules.PlayerPermissi
 import site.ftka.survivalcore.services.playerdata.objects.modules.PlayerSettings
 import site.ftka.survivalcore.services.playerdata.objects.modules.PlayerState
 import java.util.*
+import java.util.concurrent.CompletableFuture
 
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.withLock
 
 internal class PlayerData_RegistrationSubservice(private val service: PlayerDataService, private val plugin: MClass) {
@@ -38,8 +40,10 @@ internal class PlayerData_RegistrationSubservice(private val service: PlayerData
 
                 // 1. Check if exists and get data
                 // By combining these, we save a database trip
+                var isNew = false
                 val playerdata = try {
                     service.inout_ss.get(uuid, async = true).await() ?: PlayerData(uuid).also {
+                        isNew = true
                         logger.log("Does not exist in database, creating new ($uuid)", LogLevel.HIGH)
                     }
                 } catch (e: Exception) {
@@ -54,7 +58,26 @@ internal class PlayerData_RegistrationSubservice(private val service: PlayerData
                 // Update timestamp to mark this data as "active"
                 playerdata.updateTimestamp = System.currentTimeMillis()
 
-                finishRegistration(playerdata, player, firstJoin = playerdata.updateTimestamp == 0L)
+                if (player != null) {
+                    val future = CompletableFuture<Void>()
+                    player.scheduler.execute(plugin, Runnable {
+                        try {
+                            finishRegistration(playerdata, player, firstJoin = isNew)
+                            future.complete(null)
+                        } catch (e: Exception) {
+                            future.completeExceptionally(e)
+                        }
+                    }, null, 0L)
+                    
+                    try {
+                        future.await()
+                    } catch (e: Exception) {
+                        logger.log("Failed to finish registration on entity thread: ${e.message}")
+                        e.printStackTrace()
+                    }
+                } else {
+                    finishRegistration(playerdata, null, firstJoin = isNew)
+                }
             }
         }
     }
@@ -100,7 +123,34 @@ internal class PlayerData_RegistrationSubservice(private val service: PlayerData
     // 4. Report PlayerDataUnregistrationEvent (in finishUnregistration())
         @OptIn(DelicateCoroutinesApi::class)
     fun unregister(uuid: UUID, player: Player? = null, async: Boolean = true) {
-        GlobalScope.launch {
+        val safePlayer = player ?: plugin.server.getPlayer(uuid)
+        val preGatheredData = service.data.getPlayerData(uuid)
+        
+        var gatherFuture: CompletableFuture<Void>? = null
+        var gatherTask: Runnable? = null
+
+        if (safePlayer != null && preGatheredData != null) {
+            gatherFuture = CompletableFuture<Void>()
+            gatherTask = Runnable {
+                try {
+                    val preEvent = PlayerDataPreUnregisterEvent(uuid, preGatheredData, safePlayer)
+                    plugin.propEventsInitless.fireEvent(preEvent)
+                    
+                    preGatheredData.state?.gatherValuesFromPlayer(safePlayer)
+                    preGatheredData.information?.updateValuesFromPlayer(safePlayer)
+                    gatherFuture.complete(null)
+                } catch (e: Exception) {
+                    gatherFuture.completeExceptionally(e)
+                }
+            }
+
+            if (plugin.server.isOwnedByCurrentRegion(safePlayer)) {
+                logger.log("Gathering playerstate synchronously for ($uuid)", LogLevel.DEBUG)
+                gatherTask.run()
+            }
+        }
+
+        val block = suspend {
             val lock = service.data.getLock(uuid)
             lock.withLock {
                 val playerdata = service.data.getPlayerData(uuid) ?: run {
@@ -108,17 +158,21 @@ internal class PlayerData_RegistrationSubservice(private val service: PlayerData
                     return@withLock
                 }
 
-                val safePlayer = player ?: plugin.server.getPlayer(uuid)
-
-                safePlayer?.let {
-                    logger.log("Player found. Firing PreUnregisterEvent and gathering playerstate for ($uuid)", LogLevel.DEBUG)
+                if (safePlayer != null && gatherTask != null && gatherFuture != null) {
+                    if (!gatherFuture.isDone) {
+                        logger.log("Gathering playerstate asynchronously for ($uuid)", LogLevel.DEBUG)
+                        val scheduled = safePlayer.scheduler.execute(plugin, gatherTask, null, 0L)
+                        if (scheduled == null) {
+                            gatherFuture.completeExceptionally(IllegalStateException("Entity scheduler returned null for retiring entity"))
+                        }
+                    }
                     
-                    // Fire PreUnregisterEvent before gathering so other components can finalize state
-                    val preEvent = PlayerDataPreUnregisterEvent(uuid, playerdata, it)
-                    plugin.propEventsInitless.fireEvent(preEvent)
-                    
-                    playerdata.state?.gatherValuesFromPlayer(it)
-                    playerdata.information?.updateValuesFromPlayer(it)
+                    try {
+                        gatherFuture.await()
+                    } catch (e: Exception) {
+                        logger.log("Failed to gather values on entity thread: ${e.message}")
+                        e.printStackTrace()
+                    }
                 }
 
                 logger.log("Unregistering playerdata: ($uuid)", LogLevel.DEBUG)
@@ -127,6 +181,16 @@ internal class PlayerData_RegistrationSubservice(private val service: PlayerData
             }
             // Cleanup happens AFTER the lock is released
             service.data.cleanupLock(uuid)
+        }
+
+        if (async) {
+            GlobalScope.launch {
+                block()
+            }
+        } else {
+            runBlocking {
+                block()
+            }
         }
     }
 

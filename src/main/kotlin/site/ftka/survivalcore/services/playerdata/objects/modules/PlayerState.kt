@@ -29,6 +29,8 @@ class PlayerState {
     var level: Int = 0
     var gameMode: String = "SURVIVAL"
     var potionEffects: List<SerializedPotionEffect> = listOf()
+    var allowFlight: Boolean = false
+    var isFlying: Boolean = false
 
     data class SerializedPotionEffect(
         val type: String,
@@ -61,6 +63,8 @@ class PlayerState {
         this.experience = player.exp
         this.level = player.level
         this.gameMode = player.gameMode.name
+        this.allowFlight = player.allowFlight
+        this.isFlying = player.isFlying
         
         this.potionEffects = player.activePotionEffects.map {
             SerializedPotionEffect(
@@ -107,6 +111,9 @@ class PlayerState {
             player.gameMode = org.bukkit.GameMode.SURVIVAL
         }
 
+        player.allowFlight = this.allowFlight
+        player.isFlying = this.isFlying
+
         // restore potion effects
         for (effect in player.activePotionEffects) {
             player.removePotionEffect(effect.type)
@@ -139,14 +146,16 @@ class PlayerState {
         val toBeAppliedLocation = serializedLocation.asLocation()
 
         // apply location 1 tick after joining
-        if (!this.isDead)
-        plugin.server.scheduler.runTaskLater(plugin, Runnable{
-            player.teleport(toBeAppliedLocation)
-            player.fallDistance = this.fall_distance
-            plugin.server.scheduler.runTaskLater(plugin, Runnable{
-                player.velocity = Vector(this.momentum.first, this.momentum.second, this.momentum.third)
-            }, 1L)
-        }, 1L)
+        if (!this.isDead) {
+            player.scheduler.execute(plugin, Runnable {
+                player.teleportAsync(toBeAppliedLocation).thenAccept {
+                    player.scheduler.execute(plugin, Runnable {
+                        player.fallDistance = this.fall_distance
+                        player.velocity = Vector(this.momentum.first, this.momentum.second, this.momentum.third)
+                    }, null, 1L)
+                }
+            }, null, 1L)
+        }
 
     }
 

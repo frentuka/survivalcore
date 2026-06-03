@@ -16,8 +16,9 @@ class ServerAdministrationApp(private val plugin: MClass) {
 
     internal fun init() {
         // init commands
-        plugin.getCommand("server")?.setExecutor(serverCommand)
-        plugin.server.pluginManager.registerEvents(serverCommand, plugin)
+        val cmd = plugin.getCommand("server")
+        cmd?.setExecutor(serverCommand)
+        cmd?.setTabCompleter(serverCommand)
     }
 
     internal fun restart() {

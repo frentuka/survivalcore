@@ -15,7 +15,8 @@ class LanguageAPI(private val svc: LanguageService, private val plugin: MClass) 
 
     fun permissionGroup_name(uuid: UUID): Component {
         val group = plugin.servicesFwk.permissions.api.getGroup(uuid) ?: return Component.text("")
-        return Component.text(group.displayName).color(NamedTextColor.NAMES.keyToValue().get(group.primaryColor))
+        val text = if (group.tag.uppercase() != "NONE" && group.tag.isNotEmpty()) group.tag else group.name
+        return Component.text(text).color(NamedTextColor.NAMES.keyToValue().get(group.primaryColor))
     }
 
     fun permissionGroup_chatPrefix(uuid: UUID): Component {

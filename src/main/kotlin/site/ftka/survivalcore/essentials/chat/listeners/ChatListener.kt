@@ -18,10 +18,15 @@ internal class ChatListener(private val svc: ChatEssential, private val plugin: 
 
     @EventHandler
     fun onChat(ev: AsyncChatEvent) {
+        val uuid = ev.player.uniqueId
+
+        // check if player's input is being intercepted by PermissionsManager
+        if (plugin.appsFwk.permissionsManager.chatInterceptor.isIntercepting(uuid)) {
+            return
+        }
+
         // cancel vanilla event so control is fully mine
         ev.isCancelled = true
-
-        val uuid = ev.player.uniqueId
 
         // if chat is sent from a screen, trigger corresponding event. don't trigger chat event
         if (svc.screens_ss.isPlayerInsideScreen(uuid)) {

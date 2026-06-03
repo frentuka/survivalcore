@@ -29,6 +29,7 @@ Bootstrap components with zero internal dependencies that initialize before all 
 
 * **Logging System** (`LoggingInitless`): Establishes color-coded logging and rolling JSON file writes.
   * *Brief Overview:* [LOGGING.md](file:///home/srleg/Projects/survivalcore/universe/initless/LOGGING.md)
+  * *Detailed Docs:* [LOGGING_INITLESS.md](file:///home/srleg/Projects/survivalcore/src/main/kotlin/site/ftka/survivalcore/initless/logging/LOGGING_INITLESS.md)
   * *Codebase Path:* `src/main/kotlin/site/ftka/survivalcore/initless/logging/`
 * **Custom Event Bus** (`ProprietaryEventsInitless`): Reflection-based event bus for decoupled inter-component signaling.
   * *Brief Overview:* [PROPRIETARY_EVENTS.md](file:///home/srleg/Projects/survivalcore/universe/initless/PROPRIETARY_EVENTS.md)
@@ -71,6 +72,10 @@ Complex services providing compound business logic built on bootstrap and essent
 * **Inventory GUI** (`InventoryGUIService`): Framework to build dynamic inventory click UI owners.
   * *Brief Overview:* [INVENTORY_GUI.md](file:///home/srleg/Projects/survivalcore/universe/services/INVENTORY_GUI.md)
   * *Codebase Path:* `src/main/kotlin/site/ftka/survivalcore/services/inventorygui/`
+* **World Board Engine** (`WorldBoardService`): High-performance, Folia-threaded holographic 3D text display system.
+  * *Brief Overview:* [WORLD_BOARD.md](file:///home/srleg/Projects/survivalcore/universe/services/WORLD_BOARD.md)
+  * *Detailed Docs:* [WORLD_BOARD.md](file:///home/srleg/Projects/survivalcore/src/main/kotlin/site/ftka/survivalcore/services/worldboard/WORLD_BOARD.md)
+  * *Codebase Path:* `src/main/kotlin/site/ftka/survivalcore/services/worldboard/`
 * **Unified Singula** (`SingulaService`): A facade layer that streamlines standard queries to other services.
   * *Brief Overview:* [SINGULA.md](file:///home/srleg/Projects/survivalcore/universe/services/SINGULA.md)
   * *Codebase Path:* `src/main/kotlin/site/ftka/survivalcore/services/singula/`
