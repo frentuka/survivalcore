@@ -266,13 +266,11 @@ Heat = BaseMaterialHeat × TierModifier + ModuleHeat
 
 | Health Remaining | Damage Level | Materials Required |
 |-----------------|-------------|-------------------|
-| 75–99% | Light | Repair Kit only |
-| 50–74% | Moderate | Repair Kit + Tier I extractor materials |
-| 25–49% | Heavy | Repair Kit + Tier I–II materials |
-| 1–24% | Critical | Repair Kit + Tier III+ materials |
-| 0% (Destroyed) | Total | Repair Kit + materials up to extractor's own tier |
+| 50–99% | Light | Repair Kits only (quantity scales linearly with damage taken) |
+| 1–49% | Heavy | Repair Kits + the extractor's own crafting materials (quantity proportional to damage) |
+| 0% (Destroyed) | Total | Full Reconstruction: all tier materials from Tier I to the extractor's own tier, plus many Repair Kits — OR manually destroy wreckage to salvage a Degraded Core (restores to Tier I state) |
 
-> Reminder: A damaged extractor **cannot be disassembled** until fully repaired.
+> Reminder: A damaged extractor **cannot be disassembled** until fully repaired. While damaged, extraction speed is reduced proportionally to missing health.
 
 ---
 

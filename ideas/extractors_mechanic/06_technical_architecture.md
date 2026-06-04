@@ -33,12 +33,12 @@ Initless  →  Essentials  →  Services  →  Apps
 |------------|----------------|
 | `Extractor_IOSubservice` | Saves/loads extractor state to Redis |
 | `Extractor_ScanningSubservice` | Async block counting when a player uses the Geological Scanner |
-| `Extractor_MiningSubservice` | The extraction engine: finds target blocks, replaces them, deposits items |
+| `Extractor_MiningSubservice` | Extraction engine: finds target blocks, applies block locks, replaces blocks, deposits items |
 | `Extractor_FuelSubservice` | Fuel consumption tracking and Compact Coal economy |
-| `Extractor_InfestationSubservice` | Heat calculation, mob spawning, siege orchestration |
-| `Extractor_ClaimSubservice` | Chunk claiming and ownership validation |
-| `Extractor_CatchupSubservice` | Offline extraction simulation on chunk load |
-| `Extractor_HealthSubservice` | Extractor health, damage from mobs, repair |
+| `Extractor_InfestationSubservice` | Heat calculation, mob spawning, siege orchestration (online and offline) |
+| `Extractor_ClaimSubservice` | Chunk ownership validation and structure block registry |
+| `Extractor_CatchupSubservice` | Offline extraction simulation on chunk load (with fuel/storage accounting) |
+| `Extractor_HealthSubservice` | Extractor health, damage from mobs and structure breaks, repair |
 
 ### Dependencies
 
@@ -132,7 +132,7 @@ Create an `ExtractorConfig` following the existing pattern:
 class ExtractorConfig {
     var version: Int = 1
     var extractionIntervalTicks: Int = 1200  // 60 seconds
-    var maxExtractorsPerPlayer: Int = 3
+    var maxExtractorsPerPlayer: Int = 4
     var fuelPerCompactCoalBlock: Int = 100
     var catchupMaxHours: Int = 24
     // ...
@@ -144,6 +144,38 @@ Add the enum entry, field, and loading logic to `ConfigsEssential`.
 
 ---
 
+## Catch-Up Algorithm (`Extractor_CatchupSubservice`)
+
+When a chunk is loaded, each extractor in that chunk runs the following algorithm:
+
+```
+1. elapsed = now - lastActiveTimestamp
+2. elapsed = min(elapsed, catchupMaxHours * 3600 seconds)   // cap
+3. cycles  = floor(elapsed / offlineCooldownSeconds)
+4. for each simulated cycle:
+   a. If fuel <= 0: stop simulation (extractor ran dry mid-catchup)
+   b. Deduct one cycle's worth of fuel from fuel pool
+   c. If storage is full: skip item deposit but still consume fuel and break block
+      (items are lost — the extractor "mined into a full hopper" and ore fell to the ground)
+   d. Attempt to find an unlocked target block in the chunk (using block locking rules)
+   e. If found: replace block, deposit item into storage (unless storage full), increment mined count
+   f. If not found: swing-and-miss, continue to next cycle
+5. Simulate offline infestations:
+   a. Calculate how many infestation events should have fired during elapsed time
+   b. For each event: apply damage directly to health pool without spawning actual mobs
+      (mobs are force-loaded only for real-time events; catchup applies flat damage)
+   c. If health reaches 0 during catchup simulation: extractor is destroyed, inventory drops
+6. Update lastActiveTimestamp = now
+```
+
+### Performance Guardrails
+
+- Catch-up block replacement is performed in **batches of max 50 blocks per tick** to avoid region-thread lag spikes
+- If the total simulated cycles would exceed the batch budget, remaining cycles are deferred to subsequent ticks (spread across up to 5 ticks after chunk load)
+- Catch-up runs **after** the normal chunk load sequence to avoid competing with world population
+
+---
+
 ## Data Model (Redis)
 
 The existing `DatabaseEssential` uses **flat string keys with JSON string values**. API: `get(key)`, `set(key, value)`, `exists(key)`, `del(key)`.
@@ -151,8 +183,9 @@ The existing `DatabaseEssential` uses **flat string keys with JSON string values
 **Proposed key structure:**
 
 ```
-extractor:{extractorUuid}                → Extractor state JSON
-extractor:chunk:{world}:{chunkX}:{chunkZ} → Extractor UUID at this chunk
+extractor:{extractorUuid}                       → Extractor state JSON
+extractor:chunk:{world}:{chunkX}:{chunkZ}       → List of extractor UUIDs active in this chunk
+extractor:structure:{world}:{x}:{y}:{z}         → Extractor UUID that owns this structure block
 ```
 
 Per-player extractor ownership should live inside `PlayerData` (serialized as part of the player's JSON blob), not as separate Redis keys.
@@ -163,6 +196,7 @@ Per-player extractor ownership should live inside `PlayerData` (serialized as pa
 {
   "uuid": "extractor-uuid",
   "ownerUuid": "player-uuid",
+  "trustedPlayers": [],
   "type": "DIAMOND",
   "tier": 3,
   "location": { "world": "world", "x": 100, "y": 40, "z": -200 },
@@ -224,6 +258,37 @@ player.scheduler.execute(plugin, {
     player.openInventory(extractorGui.inventory)
 }, null, 1L)
 ```
+
+---
+
+## Admin Tools
+
+Staff with the **`staff.extractors`** permission have elevated access to all extractors regardless of ownership.
+
+### Permissions
+
+| Permission | Effect |
+|------------|--------|
+| `staff.extractors` | Bypass owner check; open any extractor GUI; delete any extractor |
+
+### Staff GUI Behavior
+
+When a staff member opens an extractor they don't own, the GUI displays a **prominent warning banner** at the top:
+
+> ⚠️ *You are viewing [PlayerName]'s [Diamond Extractor Tier III]. Actions taken here affect another player's property.*
+
+This warning exists to prevent accidental modifications during routine admin work.
+
+### Staff Commands
+
+| Command | Effect |
+|---------|--------|
+| `/extractor admin list [player]` | List all extractors owned by a player with coordinates and status |
+| `/extractor admin delete <uuid>` | Safely remove a stuck/bugged extractor and drop its contents |
+| `/extractor admin inspect <uuid>` | Open the extractor GUI with the admin warning banner |
+| `/extractor admin status` | Server-wide summary: total active extractors, total fuel consumed, heat distribution |
+
+> All admin interactions are **logged** via the existing `LoggingInstance` system with player UUID, target extractor UUID, action type, and timestamp.
 
 ---
 

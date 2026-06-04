@@ -34,8 +34,9 @@ Players explore the infinite survival world, "prospect" chunks to find rich ore 
 | [06_technical_architecture.md](06_technical_architecture.md) | SurvivalCore integration: services, subservices, data model |
 | [07_expansion_ideas.md](07_expansion_ideas.md) | Future-proofing: liquid extractors, lumberjacks, networks |
 | [08_critique_and_gaps.md](08_critique_and_gaps.md) | Design critique: gaps, inconsistencies, and open questions (with resolution status) |
-| [09_custom_item_service_plan.md](09_custom_item_service_plan.md) | Implementation plan for the Custom Item Service prerequisite |
+| [../custom_item_service/README.md](../custom_item_service/README.md) | Implementation plan for the Custom Item Service prerequisite |
 | [10_balance_numbers.md](10_balance_numbers.md) | Extractor numeric balancing: cooldowns, fuel, ore density, and ROI models |
+| [11_player_experience.md](11_player_experience.md) | Player onboarding: Prospector's Handbook, advancement tree, recipe book integration |
 
 ---
 

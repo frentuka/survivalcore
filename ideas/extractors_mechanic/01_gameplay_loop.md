@@ -52,7 +52,7 @@ While fueled and active, the Extractor runs on a **cooldown cycle** driven by th
 - **If a valid block is found:** the block is **physically broken**, replaced with Cobblestone (stone-level) or Cobbled Deepslate (deepslate-level), items are deposited into the extractor's internal inventory, and the cooldown resets
 - **If no valid block is found:** the cooldown resets anyway (the extractor "swings and misses")
 - Over time, massive veins of cobblestone cut through the earth — a permanent visual scar of industrial depletion
-- **Offline/unloaded behavior:** while the chunk is unloaded, the cooldown timer is **longer** than the loaded cooldown, and the items gained are limited by the real number of ore blocks the extractor manages to find — this naturally throttles offline gains without needing an artificial cap
+- **Offline/unloaded behavior:** while the chunk is unloaded, the cooldown timer is **longer** than the loaded cooldown, and the items gained are limited by the real number of ore blocks the extractor manages to find — this naturally throttles offline gains without needing an artificial cap. Fuel consumption and storage capacity are fully accounted for during catch-up simulation. **Infestation events can and do occur while offline** — the chunk is temporarily force-loaded for each event. If the extractor is destroyed offline, its inventory drops on the ground. See [04_infestation_events.md — Offline Infestations](04_infestation_events.md) and [06_technical_architecture.md — Catch-Up Algorithm](06_technical_architecture.md) for full detail.
 
 ---
 

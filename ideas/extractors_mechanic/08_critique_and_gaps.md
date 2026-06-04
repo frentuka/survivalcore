@@ -209,10 +209,10 @@ Still needs onboarding design. Clear item lore and GUI labels would go a long wa
 |---|----------|------------|
 | 1 | Chunk claiming | No separate claim — extractor placed in chunk + analysis map |
 | 2 | Physical form | Custom player head → 3×3×5 structure with armor stands/holograms |
-| 3 | Catch-up limits | Longer offline cooldown + limited by real blocks = natural throttle |
+| 3 | Catch-up limits | Full algorithm in [06_technical_architecture.md](06_technical_architecture.md): fuel and storage accounted for, 50-block/tick batch cap, 24h max |
 | 4 | Extraction rate numbers | Modeled in [10_balance_numbers.md](10_balance_numbers.md) |
 | 5 | Fuel consumption numbers | Modeled in [10_balance_numbers.md](10_balance_numbers.md) |
-| 6 | Max extractors | Default limit of 4 (future custom player level system) |
+| 6 | Max extractors | Default limit of **4** (config default corrected to 4) |
 | 7 | Custom Item system | Implementation plan drafted → [09_custom_item_service_plan.md](09_custom_item_service_plan.md) |
 | 8 | Furnace/Compactor | Dependency is correct — raw ores need smelting before compaction |
 | 9 | Heat/noise formalization | Modeled in [10_balance_numbers.md](10_balance_numbers.md) |
@@ -221,16 +221,31 @@ Still needs onboarding design. Clear item lore and GUI labels would go a long wa
 | 12 | Scanner Tier V | Material restrictions by tier — Tier V is only Ancient Debris scanner |
 | 13 | Missing materials | Extractor types for Quartz, Debris, Amethyst, and Nether Gold are confirmed |
 | 14 | Notification system | Remote Monitor Module (Tier I & II) |
-| 15 | Repair kit scaling | Repair Kit + tier-proportional crafting materials |
+| 15 | Repair cost model | Revised: 50–99% = Repair Kits only; 1–49% = Kits + extractor materials; 0% = Full Reconstruction or Degraded Core salvage |
 | 16 | Days-to-ROI model | Modeled in [10_balance_numbers.md](10_balance_numbers.md) |
 | 17 | Extractor health per tier | Modeled in [10_balance_numbers.md](10_balance_numbers.md) |
 | 18 | Scan-empty-chunk | Map consumes durability, shows 0 Density. Extractor will fail cycle if used. |
-| — | Multi-extractor per chunk | Yes, but they collide/compete. Map is consumed. |
+| 19 | GUI access control | Owner-only GUI access. Any player may break structure blocks (dealing damage). |
+| 20 | Structure protection | Full protection table in [03_extractors.md](03_extractors.md): pistons, explosions, fluids, block placement all handled |
+| 21 | Block locking (race conditions) | Detection + replacement must be atomic in the same tick; `ConcurrentHashMap<BlockKey, UUID>` lock; see [03_extractors.md](03_extractors.md) |
+| 22 | Offline infestations | Yes — chunk force-loaded for each event. Damage applied normally. Defense systems planned for future. |
+| 23 | Admin tools | `staff.extractors` permission; GUI warning banner on foreign extractors; `/extractor admin` subcommands; all actions logged |
+| 24 | Analysis Result Map display | Smooth bilinear heatmap (MapRenderer API) + precision lore text. Spec in [02_scanners.md](02_scanners.md) |
+| 25 | Player onboarding | Advancement tree + Prospector's Handbook + recipe progressive unlocking. Full spec in [11_player_experience.md](11_player_experience.md) |
+| 26 | Visual/audio feedback | Full particle + sound + hologram spec tied to heat level. In [03_extractors.md](03_extractors.md) |
+| 27 | Amethyst extraction | Moved out of standard mechanic into its own future Specialized Amethyst Extractor design (harvests regrowth, infinite). See [07_expansion_ideas.md](07_expansion_ideas.md) |
+| 28 | Nether block replacement | Biome-native filler (Netherrack / Blackstone / Soul Sand). Thematic asymmetry: Overworld = landmarks, Nether = ghost runs. In [03_extractors.md](03_extractors.md) |
+| 29 | Scanner Y-range feedback | Live action bar warning with per-material depth thresholds and color coding. In [02_scanners.md](02_scanners.md) |
+| 30 | Heat value in GUI | Colored glass pane matching threat level + hover lore with math breakdown + thematic threat descriptor. In [03_extractors.md](03_extractors.md) |
+| 31 | Repair Kit quantity numbers | Preview exact crafting items needed + kits, capped by recipe limits. Math formula specified in [03_extractors.md](03_extractors.md) |
+| 32 | Module slot count | Scales by tier (2 / 3 / 3 / 4 / 5). Forced trade-offs early, everything late. Spec in [03_extractors.md](03_extractors.md) |
+| 33 | Module fate on disassembly | Modules AND Extractor Core item drop to ground with animation for better physical feel and safety. Spec in [03_extractors.md](03_extractors.md) |
+| 34 | Scanner calibration persistence | Yes, samples are persistent in PDC and items are returned to inventory when GUI closes. Spec in [02_scanners.md](02_scanners.md) |
+| 35 | Fortune module behavior | Probabilistic, mirroring vanilla Fortune (50% for 1 extra, 25% for 2 extra). Spec in [03_extractors.md](03_extractors.md) |
+| 36 | Structure block visual design | Extractor's own base/compact block forms the core spine. Shell materials upgrade by tier (stone to crying obsidian). Spec in [03_extractors.md](03_extractors.md) |
+| — | Multi-extractor per chunk | Yes, but block locking prevents race conditions. Map is consumed on insertion. |
 | — | Map anti-duplication | Map is consumed upon insertion, preventing duplication. |
 
 ### Still Open
 
-| # | Decision | Priority |
-|---|----------|----------|
-| 19 | Design extractor visual/audio feedback during operation | 🟢 Minor |
-| 20 | Design player onboarding for scanners | 🟢 Minor |
+*No open design gaps currently identified.*

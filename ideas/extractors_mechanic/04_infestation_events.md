@@ -60,14 +60,36 @@ Custom or rare vanilla mobs spawn to break through player defenses:
   3. It **cannot be moved (disassembled)** — the GUI shows: *"Moving the extractor in these conditions would completely destroy it"*
   4. It requires a **Repair Kit** plus crafting materials proportional to the damage level to restart
 
-### Repair Cost Scaling
+> See [03_extractors.md — Repair System](03_extractors.md) for the full repair cost table and Degraded Core salvage rules.
 
-- **Light damage** → Repair Kit + Tier I and/or Tier II extractor parts
-- **Heavy damage** → Repair Kit + Tier IV and/or Tier V extractor parts
-- Since higher-tier extractors inherit components from all lower tiers, the repair cost scales with both **damage severity** and **extractor tier**
-- A Tier V extractor with heavy damage is *extremely* expensive to repair, creating real stakes during infestations
+- **Light damage (50–99% health)** → Repair Kits only (quantity proportional to damage)
+- **Heavy damage (1–49% health)** → Repair Kits + the extractor's own crafting materials
+- **Destroyed (0% health)** → Full Reconstruction (all tier materials) or salvage as Degraded Core
 
-> See [05_crafting_reference.md](05_crafting_reference.md#e-repair-kit) for Repair Kit recipe.
+---
+
+## Offline Infestations
+
+Extractors **can be sieged while their owner is offline or the chunk is unloaded.** This is intentional — it creates genuine stakes and motivates players to invest in automated defense systems (planned for a future implementation phase).
+
+### Behavior While Offline
+
+- Infestation events are **scheduled and tracked server-side** regardless of chunk load state
+- When an infestation triggers on an unloaded chunk, the chunk is **temporarily force-loaded** for the duration of the event (3–5 minutes), then released
+- Mobs spawn, pathfind, and deal damage normally during this window
+- If the extractor's health reaches zero during an offline infestation, it is **destroyed** and its inventory is **dropped on the ground**
+- Damage dealt during offline infestations is applied identically to online infestations — no special scaling
+
+### Mitigation
+
+| Mitigation | Effect |
+|------------|--------|
+| **Defense systems** *(future)* | Automated turrets, traps, and walls fight infestations without the player present |
+| **Remote Monitor II** | Sends chat notifications even to offline players; they can log in and rush to defend |
+| **Reduce Heat** | Upgrade to higher tiers and avoid Drill Speed modules to lower infestation frequency |
+| **Tier III+ health pools** | 400–1,600 HP means most low/moderate infestations cannot destroy the extractor in one event |
+
+> ⚠️ **Design Intent:** The risk of offline destruction is the primary motivation for building automated defenses and for being strategic about *when* and *where* you deploy high-tier extractors. Low-tier coal extractors are nearly immune to offline destruction; high-tier diamond/ancient debris extractors demand active defense planning.
 
 ---
 
