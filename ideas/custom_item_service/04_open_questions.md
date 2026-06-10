@@ -3,9 +3,14 @@
 Before development of the Custom Item Service begins, the following questions need to be resolved.
 
 | # | Question | Impact | Current Recommendation |
-|---|----------|--------|------------------------|
-| 1 | Should Compact Blocks use `CustomModelData` for custom textures, or just use lore/name/enchantment-glint differentiation? | Requires resource pack if using custom models | Start with lore/glint. Add resource pack support later if needed. |
-| 2 | Should the periodic inventory audit run on a Folia global scheduler or per-region? | Performance vs. thoroughness | Per-region, iterating through players within that region to respect Folia thread safety. |
-| 3 | Should tracked items survive server restarts via Redis, or should the registry be rebuilt from player inventories on startup? | Data integrity vs. complexity | Redis is the source of truth. Items must survive in Redis. |
-| 4 | How deep should the audit scan for nested items (e.g., Bundles inside Shulker Boxes inside other containers)? | Performance cost | Limit nesting depth natively, or scan recursively up to a sensible hard cap (e.g., depth 3). |
-| 5 | Should tracked items be allowed inside Hoppers at all? | Duplication risk | **No.** High-value tracked items (Extractors, Modules) should be blacklisted from hoppers entirely. They are not bulk transport items. |
+*All design questions have been resolved.*
+
+## Resolved Decisions
+
+| # | Question | Resolution |
+|---|----------|------------|
+| 1 | CustomModelData vs Vanilla Fallbacks | **Use CustomModelData.** It's a 100% vanilla feature. We will implement a dual-system: players with the server resource pack see beautiful 3D models/textures. Players who decline the pack see the base vanilla item (e.g., a Coal Block) with a glowing enchantment glint, custom name, and lore. |
+| 2 | Folia Scheduling for Inventory Audits | **Per-region tasks.** The system will use a global coordinator scheduler that triggers per-region tasks. Each region thread will safely iterate over the players currently inside its bounds, ensuring strict Folia thread safety without cross-thread lag. |
+| 3 | Persistence vs. Startup Rebuild | **Redis is the absolute source of truth.** Item UUIDs must survive server restarts in Redis. This ensures immediate validation against dupes the second a player interacts with an item post-restart, closing vulnerability windows. |
+| 4 | Nested Container Scanning Depth | **Hard cap at Depth 3** (e.g., Inventory → Shulker → Bundle). Scanning deeper than 3 levels causes performance risks. Players will be natively blocked from inserting tracked items into containers that exceed this nesting depth. |
+| 5 | Tracked Items in Hoppers | **Strictly blacklisted via fast-fail checks.** High-value tracked items (Extractors, Scanners) are prevented from moving through Hoppers, Droppers, or Dispensers. The system uses a highly optimized `InventoryMoveItemEvent` check that looks exclusively for the `survivalcore:custom_item_type` PDC tag. If present, the transfer is instantly cancelled without touching Redis. Note: Bulk untracked items like Compact Blocks *can* still go through hoppers. |

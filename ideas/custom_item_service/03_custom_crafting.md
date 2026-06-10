@@ -37,13 +37,20 @@ craftingSubservice.registerShapedRecipe(
 
 Bukkit's recipe system only understands vanilla materials. If we register a recipe requiring `COAL_BLOCK` (as a stand-in for Compact Coal Block), Bukkit will allow the player to craft the item using regular Vanilla Coal Blocks.
 
-**The Solution: `PrepareItemCraftEvent` Interception**
+**The Solution:** 
 
+**Phase 1: `PrepareItemCraftEvent` Interception**
 1. When a player places items in a crafting grid, Bukkit fires `PrepareItemCraftEvent`.
-2. We check if the resulting item is one of our custom recipes.
-3. If it is, we iterate through the crafting matrix and test every item against our `RecipeIngredient` definitions.
+2. We check if the resulting item matches a custom recipe.
+3. If it does, we iterate through the crafting matrix and test every item against our `RecipeIngredient` definitions.
 4. If a custom ingredient is required (e.g., `compact_coal_block`), we verify the PDC tag `survivalcore:custom_item_type` matches.
-5. If the player used a vanilla item instead, we **clear the result slot**, preventing the craft.
+5. If the player used a vanilla item instead, we **clear the result slot**, visually preventing the craft.
+
+**Phase 2: `CraftItemEvent` Strict Validation (Exploit Prevention)**
+Client desyncs or malicious packets can sometimes bypass the prepare phase and trigger a direct craft.
+1. When `CraftItemEvent` fires, we perform the exact same validation check as Phase 1.
+2. If any ingredient in the matrix fails the `RecipeIngredient` test at the moment of crafting, we aggressively **cancel the event**.
+3. This creates a secure, impenetrable wall against spoofed crafting packets.
 
 ## 3. Instance Generation on Craft
 

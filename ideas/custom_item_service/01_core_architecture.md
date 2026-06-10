@@ -8,6 +8,7 @@ The Custom Item Service is broken into four distinct subservices to maintain cle
 Services (Tier 3)
 └── CustomItemService
     ├── CustomItem_RegistrySubservice      — Item type definitions & instance tracking
+    ├── CustomItem_CachingSubservice       — In-memory mirror of tracked UUIDs
     ├── CustomItem_SerializationSubservice — PDC read/write & item (de)serialization
     ├── CustomItem_ValidationSubservice    — Anti-dupe checks & item integrity (See 02_anti_duplication.md)
     └── CustomItem_CraftingSubservice      — Custom recipe registration (See 03_custom_crafting.md)
@@ -30,7 +31,13 @@ data class CustomItemType(
     val trackInstances: Boolean = false, // If true, every instance gets a UUID and is tracked
     val playerBound: Boolean = false,    // If true, only the owner can use/move it
     val headSkin: String? = null         // Base64 skin texture (for PLAYER_HEAD items)
-)
+) {
+    init {
+        require(!trackInstances || maxStackSize == 1) { 
+            "Tracked custom items must have a maxStackSize of 1 to ensure unique UUID integrity." 
+        }
+    }
+}
 ```
 
 ### Persistent Data Container (PDC) Tags
@@ -55,9 +62,14 @@ customitem:instance:{instanceUuid}  → JSON with item state (type, owner, creat
 ```
 *Note: Bulk items (like Compact Coal Blocks) where `trackInstances = false` do not get individual Redis entries. They are identified solely by their PDC type tag.*
 
+**Caching & Synchronization:**
+To prevent stalling Folia region threads during synchronous inventory events, the `CustomItem_CachingSubservice` maintains a local, in-memory mirror of the instance registry. 
+- When an inventory or chunk is loaded, relevant UUIDs are pulled from Redis into the cache.
+- Redis Pub/Sub broadcasts creation/destruction events to keep all server regions synchronized instantaneously.
+
 **Key Behaviors:**
-- `createInstance(type)` constructs the `ItemStack`, writes the PDC tags, and registers the UUID in Redis (if tracked).
-- `destroyInstance(uuid)` removes the instance from Redis, instantly invalidating any copies that might exist in the world.
+- `createInstance(type)` constructs the `ItemStack`, writes the PDC tags, registers the UUID in Redis, and pushes it to the local cache.
+- `destroyInstance(uuid)` removes the instance from Redis, instantly invalidating any copies that might exist in the world via Pub/Sub cache invalidation.
 
 ## 4. The Serialization Subservice
 
