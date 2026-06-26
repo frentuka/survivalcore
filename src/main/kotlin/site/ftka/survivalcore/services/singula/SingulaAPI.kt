@@ -5,7 +5,7 @@ import site.ftka.survivalcore.MClass
 import site.ftka.survivalcore.services.singula.singulas.OfflineSingula
 import site.ftka.survivalcore.services.singula.singulas.Singula
 import java.util.UUID
-import java.util.concurrent.CompletableFuture
+import kotlinx.coroutines.future.await
 
 class SingulaAPI(private val plugin: MClass, private val svc: SingulaService) {
 
@@ -33,22 +33,16 @@ class SingulaAPI(private val plugin: MClass, private val svc: SingulaService) {
     }
 
     /**
-     * Get a Singula object that's not online
+     * Get an ISingula (OfflineSingula) object for an offline player
      *
      * @param uuid The player's UUID
-     * @return A CompletableFuture with the OfflineSingula object if UUID exists in database
+     * @return The OfflineSingula object if UUID exists in database, null otherwise
      */
-    fun getOfflineSingula(uuid: UUID): CompletableFuture<OfflineSingula?> {
-        val future = CompletableFuture<OfflineSingula?>()
+    suspend fun getOfflineSingula(uuid: UUID): OfflineSingula? {
+        val exists = plugin.essentialsFwk.database.api.exists(uuid.toString()).await()
+        if (exists != true) return null
 
-        future.completeAsync {
-            if (plugin.essentialsFwk.database.api.exists(uuid.toString()).get() != true)
-                return@completeAsync null
-
-            return@completeAsync OfflineSingula(plugin, uuid)
-        }
-
-        return future
+        return OfflineSingula(plugin, uuid)
     }
 
 }

@@ -11,7 +11,9 @@ import site.ftka.survivalcore.services.language.LanguageAPI
 import site.ftka.survivalcore.services.permissions.PermissionsAPI
 import site.ftka.survivalcore.services.permissions.subservices.PermissionsService_PlayersSubservice
 import site.ftka.survivalcore.services.playerdata.PlayerDataAPI
+import site.ftka.survivalcore.services.playerdata.objects.PlayerData
 import java.util.UUID
+import kotlinx.coroutines.future.await
 
 /**
  * Singula means "Individual" in Latin
@@ -27,34 +29,25 @@ import java.util.UUID
  * @param plugin Main plugin instance
  * @param uuid Player's UUID
  */
-class Singula(private val plugin: MClass, val player: Player) {
+class Singula(private val plugin: MClass, val player: Player) : ISingula {
 
     /*
         APIs
      */
-    private val usernameTracker: UsernameTrackerEssential
-        get() { return plugin.essentialsFwk.usernameTracker }
-
-    private val chatAPI: ChatAPI
-        get() { return plugin.essentialsFwk.chat.api }
-
-    private val langAPI: LanguageAPI
-        get() { return plugin.servicesFwk.language.api }
-
-    private val permsAPI: PermissionsAPI
-        get() { return plugin.servicesFwk.permissions.api }
-
-    private val playerDataAPI: PlayerDataAPI
-        get() { return plugin.servicesFwk.playerData.api }
+    private val usernameTracker: UsernameTrackerEssential = plugin.essentialsFwk.usernameTracker
+    private val chatAPI: ChatAPI = plugin.essentialsFwk.chat.api
+    private val langAPI: LanguageAPI = plugin.servicesFwk.language.api
+    private val permsAPI: PermissionsAPI = plugin.servicesFwk.permissions.api
+    private val playerDataAPI: PlayerDataAPI = plugin.servicesFwk.playerData.api
 
     /*
         variables
      */
 
-    val username: String
+    override val username: String
         get() { return player.name }
 
-    val uuid: UUID
+    override val uuid: UUID
         get() { return player.uniqueId }
 
     /*
@@ -62,7 +55,7 @@ class Singula(private val plugin: MClass, val player: Player) {
      */
 
     private fun isAvailable()
-            = plugin.server.getPlayer(uuid) != null
+            = player.isOnline
 
         /*
             Chat
@@ -187,7 +180,7 @@ class Singula(private val plugin: MClass, val player: Player) {
      * @param permission The permission to check
      * @return True if player has the permission
      */
-    fun hasPermission(permission: String)
+    override suspend fun hasPermission(permission: String)
         = permsAPI.player_hasPerm_locally(uuid, permission)
 
     /**
@@ -195,9 +188,9 @@ class Singula(private val plugin: MClass, val player: Player) {
      *
      * @return A set of permissions
      */
-    fun getPermissions(): Set<String> {
+    override suspend fun getPermissions(): Set<String> {
         if (isAvailable())
-            return permsAPI.player_getPerms(uuid).get() ?: setOf()
+            return permsAPI.player_getPerms(uuid).await() ?: setOf()
         return setOf()
     }
 
@@ -207,9 +200,9 @@ class Singula(private val plugin: MClass, val player: Player) {
      * @param permission The permission to add
      * @return The result of the operation
      */
-    fun addPermission(permission: String): PermissionsService_PlayersSubservice.Permissions_addPermissionResult {
+    override suspend fun addPermission(permission: String): PermissionsService_PlayersSubservice.Permissions_addPermissionResult {
         if (isAvailable())
-            return runBlocking { permsAPI.player_addPerm(uuid, permission) }
+            return permsAPI.player_addPerm(uuid, permission)
         return PermissionsService_PlayersSubservice.Permissions_addPermissionResult.FAILURE_PLAYER_UNAVAILABLE
     }
 
@@ -219,9 +212,9 @@ class Singula(private val plugin: MClass, val player: Player) {
      * @param permission The permission to remove
      * @return The result of the operation
      */
-    fun removePermission(permission: String): PermissionsService_PlayersSubservice.Permissions_removePermissionResult {
+    override suspend fun removePermission(permission: String): PermissionsService_PlayersSubservice.Permissions_removePermissionResult {
         if (isAvailable())
-            return runBlocking { permsAPI.player_removePerm(uuid, permission) }
+            return permsAPI.player_removePerm(uuid, permission)
         return PermissionsService_PlayersSubservice.Permissions_removePermissionResult.FAILURE_PLAYER_UNAVAILABLE
     }
 
@@ -234,9 +227,9 @@ class Singula(private val plugin: MClass, val player: Player) {
      *
      * @return A set of groups UUIDs
      */
-    fun getGroups(): Set<UUID> {
+    override suspend fun getGroups(): Set<UUID> {
         if (isAvailable())
-            return permsAPI.player_getGroups(uuid).get() ?: setOf()
+            return permsAPI.player_getGroups(uuid).await() ?: setOf()
         return setOf()
     }
 
@@ -245,9 +238,9 @@ class Singula(private val plugin: MClass, val player: Player) {
      *
      * @return The display group UUID
      */
-    fun getDisplayGroup(): UUID? {
+    override suspend fun getDisplayGroup(): UUID? {
         if (isAvailable())
-            return permsAPI.player_getDisplayGroup(uuid).get()
+            return permsAPI.player_getDisplayGroup(uuid).await()
         return null
     }
 
@@ -257,9 +250,15 @@ class Singula(private val plugin: MClass, val player: Player) {
      * @param group The group to add
      * @return The result of the operation
      */
-    fun addGroup(group: UUID): PermissionsService_PlayersSubservice.Permissions_addGroupResult {
+    override suspend fun addGroup(group: UUID): PermissionsService_PlayersSubservice.Permissions_addGroupResult {
         if (isAvailable())
-            return runBlocking { permsAPI.player_addGroup(uuid, group) }
+            return permsAPI.player_addGroup(uuid, group)
+        return PermissionsService_PlayersSubservice.Permissions_addGroupResult.FAILURE_PLAYER_UNAVAILABLE
+    }
+    
+    override suspend fun addGroup(group: String): PermissionsService_PlayersSubservice.Permissions_addGroupResult {
+        if (isAvailable())
+            return permsAPI.player_addGroup(uuid, group)
         return PermissionsService_PlayersSubservice.Permissions_addGroupResult.FAILURE_PLAYER_UNAVAILABLE
     }
 
@@ -269,9 +268,15 @@ class Singula(private val plugin: MClass, val player: Player) {
      * @param group The group to remove
      * @return The result of the operation
      */
-    fun removeGroup(group: UUID): PermissionsService_PlayersSubservice.Permissions_removeGroupResult {
+    override suspend fun removeGroup(group: UUID): PermissionsService_PlayersSubservice.Permissions_removeGroupResult {
         if (isAvailable())
-            return runBlocking { permsAPI.player_removeGroup(uuid, group) }
+            return permsAPI.player_removeGroup(uuid, group)
+        return PermissionsService_PlayersSubservice.Permissions_removeGroupResult.FAILURE_PLAYER_UNAVAILABLE
+    }
+    
+    override suspend fun removeGroup(group: String): PermissionsService_PlayersSubservice.Permissions_removeGroupResult {
+        if (isAvailable())
+            return permsAPI.player_removeGroup(uuid, group)
         return PermissionsService_PlayersSubservice.Permissions_removeGroupResult.FAILURE_PLAYER_UNAVAILABLE
     }
 
@@ -281,9 +286,15 @@ class Singula(private val plugin: MClass, val player: Player) {
      * @param group The group to set as display group
      * @return The result of the operation
      */
-    fun setDisplayGroup(group: UUID): PermissionsService_PlayersSubservice.Permissions_setDisplayGroupResult {
+    override suspend fun setDisplayGroup(group: UUID): PermissionsService_PlayersSubservice.Permissions_setDisplayGroupResult {
         if (isAvailable())
-            return runBlocking { permsAPI.player_setDisplayGroup(uuid, group) }
+            return permsAPI.player_setDisplayGroup(uuid, group)
+        return PermissionsService_PlayersSubservice.Permissions_setDisplayGroupResult.FAILURE_PLAYER_UNAVAILABLE
+    }
+    
+    override suspend fun setDisplayGroup(group: String): PermissionsService_PlayersSubservice.Permissions_setDisplayGroupResult {
+        if (isAvailable())
+            return permsAPI.player_setDisplayGroup(uuid, group)
         return PermissionsService_PlayersSubservice.Permissions_setDisplayGroupResult.FAILURE_PLAYER_UNAVAILABLE
     }
 
@@ -296,7 +307,7 @@ class Singula(private val plugin: MClass, val player: Player) {
      *
      * @return The PlayerData object
      */
-    fun getPlayerData()
+    override suspend fun getPlayerData(): PlayerData?
         = playerDataAPI.getPlayerData_locally(uuid)
 
 }

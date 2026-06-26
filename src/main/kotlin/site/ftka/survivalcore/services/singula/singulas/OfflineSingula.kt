@@ -6,7 +6,10 @@ import site.ftka.survivalcore.essentials.chat.ChatAPI
 import site.ftka.survivalcore.services.language.LanguageAPI
 import site.ftka.survivalcore.services.permissions.PermissionsAPI
 import site.ftka.survivalcore.services.playerdata.PlayerDataAPI
+import site.ftka.survivalcore.services.permissions.subservices.PermissionsService_PlayersSubservice
+import site.ftka.survivalcore.services.playerdata.objects.PlayerData
 import java.util.UUID
+import kotlinx.coroutines.future.await
 
 /**
  * A Singula object that represents an offline player
@@ -17,32 +20,23 @@ import java.util.UUID
  * @param plugin Main plugin instance
  * @param uuid Player's UUID
  */
-class OfflineSingula(private val plugin: MClass, val uuid: UUID) {
+class OfflineSingula(private val plugin: MClass, override val uuid: UUID) : ISingula {
 
     /*
         APIs
      */
 
-    private val usernameTracker: UsernameTrackerEssential
-        get() { return plugin.essentialsFwk.usernameTracker }
-
-    private val chatAPI: ChatAPI
-        get() { return plugin.essentialsFwk.chat.api }
-
-    private val langAPI: LanguageAPI
-        get() { return plugin.servicesFwk.language.api }
-
-    private val permsAPI: PermissionsAPI
-        get() { return plugin.servicesFwk.permissions.api }
-
-    private val playerDataAPI: PlayerDataAPI
-        get() { return plugin.servicesFwk.playerData.api }
+    private val usernameTracker: UsernameTrackerEssential = plugin.essentialsFwk.usernameTracker
+    private val chatAPI: ChatAPI = plugin.essentialsFwk.chat.api
+    private val langAPI: LanguageAPI = plugin.servicesFwk.language.api
+    private val permsAPI: PermissionsAPI = plugin.servicesFwk.permissions.api
+    private val playerDataAPI: PlayerDataAPI = plugin.servicesFwk.playerData.api
 
     /*
         variables
      */
 
-    val username: String?
+    override val username: String?
         get() { return usernameTracker.getName(uuid) }
 
     /*
@@ -55,16 +49,16 @@ class OfflineSingula(private val plugin: MClass, val uuid: UUID) {
      * @param permission Permission to check
      * @return Whether the player has the permission
      */
-    fun hasPermission(permission: String)
-        = permsAPI.player_hasPerm(uuid, permission)
+    override suspend fun hasPermission(permission: String): Boolean
+        = permsAPI.player_hasPerm(uuid, permission).await() ?: false
 
     /**
      * Gets the player's permissions
      *
      * @return The permissions the player has
      */
-    fun getPermissions()
-        = permsAPI.player_getPerms(uuid)
+    override suspend fun getPermissions(): Set<String>
+        = permsAPI.player_getPerms(uuid).await() ?: setOf()
 
     /**
      * Adds a permission to the player
@@ -72,7 +66,7 @@ class OfflineSingula(private val plugin: MClass, val uuid: UUID) {
      * @param permission Permission to add
      * @return The result of the operation
      */
-    suspend fun addPermission(permission: String)
+    override suspend fun addPermission(permission: String): PermissionsService_PlayersSubservice.Permissions_addPermissionResult
         = permsAPI.player_addPerm(uuid, permission)
 
     /**
@@ -81,7 +75,7 @@ class OfflineSingula(private val plugin: MClass, val uuid: UUID) {
      * @param permission Permission to remove
      * @return The result of the operation
      */
-    suspend fun removePermission(permission: String)
+    override suspend fun removePermission(permission: String): PermissionsService_PlayersSubservice.Permissions_removePermissionResult
         = permsAPI.player_removePerm(uuid, permission)
 
     /**
@@ -89,16 +83,16 @@ class OfflineSingula(private val plugin: MClass, val uuid: UUID) {
      *
      * @return The groups the player is in
      */
-    fun getGroups()
-        = permsAPI.player_getGroups(uuid)
+    override suspend fun getGroups(): Set<UUID>
+        = permsAPI.player_getGroups(uuid).await() ?: setOf()
 
     /**
      * Gets the player's display group
      *
      * @return The display group
      */
-    fun getDisplayGroup()
-        = permsAPI.player_getDisplayGroup(uuid)
+    override suspend fun getDisplayGroup(): UUID?
+        = permsAPI.player_getDisplayGroup(uuid).await()
 
     /**
      * Adds a group to the player
@@ -106,7 +100,9 @@ class OfflineSingula(private val plugin: MClass, val uuid: UUID) {
      * @param group Group to add
      * @return The result of the operation
      */
-    suspend fun addGroup(group: String)
+    override suspend fun addGroup(group: String): PermissionsService_PlayersSubservice.Permissions_addGroupResult
+        = permsAPI.player_addGroup(uuid, group)
+    override suspend fun addGroup(group: UUID): PermissionsService_PlayersSubservice.Permissions_addGroupResult
         = permsAPI.player_addGroup(uuid, group)
 
     /**
@@ -115,7 +111,9 @@ class OfflineSingula(private val plugin: MClass, val uuid: UUID) {
      * @param group Group to remove
      * @return The result of the operation
      */
-    suspend fun removeGroup(group: String)
+    override suspend fun removeGroup(group: String): PermissionsService_PlayersSubservice.Permissions_removeGroupResult
+        = permsAPI.player_removeGroup(uuid, group)
+    override suspend fun removeGroup(group: UUID): PermissionsService_PlayersSubservice.Permissions_removeGroupResult
         = permsAPI.player_removeGroup(uuid, group)
 
     /**
@@ -123,7 +121,9 @@ class OfflineSingula(private val plugin: MClass, val uuid: UUID) {
      *
      * @param group Group to set
      */
-    suspend fun setDisplayGroup(group: String)
+    override suspend fun setDisplayGroup(group: String): PermissionsService_PlayersSubservice.Permissions_setDisplayGroupResult
+        = permsAPI.player_setDisplayGroup(uuid, group)
+    override suspend fun setDisplayGroup(group: UUID): PermissionsService_PlayersSubservice.Permissions_setDisplayGroupResult
         = permsAPI.player_setDisplayGroup(uuid, group)
 
     /*
@@ -135,7 +135,7 @@ class OfflineSingula(private val plugin: MClass, val uuid: UUID) {
      *
      * @return PlayerData object
      */
-    fun getPlayerData()
-        = playerDataAPI.getPlayerData(uuid)
+    override suspend fun getPlayerData(): PlayerData?
+        = playerDataAPI.getPlayerData(uuid).await()
 
 }
